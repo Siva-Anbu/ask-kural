@@ -66,13 +66,27 @@ export default function Home() {
   return (
     <div className={styles.shell}>
 
-      {/* HEADER */}
-      <header className={styles.header}>
-        <div className={styles.titleTamil}>திருக்குறள் அருளுரை</div>
-        <div className={styles.titleSub}>ASK KURAL · வள்ளுவரிடம் கேளுங்கள் · Ask Valluvar anything</div>
+      {/* ── TOP BAR: title left, question bubble right ── */}
+      <header className={styles.topBar}>
+        <div className={styles.titleBlock}>
+          <div className={styles.titleTamil}>திருக்குறள் அருளுரை</div>
+          <div className={styles.titleSub}>ASK KURAL · வள்ளுவரிடம் கேளுங்கள் · ASK VALLUVAR ANYTHING</div>
+        </div>
+
+        {result && (
+          <div className={styles.qBubble}>
+            <div className={styles.qLabel}>YOUR QUESTION</div>
+            <div className={styles.qText}>&ldquo;{result.question}&rdquo;</div>
+            {result.keywords?.length > 0 && (
+              <div className={styles.tags}>
+                {result.keywords.slice(0,3).map((k,i) => <span key={i} className={styles.tag}>{k}</span>)}
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
-      {/* BODY */}
+      {/* ── BODY ── */}
       <div className={styles.body}>
 
         {/* WELCOME */}
@@ -103,61 +117,51 @@ export default function Home() {
         {error && !loading && (
           <div className={styles.center}>
             <p className={styles.errorText}>{error}</p>
-            <button className={styles.ghostBtn} onClick={handleReset}>Try Again</button>
+            <button className={styles.askAgainBtn} onClick={handleReset}>Try Again</button>
           </div>
         )}
 
-        {/* RESULT: left = kural, right = 2×2 commentary grid */}
+        {/* RESULT */}
         {result && !loading && (
           <div className={styles.resultGrid}>
 
-            {/* LEFT */}
+            {/* LEFT — kural */}
             <div className={styles.leftCol}>
-              <div className={styles.qBubble}>
-                <span className={styles.qText}>&ldquo;{result.question}&rdquo;</span>
-                {result.keywords?.length > 0 && (
-                  <div className={styles.tags}>
-                    {result.keywords.slice(0,4).map((k,i) => <span key={i} className={styles.tag}>{k}</span>)}
-                  </div>
-                )}
-              </div>
-
               <div className={styles.kuralCard}>
                 <div className={styles.kuralMeta}>
-                  குறள் #{result.kural.number} · {result.kural.chapter_tamil} · {result.kural.book_tamil}
+                  <span className={styles.kuralNum}>குறள் #{result.kural.number}</span>
+                  <span className={styles.kuralChapter}>{result.kural.chapter_tamil} · {result.kural.book_tamil}</span>
                 </div>
                 <p className={styles.kuralTamil}>
                   {result.kural.tamil.replace(/\\n/g,'\n')}
                 </p>
-                <hr className={styles.divider}/>
                 <p className={styles.kuralTranslit}>
                   {result.kural.transliteration.replace(/\\n/g,'\n')}
                 </p>
-                <p className={styles.kuralEn}>&ldquo;{result.kural.english}&rdquo;</p>
-                <p className={styles.chapter}>{result.kural.chapter_english} · {result.kural.book_english}</p>
+                <div className={styles.kuralEnBox}>
+                  <p className={styles.kuralEn}>&ldquo;{result.kural.english}&rdquo;</p>
+                </div>
+                <div className={styles.kuralFooter}>
+                  <span>{result.kural.chapter_english.toUpperCase()}</span>
+                  <span>{result.kural.book_english.toUpperCase()}</span>
+                </div>
               </div>
-
-              <button className={styles.ghostBtn} onClick={handleReset}>
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 8a6 6 0 1 1 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M2 11V8h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Ask Again
-              </button>
             </div>
 
-            {/* RIGHT: commentary 2×2 grid */}
+            {/* RIGHT — 2×2 commentary grid */}
             <div className={styles.rightCol}>
-              <div className={styles.comLabel}>
-                உரையாசிரியர்கள் · <span>COMMENTARIES</span>
+              <div className={styles.comHeader}>
+                <span className={styles.comHeaderLeft}>உரையாசிரியர்கள்</span>
+                <span className={styles.comHeaderRight}>COMMENTARIES</span>
               </div>
+
               <div className={styles.comGrid}>
 
                 {result.kural.mv && (
                   <div className={styles.comCard}>
                     <div className={styles.comCardHead}>
                       <span className={styles.avatar}>மு.வ</span>
-                      <div>
+                      <div className={styles.comAuthor}>
                         <div className={styles.comName}>Mu. Varadharasanar</div>
                         <div className={styles.comNameTamil}>முனைவர் மு. வரதராசனார்</div>
                       </div>
@@ -170,7 +174,7 @@ export default function Home() {
                   <div className={styles.comCard}>
                     <div className={styles.comCardHead}>
                       <span className={styles.avatar}>ச.பா</span>
-                      <div>
+                      <div className={styles.comAuthor}>
                         <div className={styles.comName}>Solomon Pappaiah</div>
                         <div className={styles.comNameTamil}>சாலமன் பாப்பையா</div>
                       </div>
@@ -183,7 +187,7 @@ export default function Home() {
                   <div className={styles.comCard}>
                     <div className={styles.comCardHead}>
                       <span className={styles.avatar}>க.க</span>
-                      <div>
+                      <div className={styles.comAuthor}>
                         <div className={styles.comName}>Kalaignar Karunanidhi</div>
                         <div className={styles.comNameTamil}>கலைஞர் கருணாநிதி</div>
                       </div>
@@ -195,8 +199,8 @@ export default function Home() {
                 {result.kural.explanation && (
                   <div className={styles.comCard}>
                     <div className={styles.comCardHead}>
-                      <span className={styles.avatar}>EN</span>
-                      <div>
+                      <span className={styles.avatarEn}>EN</span>
+                      <div className={styles.comAuthor}>
                         <div className={styles.comName}>English Explanation</div>
                         <div className={styles.comNameTamil}>ஆங்கில விளக்கம்</div>
                       </div>
@@ -212,27 +216,37 @@ export default function Home() {
         )}
       </div>
 
-      {/* INPUT BAR */}
-      <div className={styles.inputBar}>
-        <div className={styles.inputRow}>
-          <textarea
-            ref={inputRef}
-            className={styles.inputBox}
-            placeholder="வள்ளுவரிடம் கேளுங்கள்… · Ask Valluvar anything…"
-            value={input}
-            rows={1}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input); }
-            }}
-          />
-          <button className={styles.sendBtn} onClick={() => handleSend(input)}
-            disabled={loading || !input.trim()} aria-label="Send">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* ── BOTTOM: ask again + input ── */}
+      <div className={styles.bottomBar}>
+        {result ? (
+          <button className={styles.askAgainBtn} onClick={handleReset}>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+              <path d="M2 8a6 6 0 1 1 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M2 11V8h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
+            Ask Again
           </button>
-        </div>
+        ) : (
+          <div className={styles.inputRow}>
+            <textarea
+              ref={inputRef}
+              className={styles.inputBox}
+              placeholder="வள்ளுவரிடம் கேளுங்கள்… · Ask Valluvar anything…"
+              value={input}
+              rows={1}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input); }
+              }}
+            />
+            <button className={styles.sendBtn} onClick={() => handleSend(input)}
+              disabled={loading || !input.trim()} aria-label="Send">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        )}
         <p className={styles.inputHint}>Tamil அல்லது English-ல் தட்டச்சு செய்யுங்கள்</p>
       </div>
 
