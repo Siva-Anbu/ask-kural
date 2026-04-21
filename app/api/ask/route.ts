@@ -6,7 +6,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// ─── STOP WORDS ───────────────────────────────────────────────────────────────
 const STOP_WORDS = new Set([
   'i','me','my','myself','we','our','you','your','he','him','his','she','her',
   'they','them','their','it','its','a','an','the','and','or','but','if','in',
@@ -21,64 +20,47 @@ const STOP_WORDS = new Set([
   'actually','always','never','sometimes','maybe','perhaps','again','back',
   'way','thing','things','something','anything','everything','nothing','tell',
   'let','see','look','try','use','give','take','put','keep','start','end',
-  'find','need','ask','show','call','turn','move','live','leave',
+  'find','ask','show','call','turn','move','live','leave','help','work',
 ]);
 
-// ─── SYNONYM MAP — expand user words to searchable equivalents ────────────────
+// Simple but comprehensive synonym map — only for words Valluvar wouldn't use
 const SYNONYMS: Record<string, string[]> = {
-  // Ego / pride
   egoistic: ['arrogance','ego','pride'],
   egotistic: ['arrogance','ego','pride'],
-  arrogant: ['arrogance','ego','pride'],
-  selfish: ['selfish','ego','arrogance'],
-  narcissist: ['ego','arrogance','pride'],
-  rude: ['arrogance','difficult','anger'],
-  disrespect: ['arrogance','ego','difficult'],
-  disrespectful: ['arrogance','ego','difficult'],
-  toxic: ['difficult','arrogance'],
-  tackle: ['difficult','wisdom','enemy'],
-  handle: ['wisdom','difficult'],
-  deal: ['wisdom','difficult'],
-  // Anger
-  furious: ['anger','rage'],
-  irritate: ['anger','frustration'],
-  annoying: ['anger','difficult'],
-  // Loneliness
-  homesick: ['loneliness','missing','home'],
-  isolated: ['loneliness','alone'],
-  // Grief
-  grief: ['suffering','sadness','loss'],
-  depressed: ['suffering','peace','sadness'],
-  // Career
-  unemployed: ['perseverance','effort','wealth'],
-  jobless: ['perseverance','effort','wealth'],
-  fired: ['perseverance','effort'],
-  // Relationships
+  arrogant: ['arrogance','pride'],
+  selfish: ['selfish','ego'],
+  rude: ['arrogance','anger'],
+  toxic: ['difficult','anger'],
+  tackle: ['wisdom','enemy'],
+  handle: ['wisdom'],
+  frustrated: ['frustration','anger','effort'],
+  frustration: ['anger','effort'],
+  stressed: ['peace','suffering'],
+  stress: ['peace','suffering'],
+  overwhelmed: ['suffering','peace'],
+  burnout: ['effort','laziness'],
+  exhausted: ['effort','perseverance'],
+  depressed: ['suffering','peace'],
+  anxiety: ['fear','peace'],
+  anxious: ['fear','peace'],
+  jobless: ['wealth','effort','perseverance'],
+  unemployed: ['wealth','effort','perseverance'],
+  fired: ['effort','perseverance'],
+  breakup: ['love','separation'],
   divorce: ['love','separation'],
-  breakup: ['love','heartbreak'],
   cheating: ['betrayal','friendship'],
-  betray: ['betrayal','friendship'],
-  backstab: ['betrayal','friendship'],
-  // Laziness
-  distracted: ['laziness','procrastination'],
-  unmotivated: ['laziness','procrastination'],
-  // Health
-  sick: ['medicine','health'],
-  ill: ['medicine','health'],
-  mental: ['peace','mind','wisdom'],
-  // People
-  neighbour: ['arrogance','difficult','wisdom'],
-  neighbor: ['arrogance','difficult','wisdom'],
-  colleague: ['work','career'],
-  coworker: ['work','career'],
-  // Language
-  language: ['speech','language','words','eloquence'],
-  speak: ['speech','language','words'],
-  talking: ['speech','language','words'],
-  communication: ['speech','language','words'],
+  betrayed: ['betrayal','friendship'],
+  lonely: ['loneliness','love'],
+  homesick: ['loneliness','home'],
+  procrastinate: ['laziness','action'],
+  lazy: ['laziness','action'],
+  neighbour: ['arrogance','wisdom'],
+  neighbor: ['arrogance','wisdom'],
+  language: ['speech','words','eloquence'],
+  speak: ['speech','words'],
+  communication: ['speech','words'],
 };
 
-// ─── EXTRACT KEYWORDS ─────────────────────────────────────────────────────────
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
   const words = lower.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
@@ -88,62 +70,88 @@ function extractKeywords(text: string): string[] {
     expanded.add(word);
     // Add synonyms
     if (SYNONYMS[word]) SYNONYMS[word].forEach(s => expanded.add(s));
-    // Stem basic suffixes
-    const stemmed = word.replace(/ing$|tion$|ness$|ment$|ed$|ly$|er$|s$/, '');
-    if (stemmed !== word && stemmed.length > 2) {
+    // Stem and add
+    const stemmed = word
+      .replace(/tion$|ing$|ness$|ment$|ful$|less$|ed$|ly$|er$|s$/, '');
+    if (stemmed.length > 2 && stemmed !== word) {
       expanded.add(stemmed);
       if (SYNONYMS[stemmed]) SYNONYMS[stemmed].forEach(s => expanded.add(s));
     }
   }
-
   return Array.from(expanded);
 }
 
-// ─── FIND BEST KURAL using Postgres full-text search ─────────────────────────
+// Score each kural by counting keyword hits across all fields
+function scoreKural(kural: Record<string, unknown>, keywords: string[]): number {
+  let score = 0;
+  const english = ((kural.english as string) || '').toLowerCase();
+  const chapter  = ((kural.chapter_english as string) || '').toLowerCase();
+  const themes   = ((kural.themes as string[]) || []).join(' ').toLowerCase();
+
+  for (const kw of keywords) {
+    if (kw.length < 3) continue;
+    if (themes.includes(kw))  score += 5; // theme match = strongest
+    if (english.includes(kw)) score += 3; // meaning match = strong
+    if (chapter.includes(kw)) score += 2; // chapter match = medium
+  }
+  return score;
+}
+
 async function findBestKural(keywords: string[]) {
-  // Build a plainto_tsquery compatible string
   const queryString = keywords.join(' ');
 
-  // Step 1: Full-text search — ranked by how well kural matches the keywords
+  // Step 1: Postgres full-text search — fast, gets top 30 candidates
   const { data: ftResults } = await supabase.rpc('search_kurals', {
     query_text: queryString,
-    result_limit: 5
+    result_limit: 30,
   });
 
   if (ftResults && ftResults.length > 0) {
-    // Pick randomly from top 3 for variety
-    return ftResults[Math.floor(Math.random() * Math.min(ftResults.length, 3))];
+    // Re-score all candidates using our keyword hit counter
+    const scored = (ftResults as Record<string, unknown>[])
+      .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+      .sort((a, b) => b.score - a.score);
+
+    // Return best — add small randomness among top 3 for variety
+    const top = scored.slice(0, 3);
+    return top[Math.floor(Math.random() * top.length)].kural;
   }
 
-  // Step 2: Fallback — theme overlap
+  // Step 2: Theme overlap fallback
   const { data: themeMatches } = await supabase
     .from('kurals')
     .select('*')
     .overlaps('themes', keywords)
-    .limit(10);
+    .limit(20);
 
   if (themeMatches && themeMatches.length > 0) {
-    return themeMatches[Math.floor(Math.random() * Math.min(themeMatches.length, 3))];
+    const scored = (themeMatches as Record<string, unknown>[])
+      .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+      .sort((a, b) => b.score - a.score);
+    return scored[0].kural;
   }
 
-  // Step 3: ILIKE fallback on meaningful words
+  // Step 3: ILIKE search on english meaning
   for (const kw of keywords.slice(0, 5)) {
     const { data } = await supabase
       .from('kurals')
       .select('*')
       .ilike('english', `%${kw}%`)
-      .limit(3);
-    if (data && data.length > 0) return data[0];
+      .limit(10);
+    if (data && data.length > 0) {
+      const scored = (data as Record<string, unknown>[])
+        .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+        .sort((a, b) => b.score - a.score);
+      return scored[0].kural;
+    }
   }
 
-  // Step 4: Random
+  // Step 4: Random fallback
   const { data: all } = await supabase.from('kurals').select('*').limit(100);
   if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
-
   return null;
 }
 
-// ─── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const { message } = await req.json();
@@ -152,9 +160,8 @@ export async function POST(req: NextRequest) {
     }
 
     const keywords = extractKeywords(message);
-
     if (keywords.length === 0) {
-      return NextResponse.json({ error: 'Could not understand the query. Please try again.' }, { status: 400 });
+      return NextResponse.json({ error: 'Could not understand query. Please try again.' }, { status: 400 });
     }
 
     const kural = await findBestKural(keywords);
@@ -162,7 +169,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not find a matching Kural.' }, { status: 500 });
     }
 
-    return NextResponse.json({ kural, keywords: keywords.slice(0, 6) });
+    // Return only the original user-typed keywords for display (not expanded ones)
+    const displayKeywords = message
+      .toLowerCase()
+      .replace(/[.,!?;:'"()\-]/g, ' ')
+      .split(/\s+/)
+      .filter((w: string) => w.length > 2 && !STOP_WORDS.has(w))
+      .slice(0, 5);
+
+    return NextResponse.json({ kural, keywords: displayKeywords });
 
   } catch (err) {
     console.error('Server error:', err);
