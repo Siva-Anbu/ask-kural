@@ -25,40 +25,149 @@ const STOP_WORDS = new Set([
 
 // Simple but comprehensive synonym map — only for words Valluvar wouldn't use
 const SYNONYMS: Record<string, string[]> = {
+  // Ego / Pride
   egoistic: ['arrogance','ego','pride'],
   egotistic: ['arrogance','ego','pride'],
   arrogant: ['arrogance','pride'],
   selfish: ['selfish','ego'],
   rude: ['arrogance','anger'],
   toxic: ['difficult','anger'],
+
+  // Handling / Wisdom
   tackle: ['wisdom','enemy'],
   handle: ['wisdom'],
+
+  // Frustration / Anger
   frustrated: ['frustration','anger','effort'],
   frustration: ['anger','effort'],
+  angry: ['anger','self-control'],
+  anger: ['anger','self-control'],
+  rage: ['anger','self-control'],
+  furious: ['anger','self-control'],
+  irritated: ['anger','self-control'],
+
+  // Stress / Suffering / Pain
   stressed: ['peace','suffering'],
   stress: ['peace','suffering'],
   overwhelmed: ['suffering','peace'],
   burnout: ['effort','laziness'],
   exhausted: ['effort','perseverance'],
-  depressed: ['suffering','peace'],
+  depressed: ['suffering','peace','grief'],
+  pain: ['suffering','grief','perseverance'],
+  painful: ['suffering','grief'],
+  hurt: ['suffering','grief','love'],
+  ache: ['suffering','grief'],
+  aching: ['suffering','grief'],
+  sorrow: ['grief','suffering'],
+  grief: ['grief','suffering'],
+  suffering: ['suffering','perseverance'],
+  illness: ['health','suffering','fate'],
+  sick: ['health','suffering'],
+  disease: ['health','suffering'],
+  physical: ['health','body','fate'],
+  body: ['health','body'],
+  heal: ['health','perseverance'],
+  healing: ['health','perseverance'],
+  recover: ['health','perseverance'],
+  recovery: ['health','perseverance'],
+
+  // Fear / Anxiety
   anxiety: ['fear','peace'],
   anxious: ['fear','peace'],
+  fear: ['fear','courage'],
+  afraid: ['fear','courage'],
+  scared: ['fear','courage'],
+  worry: ['fear','peace'],
+  worried: ['fear','peace'],
+
+  // Sadness / Loneliness
+  sad: ['grief','suffering','love'],
+  crying: ['grief','suffering'],
+  lonely: ['loneliness','love'],
+  loneliness: ['loneliness','love'],
+  alone: ['loneliness','love'],
+  homesick: ['loneliness','home'],
+  isolated: ['loneliness','friendship'],
+
+  // Job / Career / Wealth
   jobless: ['wealth','effort','perseverance'],
   unemployed: ['wealth','effort','perseverance'],
   fired: ['effort','perseverance'],
+  job: ['effort','wealth','action'],
+  career: ['effort','wealth','action'],
+  work: ['effort','action'],
+  money: ['wealth','generosity'],
+  poor: ['wealth','poverty'],
+  debt: ['wealth','poverty'],
+
+  // Relationships / Love
   breakup: ['love','separation'],
   divorce: ['love','separation'],
   cheating: ['betrayal','friendship'],
   betrayed: ['betrayal','friendship'],
-  lonely: ['loneliness','love'],
-  homesick: ['loneliness','home'],
+  heartbroken: ['love','grief'],
+  relationship: ['love','friendship'],
+  marriage: ['love','domestic'],
+  wife: ['love','domestic'],
+  husband: ['love','domestic'],
+
+  // Courage / Strength
+  courageous: ['courage','strength'],
+  courage: ['courage','strength'],
+  brave: ['courage','strength'],
+  coward: ['fear','courage'],
+  strong: ['strength','perseverance'],
+  weak: ['strength','perseverance'],
+
+  // Laziness / Procrastination
   procrastinate: ['laziness','action'],
   lazy: ['laziness','action'],
-  neighbour: ['arrogance','wisdom'],
-  neighbor: ['arrogance','wisdom'],
+  inactive: ['laziness','action'],
+  idle: ['laziness','action'],
+
+  // Patience / Time
+  impatient: ['patience','self-control'],
+  patience: ['patience','self-control'],
+  wait: ['patience','time'],
+
+  // Friends / Enemies
+  neighbour: ['friendship','wisdom'],
+  neighbor: ['friendship','wisdom'],
+  enemy: ['enemy','wisdom'],
+  enemies: ['enemy','wisdom'],
+  friend: ['friendship','love'],
+  friends: ['friendship','love'],
+
+  // Wisdom / Knowledge
+  wisdom: ['wisdom','knowledge'],
+  ignorant: ['knowledge','wisdom'],
+  ignorance: ['knowledge','wisdom'],
+  learn: ['knowledge','education'],
+  education: ['knowledge','education'],
+  smart: ['wisdom','knowledge'],
+  stupid: ['knowledge','wisdom'],
+  confused: ['wisdom','knowledge'],
+  confused: ['wisdom','knowledge'],
+
+  // Leadership
+  leader: ['leadership','governance'],
+  leadership: ['leadership','governance'],
+  king: ['leadership','governance'],
+  govern: ['governance','leadership'],
+
+  // Gratitude / Kindness
+  ungrateful: ['gratitude','kindness'],
+  grateful: ['gratitude','thankfulness'],
+  kind: ['kindness','compassion'],
+  kindness: ['kindness','compassion'],
+  generous: ['generosity','kindness'],
+
+  // Speech / Communication
   language: ['speech','words','eloquence'],
   speak: ['speech','words'],
   communication: ['speech','words'],
+  words: ['speech','eloquence'],
+  silence: ['silence','wisdom'],
 };
 
 function extractKeywords(text: string): string[] {
