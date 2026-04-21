@@ -175,38 +175,53 @@ export default function Home() {
                 From chapter: <em>{result.kural.chapter_english}</em> · {result.kural.book_english}
               </p>
 
-              {/* Commentaries */}
-              {(result.kural.mv || result.kural.sp || result.kural.mk) && (
+              {/* Commentaries — horizontal card array */}
+              {(result.kural.mv || result.kural.sp || result.kural.mk || result.kural.explanation) && (
                 <div className={styles.commentaries}>
                   <h3 className={styles.commentaryHeading}>உரையாசிரியர்கள் · Commentaries</h3>
+                  <div className={styles.commentaryGrid}>
 
-                  {result.kural.mv && (
-                    <div className={styles.commentaryBlock}>
-                      <span className={styles.commentaryAuthor}>மு.வ · Mu. Varadharasanar</span>
-                      <p className={styles.commentaryText}>{result.kural.mv}</p>
-                    </div>
-                  )}
+                    {result.kural.mv && (
+                      <div className={styles.commentaryCard}>
+                        <div className={styles.commentaryCardHeader}>
+                          <span className={styles.commentaryInitial}>மு.வ</span>
+                          <span className={styles.commentaryName}>Mu. Varadharasanar</span>
+                        </div>
+                        <p className={styles.commentaryText}>{result.kural.mv}</p>
+                      </div>
+                    )}
 
-                  {result.kural.sp && (
-                    <div className={styles.commentaryBlock}>
-                      <span className={styles.commentaryAuthor}>சாலமன் பாப்பையா · Solomon Pappaiah</span>
-                      <p className={styles.commentaryText}>{result.kural.sp}</p>
-                    </div>
-                  )}
+                    {result.kural.sp && (
+                      <div className={styles.commentaryCard}>
+                        <div className={styles.commentaryCardHeader}>
+                          <span className={styles.commentaryInitial}>ச.பா</span>
+                          <span className={styles.commentaryName}>Solomon Pappaiah</span>
+                        </div>
+                        <p className={styles.commentaryText}>{result.kural.sp}</p>
+                      </div>
+                    )}
 
-                  {result.kural.mk && (
-                    <div className={styles.commentaryBlock}>
-                      <span className={styles.commentaryAuthor}>கலைஞர் · Kalaignar Karunanidhi</span>
-                      <p className={styles.commentaryText}>{result.kural.mk}</p>
-                    </div>
-                  )}
+                    {result.kural.mk && (
+                      <div className={styles.commentaryCard}>
+                        <div className={styles.commentaryCardHeader}>
+                          <span className={styles.commentaryInitial}>க.க</span>
+                          <span className={styles.commentaryName}>Kalaignar Karunanidhi</span>
+                        </div>
+                        <p className={styles.commentaryText}>{result.kural.mk}</p>
+                      </div>
+                    )}
 
-                  {result.kural.explanation && (
-                    <div className={styles.commentaryBlock}>
-                      <span className={styles.commentaryAuthor}>English Explanation</span>
-                      <p className={styles.commentaryText}>{result.kural.explanation}</p>
-                    </div>
-                  )}
+                    {result.kural.explanation && (
+                      <div className={styles.commentaryCard}>
+                        <div className={styles.commentaryCardHeader}>
+                          <span className={styles.commentaryInitial}>EN</span>
+                          <span className={styles.commentaryName}>English Explanation</span>
+                        </div>
+                        <p className={styles.commentaryText}>{result.kural.explanation}</p>
+                      </div>
+                    )}
+
+                  </div>
                 </div>
               )}
 
