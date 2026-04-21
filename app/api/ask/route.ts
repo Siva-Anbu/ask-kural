@@ -394,7 +394,6 @@ const SYNONYMS: Record<string, string[]> = {
   improving: ['correction','virtue','action'],
   growth: ['correction','virtue','action'],
   feedback: ['correction','wisdom','speech'],
-  criticism: ['correction','speech','wisdom'],
   
   // Greatness & Nobility
   greatness: ['greatness','virtue','wisdom'],
