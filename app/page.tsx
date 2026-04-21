@@ -15,12 +15,10 @@ interface Kural {
   themes: string[];
 }
 
-interface Message {
-  type: 'user' | 'response';
-  text?: string;
-  kural?: Kural;
-  keywords?: string[];
-  error?: string;
+interface Result {
+  question: string;
+  kural: Kural;
+  keywords: string[];
 }
 
 const SUGGESTIONS = [
@@ -34,21 +32,22 @@ const SUGGESTIONS = [
 
 export default function Home() {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [error, setError] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+    if (result) {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [result]);
 
   async function handleSend(text: string) {
     if (!text.trim() || loading) return;
-    setStarted(true);
-    setMessages(prev => [...prev, { type: 'user', text }]);
-    setInput('');
+    setError('');
+    setResult(null);
     setLoading(true);
 
     try {
@@ -59,18 +58,21 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.error) {
-        setMessages(prev => [...prev, { type: 'response', error: data.error }]);
+        setError(data.error);
       } else {
-        setMessages(prev => [...prev, {
-          type: 'response',
-          kural: data.kural,
-          keywords: data.keywords,
-        }]);
+        setResult({ question: text, kural: data.kural, keywords: data.keywords });
       }
     } catch {
-      setMessages(prev => [...prev, { type: 'response', error: 'Something went wrong. Please try again.' }]);
+      setError('Something went wrong. Please try again.');
     }
     setLoading(false);
+  }
+
+  function handleReset() {
+    setResult(null);
+    setError('');
+    setInput('');
+    setTimeout(() => inputRef.current?.focus(), 100);
   }
 
   return (
@@ -98,9 +100,11 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Messages */}
-        <div className={styles.messages}>
-          {!started && (
+        {/* Content */}
+        <div className={styles.content}>
+
+          {/* Welcome — only shown before any question */}
+          {!result && !loading && (
             <div className={styles.welcome}>
               <p className={styles.welcomeQuote}>&ldquo;எண்ணிய எண்ணியாங்கு எய்துப&rdquo;</p>
               <p className={styles.welcomeQuoteEn}>What you seek with clear intent, you shall find.</p>
@@ -119,64 +123,75 @@ export default function Home() {
             </div>
           )}
 
-          {messages.map((msg, i) => (
-            <div key={i} className={msg.type === 'user' ? styles.userMsg : styles.responseMsg}>
-              {msg.type === 'user' ? (
-                <div className={styles.userBubble}>{msg.text}</div>
-              ) : msg.error ? (
-                <div className={styles.errorText}>{msg.error}</div>
-              ) : (
-                <div className={styles.responseBubble}>
-
-                  {/* Keywords detected */}
-                  {msg.keywords && msg.keywords.length > 0 && (
-                    <div className={styles.keywordRow}>
-                      {msg.keywords.slice(0, 6).map((kw, ki) => (
-                        <span key={ki} className={styles.keywordTag}>{kw}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Kural card */}
-                  {msg.kural && (
-                    <div className={styles.kuralCard}>
-                      <div className={styles.kuralMeta}>
-                        குறள் #{msg.kural.number} · {msg.kural.chapter_tamil} · {msg.kural.book_tamil}
-                      </div>
-                      <p className={styles.kuralTamil}>
-                        {msg.kural.tamil.replace(/\\n/g, '\n')}
-                      </p>
-                      <div className={styles.kuralDivider} />
-                      <p className={styles.kuralTranslit}>
-                        {msg.kural.transliteration.replace(/\\n/g, '\n')}
-                      </p>
-                      <p className={styles.kuralEnglish}>&ldquo;{msg.kural.english}&rdquo;</p>
-                    </div>
-                  )}
-
-                  {/* Chapter context */}
-                  {msg.kural && (
-                    <p className={styles.chapterContext}>
-                      From chapter: <em>{msg.kural.chapter_english}</em> · {msg.kural.book_english}
-                    </p>
-                  )}
-
-                </div>
-              )}
-            </div>
-          ))}
-
+          {/* Loading */}
           {loading && (
-            <div className={styles.responseMsg}>
-              <div className={styles.responseBubble}>
-                <div className={styles.loadingDots}><span /><span /><span /></div>
-              </div>
+            <div className={styles.loadingWrap}>
+              <div className={styles.loadingDots}><span /><span /><span /></div>
+              <p className={styles.loadingText}>Valluvar is thinking...</p>
             </div>
           )}
-          <div ref={bottomRef} />
+
+          {/* Error */}
+          {error && !loading && (
+            <div className={styles.errorWrap}>
+              <p className={styles.errorText}>{error}</p>
+              <button className={styles.resetBtn} onClick={handleReset}>Try Again</button>
+            </div>
+          )}
+
+          {/* Result — one clean answer */}
+          {result && !loading && (
+            <div className={styles.resultWrap} ref={resultRef}>
+
+              {/* Question shown at top */}
+              <div className={styles.questionBubble}>
+                <p className={styles.questionText}>&ldquo;{result.question}&rdquo;</p>
+              </div>
+
+              {/* Keywords detected */}
+              {result.keywords && result.keywords.length > 0 && (
+                <div className={styles.keywordRow}>
+                  {result.keywords.slice(0, 5).map((kw, i) => (
+                    <span key={i} className={styles.keywordTag}>{kw}</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Kural card */}
+              <div className={styles.kuralCard}>
+                <div className={styles.kuralMeta}>
+                  குறள் #{result.kural.number} · {result.kural.chapter_tamil} · {result.kural.book_tamil}
+                </div>
+                <p className={styles.kuralTamil}>
+                  {result.kural.tamil.replace(/\\n/g, '\n')}
+                </p>
+                <div className={styles.kuralDivider} />
+                <p className={styles.kuralTranslit}>
+                  {result.kural.transliteration.replace(/\\n/g, '\n')}
+                </p>
+                <p className={styles.kuralEnglish}>&ldquo;{result.kural.english}&rdquo;</p>
+              </div>
+
+              {/* Chapter context */}
+              <p className={styles.chapterContext}>
+                From chapter: <em>{result.kural.chapter_english}</em> · {result.kural.book_english}
+              </p>
+
+              {/* Ask Another button */}
+              <button className={styles.askAnotherBtn} onClick={handleReset}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 8a6 6 0 1 1 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M2 11V8h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Ask Valluvar Again
+              </button>
+
+            </div>
+          )}
+
         </div>
 
-        {/* Input */}
+        {/* Input — always visible at bottom */}
         <div className={styles.inputArea}>
           <div className={styles.inputRow}>
             <textarea
