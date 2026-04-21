@@ -8,22 +8,18 @@ interface Kural {
   chapter_english: string;
   chapter_tamil: string;
   book_english: string;
+  book_tamil: string;
   tamil: string;
   transliteration: string;
   english: string;
-}
-
-interface AruLReply {
-  intro: string;
-  closing: string;
-  theme: string;
+  themes: string[];
 }
 
 interface Message {
   type: 'user' | 'response';
   text?: string;
   kural?: Kural;
-  reply?: AruLReply;
+  keywords?: string[];
   error?: string;
 }
 
@@ -65,7 +61,11 @@ export default function Home() {
       if (data.error) {
         setMessages(prev => [...prev, { type: 'response', error: data.error }]);
       } else {
-        setMessages(prev => [...prev, { type: 'response', kural: data.kural, reply: data.reply }]);
+        setMessages(prev => [...prev, {
+          type: 'response',
+          kural: data.kural,
+          keywords: data.keywords,
+        }]);
       }
     } catch {
       setMessages(prev => [...prev, { type: 'response', error: 'Something went wrong. Please try again.' }]);
@@ -92,23 +92,18 @@ export default function Home() {
           <div className={styles.headerText}>
             <h1 className={styles.title}>
               <span className={styles.titleTamil}>திருக்குறள் அருளுரை</span>
-              <span className={styles.titleEnglish}>Thirukkural Wisdom</span>
+              <span className={styles.titleEnglish}>Ask Kural</span>
             </h1>
             <p className={styles.subtitle}>வள்ளுவரிடம் கேளுங்கள் · Ask Valluvar anything</p>
           </div>
         </header>
 
-        {/* Messages area */}
+        {/* Messages */}
         <div className={styles.messages}>
-
           {!started && (
             <div className={styles.welcome}>
-              <p className={styles.welcomeQuote}>
-                &ldquo;எண்ணிய எண்ணியாங்கு எய்துப&rdquo;
-              </p>
-              <p className={styles.welcomeQuoteEn}>
-                What you seek with clear intent, you shall find.
-              </p>
+              <p className={styles.welcomeQuote}>&ldquo;எண்ணிய எண்ணியாங்கு எய்துப&rdquo;</p>
+              <p className={styles.welcomeQuoteEn}>What you seek with clear intent, you shall find.</p>
               <p className={styles.welcomeInstruction}>
                 உங்கள் மனதில் என்ன இருக்கிறது?<br />
                 <span>What weighs on your heart today?</span>
@@ -132,28 +127,40 @@ export default function Home() {
                 <div className={styles.errorText}>{msg.error}</div>
               ) : (
                 <div className={styles.responseBubble}>
-                  {/* Arul intro */}
-                  {msg.reply?.intro && (
-                    <p className={styles.aruLIntro}>{msg.reply.intro}</p>
+
+                  {/* Keywords detected */}
+                  {msg.keywords && msg.keywords.length > 0 && (
+                    <div className={styles.keywordRow}>
+                      {msg.keywords.slice(0, 6).map((kw, ki) => (
+                        <span key={ki} className={styles.keywordTag}>{kw}</span>
+                      ))}
+                    </div>
                   )}
 
                   {/* Kural card */}
                   {msg.kural && (
                     <div className={styles.kuralCard}>
                       <div className={styles.kuralMeta}>
-                        குறள் #{msg.kural.number} · {msg.kural.chapter_tamil} · {msg.kural.book_english}
+                        குறள் #{msg.kural.number} · {msg.kural.chapter_tamil} · {msg.kural.book_tamil}
                       </div>
-                      <p className={styles.kuralTamil}>{msg.kural.tamil.replace(/\\n/g, '\n')}</p>
+                      <p className={styles.kuralTamil}>
+                        {msg.kural.tamil.replace(/\\n/g, '\n')}
+                      </p>
                       <div className={styles.kuralDivider} />
-                      <p className={styles.kuralTranslit}>{msg.kural.transliteration.replace(/\\n/g, '\n')}</p>
+                      <p className={styles.kuralTranslit}>
+                        {msg.kural.transliteration.replace(/\\n/g, '\n')}
+                      </p>
                       <p className={styles.kuralEnglish}>&ldquo;{msg.kural.english}&rdquo;</p>
                     </div>
                   )}
 
-                  {/* Arul closing blessing */}
-                  {msg.reply?.closing && (
-                    <p className={styles.aruLClosing}>{msg.reply.closing}</p>
+                  {/* Chapter context */}
+                  {msg.kural && (
+                    <p className={styles.chapterContext}>
+                      From chapter: <em>{msg.kural.chapter_english}</em> · {msg.kural.book_english}
+                    </p>
                   )}
+
                 </div>
               )}
             </div>
@@ -162,13 +169,10 @@ export default function Home() {
           {loading && (
             <div className={styles.responseMsg}>
               <div className={styles.responseBubble}>
-                <div className={styles.loadingDots}>
-                  <span /><span /><span />
-                </div>
+                <div className={styles.loadingDots}><span /><span /><span /></div>
               </div>
             </div>
           )}
-
           <div ref={bottomRef} />
         </div>
 
