@@ -536,15 +536,16 @@ function extractKeywords(text: string): string[] {
 
 function scoreKural(kural: Record<string, unknown>, keywords: string[]): number {
   let score = 0;
-  const english = ((kural.english as string) || '').toLowerCase();
+  const english  = ((kural.english as string) || '').toLowerCase();
   const chapter  = ((kural.chapter_english as string) || '').toLowerCase();
   const themes   = ((kural.themes as string[]) || []).join(' ').toLowerCase();
 
   for (const kw of keywords) {
     if (kw.length < 3) continue;
-    if (themes.includes(kw))  score += 5;
-    if (english.includes(kw)) score += 3;
-    if (chapter.includes(kw)) score += 2;
+    if (chapter === kw)        score += 20; // exact chapter name match — strongest
+    if (chapter.includes(kw))  score += 10; // partial chapter match
+    if (themes.includes(kw))   score += 5;  // theme match
+    if (english.includes(kw))  score += 3;  // meaning match
   }
   return score;
 }
@@ -563,8 +564,10 @@ async function findBestKural(keywords: string[]) {
     const scored = (ftResults as Record<string, unknown>[])
       .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
       .sort((a, b) => b.score - a.score);
-    const top = scored.slice(0, 3);
-    return top[Math.floor(Math.random() * top.length)].kural;
+    // Only randomise among kurals with the exact same top score
+    const topScore = scored[0].score;
+    const topTied = scored.filter(s => s.score === topScore);
+    return topTied[Math.floor(Math.random() * topTied.length)].kural;
   }
 
   const { data: themeMatches } = await supabase
