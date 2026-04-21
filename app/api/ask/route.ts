@@ -552,54 +552,71 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
 
 async function findBestKural(keywords: string[]) {
   const queryString = keywords.join(' ');
+  let candidates: Record<string, unknown>[] = [];
 
-  // Use select('*') so all columns including mv, sp, mk are returned
-  const { data: ftResults } = await supabase
-    .from('kurals')
-    .select('*')
-    .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
-    .limit(30);
-
-  if (ftResults && ftResults.length > 0) {
-    const scored = (ftResults as Record<string, unknown>[])
-      .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
-      .sort((a, b) => b.score - a.score);
-    // Only randomise among kurals with the exact same top score
-    const topScore = scored[0].score;
-    const topTied = scored.filter(s => s.score === topScore);
-    return topTied[Math.floor(Math.random() * topTied.length)].kural;
+  // Strategy 1: chapter_english exact/partial match — most precise
+  for (const kw of keywords) {
+    if (kw.length < 3) continue;
+    const { data } = await supabase
+      .from('kurals')
+      .select('*')
+      .ilike('chapter_english', `%${kw}%`)
+      .limit(20);
+    if (data && data.length > 0) candidates.push(...data);
   }
 
-  const { data: themeMatches } = await supabase
+  // Strategy 2: themes overlap
+  const { data: themeData } = await supabase
     .from('kurals')
     .select('*')
     .overlaps('themes', keywords)
     .limit(20);
+  if (themeData) candidates.push(...themeData);
 
-  if (themeMatches && themeMatches.length > 0) {
-    const scored = (themeMatches as Record<string, unknown>[])
-      .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
-      .sort((a, b) => b.score - a.score);
-    return scored[0].kural;
-  }
+  // Strategy 3: full-text search
+  const { data: ftData } = await supabase
+    .from('kurals')
+    .select('*')
+    .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
+    .limit(20);
+  if (ftData) candidates.push(...ftData);
 
-  for (const kw of keywords.slice(0, 5)) {
+  // Strategy 4: ILIKE on english meaning
+  for (const kw of keywords.slice(0, 3)) {
+    if (kw.length < 3) continue;
     const { data } = await supabase
       .from('kurals')
       .select('*')
       .ilike('english', `%${kw}%`)
       .limit(10);
-    if (data && data.length > 0) {
-      const scored = (data as Record<string, unknown>[])
-        .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
-        .sort((a, b) => b.score - a.score);
-      return scored[0].kural;
-    }
+    if (data) candidates.push(...data);
   }
 
-  const { data: all } = await supabase.from('kurals').select('*').limit(100);
-  if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
-  return null;
+  // Deduplicate by number
+  const seen = new Set<number>();
+  candidates = candidates.filter(k => {
+    const n = k.number as number;
+    if (seen.has(n)) return false;
+    seen.add(n);
+    return true;
+  });
+
+  if (candidates.length === 0) {
+    // Final fallback: random
+    const { data: all } = await supabase.from('kurals').select('*').limit(100);
+    if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
+    return null;
+  }
+
+  // Score all candidates
+  const scored = candidates
+    .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+    .sort((a, b) => b.score - a.score);
+
+  // Randomise only among tied top scorers
+  const topScore = scored[0].score;
+  const tied = scored.filter(s => s.score === topScore);
+  return tied[Math.floor(Math.random() * tied.length)].kural;
 }
 
 export async function POST(req: NextRequest) {
