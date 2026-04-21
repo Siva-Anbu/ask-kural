@@ -147,7 +147,6 @@ const SYNONYMS: Record<string, string[]> = {
   smart: ['wisdom','knowledge'],
   stupid: ['knowledge','wisdom'],
   confused: ['wisdom','knowledge'],
-  confused: ['wisdom','knowledge'],
 
   // Leadership
   leader: ['leadership','governance'],
