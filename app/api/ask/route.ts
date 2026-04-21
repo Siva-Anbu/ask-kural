@@ -45,6 +45,78 @@ function stem(word: string): string {
 }
 
 // ─── EXTRACT MEANINGFUL KEYWORDS ─────────────────────────────────────────────
+
+// ─── SYNONYM EXPANSION — maps user words to Supabase theme words ─────────────
+const SYNONYMS: Record<string, string[]> = {
+  // Ego / pride / arrogance
+  egoistic: ['ego','arrogance','pride'],
+  egotistic: ['ego','arrogance','pride'],
+  arrogant: ['arrogance','ego','pride'],
+  arrogance: ['arrogance','ego','pride'],
+  proud: ['pride','ego','arrogance'],
+  selfish: ['ego','selfish','arrogance'],
+  rude: ['arrogance','ego','difficult'],
+  disrespect: ['arrogance','ego','difficult'],
+  disrespectful: ['arrogance','ego','difficult'],
+  toxic: ['difficult','arrogance','ego'],
+  narcissist: ['ego','arrogance','pride'],
+  tackle: ['difficult','strategy','wisdom'],
+  deal: ['difficult','strategy','wisdom'],
+  handle: ['difficult','strategy','wisdom'],
+  // Anger synonyms
+  furious: ['anger','rage'],
+  irritate: ['anger','frustration'],
+  annoy: ['anger','frustration'],
+  annoying: ['anger','frustration','difficult'],
+  // Loneliness synonyms
+  homesick: ['loneliness','missing','home'],
+  isolated: ['loneliness','alone'],
+  // Grief / sadness
+  grief: ['perseverance','sadness','loss'],
+  grieve: ['perseverance','sadness','loss'],
+  heartbroken: ['love','heartbreak','loss'],
+  depressed: ['perseverance','peace','sadness'],
+  // Career synonyms
+  unemployed: ['career','job','perseverance'],
+  jobless: ['career','job','perseverance'],
+  fired: ['career','job','perseverance'],
+  // Relationship synonyms
+  divorce: ['love','family','separation'],
+  breakup: ['love','heartbreak','separation'],
+  cheat: ['friendship','betrayal','love'],
+  cheating: ['friendship','betrayal','love'],
+  betray: ['friendship','betrayal'],
+  // Friendship
+  backstab: ['friendship','betrayal'],
+  fake: ['friendship','betrayal'],
+  // Procrastination synonyms
+  distract: ['procrastination','laziness'],
+  unmotivated: ['procrastination','laziness'],
+  // Health
+  sick: ['medicine','health','body'],
+  ill: ['medicine','health','body'],
+  // Neighbour / people
+  neighbour: ['ego','difficult','wisdom','society'],
+  neighbor: ['ego','difficult','wisdom','society'],
+  colleague: ['work','career','difficult'],
+  coworker: ['work','career','difficult'],
+};
+
+function expandWithSynonyms(keywords: string[]): string[] {
+  const expanded = new Set<string>(keywords);
+  for (const kw of keywords) {
+    if (SYNONYMS[kw]) {
+      SYNONYMS[kw].forEach(s => expanded.add(s));
+    }
+    // Also try stemmed version
+    const stemmed = stem(kw);
+    if (SYNONYMS[stemmed]) {
+      SYNONYMS[stemmed].forEach(s => expanded.add(s));
+    }
+  }
+  return Array.from(expanded);
+}
+
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
   const words = lower.split(/\s+/).filter(w => w.length > 2);
@@ -150,7 +222,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not understand the query. Please try again.' }, { status: 400 });
     }
 
-    const kural = await findBestKural(keywords);
+    const expandedKeywords = expandWithSynonyms(keywords);
+    const kural = await findBestKural(expandedKeywords);
     if (!kural) {
       return NextResponse.json({ error: 'Could not find a matching Kural.' }, { status: 500 });
     }
