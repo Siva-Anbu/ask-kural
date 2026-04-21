@@ -24,6 +24,7 @@ interface Result {
   question: string;
   kural: Kural;
   keywords: string[];
+  matchReasons: string[];
 }
 
 const SUGGESTIONS = [
@@ -53,7 +54,12 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.error) setError(data.error);
-      else setResult({ question: text, kural: data.kural, keywords: data.keywords });
+      else setResult({ 
+        question: text, 
+        kural: data.kural, 
+        keywords: data.keywords,
+        matchReasons: data.matchReasons || []
+      });
     } catch { setError('Something went wrong. Please try again.'); }
     setLoading(false);
   }
@@ -80,6 +86,21 @@ export default function Home() {
             {result.keywords?.length > 0 && (
               <div className={styles.tags}>
                 {result.keywords.slice(0,3).map((k,i) => <span key={i} className={styles.tag}>{k}</span>)}
+              </div>
+            )}
+            {/* Match Reasons */}
+            {result.matchReasons && result.matchReasons.length > 0 && (
+              <div className={styles.matchReasons}>
+                <div className={styles.matchLabel}>Why this Kural?</div>
+                {result.matchReasons.slice(0, 3).map((reason, i) => (
+                  <div key={i} className={styles.matchReason}>
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2L10 6L14 6.5L11 9.5L12 14L8 11.5L4 14L5 9.5L2 6.5L6 6L8 2Z" 
+                            fill="currentColor" opacity="0.6"/>
+                    </svg>
+                    {reason}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -247,7 +268,7 @@ export default function Home() {
             </button>
           </div>
         )}
-        <p className={styles.inputHint}>Tamil அல்லது English-ல் தட்டச்சு செய்யுங்கள்</p>
+        <p className={styles.inputHint}>Tamil or English</p>
       </div>
 
     </div>
