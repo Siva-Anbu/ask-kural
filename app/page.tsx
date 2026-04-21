@@ -79,7 +79,7 @@ export default function Home() {
             <div className={styles.qText}>&ldquo;{result.question}&rdquo;</div>
             {result.keywords?.length > 0 && (
               <div className={styles.tags}>
-                {result.keywords.slice(0,3).map((k,i) => <span key={i} className={styles.tag}>{k}</span>)}
+                {result.keywords.slice(0, 3).map((k, i) => <span key={i} className={styles.tag}>{k}</span>)}
               </div>
             )}
           </div>
@@ -108,8 +108,8 @@ export default function Home() {
         {/* LOADING */}
         {loading && (
           <div className={styles.center}>
-            <div className={styles.dots}><span/><span/><span/></div>
-            <p className={styles.loadingText}>Valluvar is thinking…</p>
+            <div className={styles.dots}><span /><span /><span /></div>
+            <p className={styles.loadingText}>Searching the palm-leaf manuscript.…</p>
           </div>
         )}
 
@@ -133,10 +133,10 @@ export default function Home() {
                   <span className={styles.kuralChapter}>{result.kural.chapter_tamil} · {result.kural.book_tamil}</span>
                 </div>
                 <p className={styles.kuralTamil}>
-                  {result.kural.tamil.replace(/\\n/g,'\n')}
+                  {result.kural.tamil.replace(/\\n/g, '\n')}
                 </p>
                 <p className={styles.kuralTranslit}>
-                  {result.kural.transliteration.replace(/\\n/g,'\n')}
+                  {result.kural.transliteration.replace(/\\n/g, '\n')}
                 </p>
                 <div className={styles.kuralEnBox}>
                   <p className={styles.kuralEn}>&ldquo;{result.kural.english}&rdquo;</p>
@@ -221,8 +221,8 @@ export default function Home() {
         {result ? (
           <button className={styles.askAgainBtn} onClick={handleReset}>
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-              <path d="M2 8a6 6 0 1 1 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M2 11V8h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 8a6 6 0 1 1 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M2 11V8h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Ask Again
           </button>
@@ -242,7 +242,7 @@ export default function Home() {
             <button className={styles.sendBtn} onClick={() => handleSend(input)}
               disabled={loading || !input.trim()} aria-label="Send">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
