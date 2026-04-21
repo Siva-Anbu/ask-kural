@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;500;600&family=Noto+Serif+Tamil:wght@400;500&display=swap');
 
 * {
   box-sizing: border-box;
@@ -6,13 +6,20 @@
   padding: 0;
 }
 
-html,
-body {
+html, body {
   background: #0d0a07;
   color: rgba(255, 255, 255, 0.85);
-  font-family: 'Georgia', 'Noto Sans Tamil', serif;
+  font-family: 'Noto Sans Tamil', 'Latha', 'Tamil MN', 'InaiMathi', serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   height: 100%;
+}
+
+/* Force Tamil script to use correct font everywhere */
+:lang(ta), 
+[lang="ta"],
+.tamil-text {
+  font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Latha', 'Tamil MN', 'InaiMathi', serif;
 }
 
 a {
