@@ -13,6 +13,13 @@ interface Kural {
   transliteration: string;
   english: string;
   themes: string[];
+  mv?: string;
+  sp?: string;
+  mk?: string;
+  couplet?: string;
+  explanation?: string;
+  line1?: string;
+  line2?: string;
 }
 
 interface Result {
@@ -167,6 +174,41 @@ export default function Home() {
               <p className={styles.chapterContext}>
                 From chapter: <em>{result.kural.chapter_english}</em> · {result.kural.book_english}
               </p>
+
+              {/* Commentaries */}
+              {(result.kural.mv || result.kural.sp || result.kural.mk) && (
+                <div className={styles.commentaries}>
+                  <h3 className={styles.commentaryHeading}>உரையாசிரியர்கள் · Commentaries</h3>
+
+                  {result.kural.mv && (
+                    <div className={styles.commentaryBlock}>
+                      <span className={styles.commentaryAuthor}>மு.வ · Mu. Varadharasanar</span>
+                      <p className={styles.commentaryText}>{result.kural.mv}</p>
+                    </div>
+                  )}
+
+                  {result.kural.sp && (
+                    <div className={styles.commentaryBlock}>
+                      <span className={styles.commentaryAuthor}>சாலமன் பாப்பையா · Solomon Pappaiah</span>
+                      <p className={styles.commentaryText}>{result.kural.sp}</p>
+                    </div>
+                  )}
+
+                  {result.kural.mk && (
+                    <div className={styles.commentaryBlock}>
+                      <span className={styles.commentaryAuthor}>கலைஞர் · Kalaignar Karunanidhi</span>
+                      <p className={styles.commentaryText}>{result.kural.mk}</p>
+                    </div>
+                  )}
+
+                  {result.kural.explanation && (
+                    <div className={styles.commentaryBlock}>
+                      <span className={styles.commentaryAuthor}>English Explanation</span>
+                      <p className={styles.commentaryText}>{result.kural.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Ask Another button */}
               <button className={styles.askAnotherBtn} onClick={handleReset}>
