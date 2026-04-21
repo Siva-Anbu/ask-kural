@@ -552,10 +552,12 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
 async function findBestKural(keywords: string[]) {
   const queryString = keywords.join(' ');
 
-  const { data: ftResults } = await supabase.rpc('search_kurals', {
-    query_text: queryString,
-    result_limit: 30,
-  });
+  // Use select('*') so all columns including mv, sp, mk are returned
+  const { data: ftResults } = await supabase
+    .from('kurals')
+    .select('*')
+    .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
+    .limit(30);
 
   if (ftResults && ftResults.length > 0) {
     const scored = (ftResults as Record<string, unknown>[])
