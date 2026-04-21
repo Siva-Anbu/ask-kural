@@ -53,13 +53,9 @@ const SYNONYMS: Record<string, string[]> = {
   ethics: ['virtue','ethics','morality'],
   righteous: ['virtue','ethics','morality'],
   integrity: ['virtue','ethics','morality'],
-  honest: ['virtue','ethics','truth'],
   honesty: ['virtue','ethics','truth'],
-  truth: ['truth','virtue','honesty'],
-  truthful: ['truth','virtue','honesty'],
   lie: ['truth','fraud','honesty'],
   lying: ['truth','fraud','honesty'],
-  cheat: ['fraud','truth','betrayal'],
   corrupt: ['virtue','ethics','governance'],
 
   // Ch5-6: Domestic Life / Good Wife / Family
@@ -213,6 +209,7 @@ const SYNONYMS: Record<string, string[]> = {
   fasting: ['penance','virtue','abstaining'],
 
   // Ch28-29: Fraud / Deception
+  cheat: ['fraud','truth','betrayal'],
   fraud: ['fraud','truth','virtue'],
   deceive: ['fraud','truth','betrayal'],
   deception: ['fraud','truth','betrayal'],
@@ -257,7 +254,6 @@ const SYNONYMS: Record<string, string[]> = {
   letting: ['renunciation','wisdom','peace'],
 
   // Ch36: Knowledge of Truth
-  truth: ['truth','wisdom','virtue'],
   reality: ['truth','wisdom','virtue'],
   insight: ['wisdom','truth','knowledge'],
 
@@ -354,7 +350,6 @@ const SYNONYMS: Record<string, string[]> = {
   diligent: ['diligence','action','energy'],
   diligence: ['diligence','action','energy'],
   persistent: ['perseverance','action','energy'],
-  persistent: ['perseverance','action','energy'],
   firm: ['firmness','action','perseverance'],
 
   // Ch49-50: Knowing the Time / Place
@@ -377,7 +372,6 @@ const SYNONYMS: Record<string, string[]> = {
   bad: ['bad-friendship','enemy','virtue'],
   colleague: ['friendship','work','loyalty'],
   team: ['friendship','leadership','action'],
-  colleague: ['friendship','work','loyalty'],
 
   // Ch56: Foolishness
   foolish: ['foolishness','ignorance','wisdom'],
@@ -553,15 +547,10 @@ const SYNONYMS: Record<string, string[]> = {
   aching: ['suffering','grief','health'],
   sorrow: ['grief','suffering','impermanence'],
 
-  // Ch97: Modesty
-  modest: ['modesty','virtue','shame'],
-  arrogant: ['arrogance','shame','virtue'],
+  // Ch97: Modesty (arrogant/modest already defined above)
 
-  // Ch99: Gratitude
-  grateful: ['gratitude','thankfulness','kindness'],
-  thankful: ['gratitude','thankfulness','kindness'],
+  // Ch99: Gratitude (grateful/thankful/ungrateful already defined above)
   appreciate: ['gratitude','thankfulness','kindness'],
-  ungrateful: ['gratitude','betrayal','kindness'],
 
   // Ch101-108: Good Governance / Justice
   justice: ['justice','governance','virtue'],
@@ -598,7 +587,6 @@ const SYNONYMS: Record<string, string[]> = {
   missing: ['separation','love','loneliness'],
   long: ['separation','love','yearning'],
   longing: ['yearning','love','separation'],
-  reunion: ['reunion','love','joy'],
   reunion: ['reunion','love','joy'],
   united: ['reunion','love','joy'],
   together: ['reunion','love','joy'],
