@@ -81,16 +81,7 @@ export default function Home() {
 
         {/* Header */}
         <header className={styles.header}>
-          <div className={styles.lampIcon}>
-            <svg viewBox="0 0 48 48" fill="none">
-              <ellipse cx="24" cy="38" rx="10" ry="4" fill="rgba(212,163,80,0.12)"/>
-              <path d="M24 35 C16 35 12 27 12 20 C12 12 17 8 24 8 C31 8 36 12 36 20 C36 27 32 35 24 35Z" fill="rgba(212,163,80,0.1)" stroke="rgba(212,163,80,0.6)" strokeWidth="1.5"/>
-              <path d="M20 35 L21 42 L27 42 L28 35" stroke="rgba(212,163,80,0.5)" strokeWidth="1.2" fill="none"/>
-              <line x1="21" y1="42" x2="27" y2="42" stroke="rgba(212,163,80,0.7)" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="24" cy="20" r="4" fill="rgba(212,163,80,0.7)"/>
-              <line x1="24" y1="10" x2="24" y2="7" stroke="rgba(212,163,80,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </div>
+
           <div className={styles.headerText}>
             <h1 className={styles.title}>
               <span className={styles.titleTamil}>திருக்குறள் அருளுரை</span>
