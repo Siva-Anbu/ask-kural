@@ -154,6 +154,22 @@ const SYNONYMS: Record<string, string[]> = {
   king: ['leadership','governance'],
   govern: ['governance','leadership'],
 
+  // Happiness / Joy
+  happy: ['joy','happiness','cheerfulness'],
+  happiness: ['joy','happiness','cheerfulness'],
+  joyful: ['joy','happiness','cheerfulness'],
+  joy: ['joy','happiness','cheerfulness'],
+  cheerful: ['joy','cheerfulness'],
+  excited: ['joy','happiness'],
+  content: ['joy','happiness','peace'],
+  peaceful: ['peace','joy'],
+  bliss: ['joy','happiness','peace'],
+  enjoy: ['joy','happiness'],
+  smile: ['joy','happiness'],
+  laugh: ['joy','happiness'],
+  delighted: ['joy','happiness'],
+  pleasure: ['joy','happiness'],
+
   // Gratitude / Kindness
   ungrateful: ['gratitude','kindness'],
   grateful: ['gratitude','thankfulness'],
