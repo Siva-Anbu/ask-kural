@@ -35,27 +35,16 @@ const SUGGESTIONS = [
   { tamil: 'வேலை கிடைக்கவில்லை', english: 'I cannot find a job' },
 ];
 
-const COMMENTATORS = [
-  { key: 'mv', initial: 'மு.வ', name: 'Mu. Varadharasanar' },
-  { key: 'sp', initial: 'ச.பா', name: 'Solomon Pappaiah' },
-  { key: 'mk', initial: 'க.க',  name: 'Kalaignar Karunanidhi' },
-  { key: 'explanation', initial: 'EN', name: 'English' },
-] as const;
-
 export default function Home() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'mv'|'sp'|'mk'|'explanation'>('mv');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleSend(text: string) {
     if (!text.trim() || loading) return;
-    setError('');
-    setResult(null);
-    setLoading(true);
-    setActiveTab('mv');
+    setError(''); setResult(null); setLoading(true);
     try {
       const res = await fetch('/api/ask', {
         method: 'POST',
@@ -65,33 +54,25 @@ export default function Home() {
       const data = await res.json();
       if (data.error) setError(data.error);
       else setResult({ question: text, kural: data.kural, keywords: data.keywords });
-    } catch {
-      setError('Something went wrong. Please try again.');
-    }
+    } catch { setError('Something went wrong. Please try again.'); }
     setLoading(false);
   }
 
   function handleReset() {
-    setResult(null);
-    setError('');
-    setInput('');
+    setResult(null); setError(''); setInput('');
     setTimeout(() => inputRef.current?.focus(), 100);
   }
-
-  const activeText = result?.kural[activeTab];
 
   return (
     <div className={styles.shell}>
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <header className={styles.header}>
-        <div>
-          <div className={styles.titleTamil}>திருக்குறள் அருளுரை</div>
-          <div className={styles.titleSub}>Ask Kural · வள்ளுவரிடம் கேளுங்கள்</div>
-        </div>
+        <div className={styles.titleTamil}>திருக்குறள் அருளுரை</div>
+        <div className={styles.titleSub}>ASK KURAL · வள்ளுவரிடம் கேளுங்கள் · Ask Valluvar anything</div>
       </header>
 
-      {/* ── BODY ── */}
+      {/* BODY */}
       <div className={styles.body}>
 
         {/* WELCOME */}
@@ -126,14 +107,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* RESULT — two-column layout */}
+        {/* RESULT: left = kural, right = 2×2 commentary grid */}
         {result && !loading && (
           <div className={styles.resultGrid}>
 
-            {/* LEFT — kural */}
+            {/* LEFT */}
             <div className={styles.leftCol}>
-
-              {/* question bubble */}
               <div className={styles.qBubble}>
                 <span className={styles.qText}>&ldquo;{result.question}&rdquo;</span>
                 {result.keywords?.length > 0 && (
@@ -143,7 +122,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* kural */}
               <div className={styles.kuralCard}>
                 <div className={styles.kuralMeta}>
                   குறள் #{result.kural.number} · {result.kural.chapter_tamil} · {result.kural.book_tamil}
@@ -156,9 +134,7 @@ export default function Home() {
                   {result.kural.transliteration.replace(/\\n/g,'\n')}
                 </p>
                 <p className={styles.kuralEn}>&ldquo;{result.kural.english}&rdquo;</p>
-                <p className={styles.chapter}>
-                  {result.kural.chapter_english} · {result.kural.book_english}
-                </p>
+                <p className={styles.chapter}>{result.kural.chapter_english} · {result.kural.book_english}</p>
               </div>
 
               <button className={styles.ghostBtn} onClick={handleReset}>
@@ -168,43 +144,75 @@ export default function Home() {
                 </svg>
                 Ask Again
               </button>
-
             </div>
 
-            {/* RIGHT — commentaries with tabs */}
+            {/* RIGHT: commentary 2×2 grid */}
             <div className={styles.rightCol}>
-              <div className={styles.comLabel}>உரையாசிரியர்கள் · Commentaries</div>
-
-              {/* tab row */}
-              <div className={styles.tabRow}>
-                {COMMENTATORS.map(c => {
-                  const hasData = !!result.kural[c.key];
-                  if (!hasData) return null;
-                  return (
-                    <button
-                      key={c.key}
-                      className={`${styles.tab} ${activeTab === c.key ? styles.tabActive : ''}`}
-                      onClick={() => setActiveTab(c.key)}
-                    >
-                      <span className={styles.tabInitial}>{c.initial}</span>
-                      <span className={styles.tabName}>{c.name}</span>
-                    </button>
-                  );
-                })}
+              <div className={styles.comLabel}>
+                உரையாசிரியர்கள் · <span>COMMENTARIES</span>
               </div>
+              <div className={styles.comGrid}>
 
-              {/* commentary text */}
-              <div className={styles.comText}>
-                {activeText || '—'}
+                {result.kural.mv && (
+                  <div className={styles.comCard}>
+                    <div className={styles.comCardHead}>
+                      <span className={styles.avatar}>மு.வ</span>
+                      <div>
+                        <div className={styles.comName}>Mu. Varadharasanar</div>
+                        <div className={styles.comNameTamil}>முனைவர் மு. வரதராசனார்</div>
+                      </div>
+                    </div>
+                    <p className={styles.comText}>{result.kural.mv}</p>
+                  </div>
+                )}
+
+                {result.kural.sp && (
+                  <div className={styles.comCard}>
+                    <div className={styles.comCardHead}>
+                      <span className={styles.avatar}>ச.பா</span>
+                      <div>
+                        <div className={styles.comName}>Solomon Pappaiah</div>
+                        <div className={styles.comNameTamil}>சாலமன் பாப்பையா</div>
+                      </div>
+                    </div>
+                    <p className={styles.comText}>{result.kural.sp}</p>
+                  </div>
+                )}
+
+                {result.kural.mk && (
+                  <div className={styles.comCard}>
+                    <div className={styles.comCardHead}>
+                      <span className={styles.avatar}>க.க</span>
+                      <div>
+                        <div className={styles.comName}>Kalaignar Karunanidhi</div>
+                        <div className={styles.comNameTamil}>கலைஞர் கருணாநிதி</div>
+                      </div>
+                    </div>
+                    <p className={styles.comText}>{result.kural.mk}</p>
+                  </div>
+                )}
+
+                {result.kural.explanation && (
+                  <div className={styles.comCard}>
+                    <div className={styles.comCardHead}>
+                      <span className={styles.avatar}>EN</span>
+                      <div>
+                        <div className={styles.comName}>English Explanation</div>
+                        <div className={styles.comNameTamil}>ஆங்கில விளக்கம்</div>
+                      </div>
+                    </div>
+                    <p className={styles.comText}>{result.kural.explanation}</p>
+                  </div>
+                )}
+
               </div>
             </div>
 
           </div>
         )}
-
       </div>
 
-      {/* ── INPUT ── */}
+      {/* INPUT BAR */}
       <div className={styles.inputBar}>
         <div className={styles.inputRow}>
           <textarea
@@ -218,12 +226,8 @@ export default function Home() {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input); }
             }}
           />
-          <button
-            className={styles.sendBtn}
-            onClick={() => handleSend(input)}
-            disabled={loading || !input.trim()}
-            aria-label="Send"
-          >
+          <button className={styles.sendBtn} onClick={() => handleSend(input)}
+            disabled={loading || !input.trim()} aria-label="Send">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
               <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
