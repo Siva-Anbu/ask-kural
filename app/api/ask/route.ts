@@ -98,6 +98,34 @@ const SYNONYMS: Record<string, string[]> = {
   // Neighbour / people
   neighbour: ['ego','difficult','wisdom','society'],
   neighbor: ['ego','difficult','wisdom','society'],
+  // Language / speech
+  language: ['speech','language','words','eloquence','communication'],
+  tamil: ['speech','language','learning','words','eloquence'],
+  speak: ['speech','language','words','communication'],
+  speaking: ['speech','language','words','communication'],
+  talk: ['speech','language','words','communication'],
+  talking: ['speech','language','words','communication'],
+  word: ['speech','language','words','communication'],
+  words: ['speech','language','words','communication'],
+  eloquence: ['speech','language','eloquence','words'],
+  communicate: ['speech','language','communication','words'],
+  communication: ['speech','language','communication','words'],
+  important: ['learning','education','knowledge','speech','wisdom'],
+  importance: ['learning','education','knowledge','speech','wisdom'],
+  value: ['learning','education','knowledge','wisdom','virtue'],
+  power: ['perseverance','strength','courage','leadership','wisdom'],
+  // Kindness / help
+  kind: ['kindness','compassion','generosity','virtue'],
+  rude: ['arrogance','ego','difficult','speech'],
+  // Nature / environment
+  nature: ['rain','farming','nature','sustenance'],
+  water: ['rain','nature','blessing','sustenance'],
+  // Health  
+  health: ['medicine','health','body','balance'],
+  healthy: ['medicine','health','body','balance'],
+  mental: ['peace','anxiety','mind','wisdom'],
+  mind: ['peace','wisdom','mind','knowledge'],
+  neighbor: ['ego','difficult','wisdom','society'],
   colleague: ['work','career','difficult'],
   coworker: ['work','career','difficult'],
 };
