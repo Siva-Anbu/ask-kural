@@ -26,17 +26,17 @@ const STOP_WORDS = new Set([
 // Comprehensive synonym map — 481 unique keys, zero duplicates
 const SYNONYMS: Record<string, string[]> = {
 
-  // BOOK OF VIRTUE
-  god: ['god','virtue','faith'],
-  prayer: ['god','virtue','faith'],
-  faith: ['god','virtue','faith'],
-  worship: ['god','virtue','faith'],
-  divine: ['god','virtue','faith'],
-  bless: ['god','virtue','faith'],
-  blessed: ['god','virtue','blessing'],
-  spiritual: ['god','virtue','faith'],
-  religion: ['god','virtue','faith'],
-  temple: ['god','virtue','faith'],
+  // Ch1: God / Faith — do NOT expand to virtue to avoid pollution
+  god: ['god','prayer','faith','worship','divine','blessing'],
+  prayer: ['god','prayer','faith','worship'],
+  faith: ['god','prayer','faith','worship'],
+  worship: ['god','prayer','faith','worship'],
+  divine: ['god','divine','faith','blessing'],
+  bless: ['god','blessing','faith'],
+  blessed: ['god','blessing','faith'],
+  spiritual: ['god','penance','faith','spiritual'],
+  religion: ['god','prayer','faith'],
+  temple: ['god','prayer','faith'],
   rain: ['rain','nature','farming'],
   drought: ['rain','nature','poverty'],
   nature: ['rain','nature','farming'],
@@ -542,10 +542,10 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
 
   for (const kw of keywords) {
     if (kw.length < 3) continue;
-    if (chapter === kw)        score += 20; // exact chapter name match — strongest
+    if (chapter === kw)        score += 20; // exact chapter name
     if (chapter.includes(kw))  score += 10; // partial chapter match
-    if (themes.includes(kw))   score += 5;  // theme match
-    if (english.includes(kw))  score += 3;  // meaning match
+    if (themes.includes(kw))   score += 8;  // theme match — boosted
+    if (english.includes(kw))  score += 3;  // english text match
   }
   return score;
 }
