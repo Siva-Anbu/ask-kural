@@ -439,7 +439,6 @@ const SYNONYMS: Record<string, string[]> = {
   betray: ['betrayal','friendship','truth'],
   betrayed: ['betrayal','friendship','truth'],
   backstab: ['betrayal','friendship','slander'],
-  cheating: ['betrayal','friendship','truth'],
   toxic: ['bad-friendship','anger','betrayal'],
   colleague: ['friendship','work','loyalty'],
   colleagues: ['friendship','work','loyalty'],
