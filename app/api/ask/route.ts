@@ -7,21 +7,21 @@ const supabase = createClient(
 );
 
 const STOP_WORDS = new Set([
-  'i','me','my','myself','we','our','you','your','he','him','his','she','her',
-  'they','them','their','it','its','a','an','the','and','or','but','if','in',
-  'on','at','to','for','of','with','by','from','as','is','was','are','were',
-  'be','been','being','have','has','had','do','did','does','will','would',
-  'could','should','may','might','shall','can','need','must','am','this',
-  'that','these','those','so','up','out','about','into','than','then','there',
-  'when','where','who','how','what','which','why','not','no','yes','just',
-  'very','too','also','still','even','already','now','today','yesterday',
-  'please','want','like','get','got','getting','make','made','say','said',
-  'think','know','feel','feels','feeling','felt','going','come','came','really',
-  'actually','always','never','sometimes','maybe','perhaps','again','back',
-  'way','thing','things','something','anything','everything','nothing','tell',
-  'let','see','look','try','use','give','take','put','keep','start','end',
-  'find','ask','show','call','turn','move','live','leave','help','work',
-  'kural','kuṟaḷ','குறள்','chapter','adhikaram','அதிகாரம்','give','show','tell',
+  'i', 'me', 'my', 'myself', 'we', 'our', 'you', 'your', 'he', 'him', 'his', 'she', 'her',
+  'they', 'them', 'their', 'it', 'its', 'a', 'an', 'the', 'and', 'or', 'but', 'if', 'in',
+  'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
+  'be', 'been', 'being', 'have', 'has', 'had', 'do', 'did', 'does', 'will', 'would',
+  'could', 'should', 'may', 'might', 'shall', 'can', 'need', 'must', 'am', 'this',
+  'that', 'these', 'those', 'so', 'up', 'out', 'about', 'into', 'than', 'then', 'there',
+  'when', 'where', 'who', 'how', 'what', 'which', 'why', 'not', 'no', 'yes', 'just',
+  'very', 'too', 'also', 'still', 'even', 'already', 'now', 'today', 'yesterday',
+  'please', 'want', 'like', 'get', 'got', 'getting', 'make', 'made', 'say', 'said',
+  'think', 'know', 'feel', 'feels', 'feeling', 'felt', 'going', 'come', 'came', 'really',
+  'actually', 'always', 'never', 'sometimes', 'maybe', 'perhaps', 'again', 'back',
+  'way', 'thing', 'things', 'something', 'anything', 'everything', 'nothing', 'tell',
+  'let', 'see', 'look', 'try', 'use', 'give', 'take', 'put', 'keep', 'start', 'end',
+  'find', 'ask', 'show', 'call', 'turn', 'move', 'live', 'leave', 'help', 'work',
+  'kural', 'kuṟaḷ', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்', 'give', 'show', 'tell',
 ]);
 
 // Ordinal number mappings
@@ -54,118 +54,118 @@ const ORDINALS_TA: Record<string, number> = {
 };
 
 const SYNONYMS: Record<string, string[]> = {
-  god: ['god','virtue','faith'],
-  prayer: ['god','virtue','faith'],
-  faith: ['god','virtue','faith'],
-  worship: ['god','virtue','faith'],
-  divine: ['god','virtue','faith'],
-  bless: ['god','virtue','faith'],
-  blessed: ['god','virtue','blessing'],
-  spiritual: ['god','virtue','faith'],
-  religion: ['god','virtue','faith'],
-  temple: ['god','virtue','faith'],
-  rain: ['rain','nature','farming'],
-  drought: ['rain','nature','poverty'],
-  nature: ['rain','nature','farming'],
-  environment: ['rain','nature','farming'],
-  water: ['rain','nature','health'],
-  virtue: ['virtue','ethics','morality'],
-  moral: ['virtue','ethics','morality'],
-  ethics: ['virtue','ethics','morality'],
-  righteous: ['virtue','ethics','morality'],
-  integrity: ['virtue','ethics','morality'],
-  honesty: ['virtue','ethics','truth'],
-  lie: ['truth','fraud','honesty'],
-  lying: ['truth','fraud','honesty'],
-  corrupt: ['virtue','ethics','governance'],
-  family: ['domestic','love','children'],
-  home: ['domestic','love','family'],
-  house: ['domestic','love','family'],
-  wife: ['domestic','love','marriage'],
-  husband: ['domestic','love','marriage'],
-  marriage: ['love','domestic','marriage'],
-  married: ['love','domestic','marriage'],
-  divorce: ['love','separation','marriage'],
-  relationship: ['love','friendship','domestic'],
-  parent: ['domestic','children','family'],
-  parents: ['domestic','children','family'],
-  mother: ['domestic','love','children'],
-  father: ['domestic','love','children'],
-  son: ['children','domestic','love'],
-  daughter: ['children','domestic','love'],
-  children: ['children','domestic','joy'],
-  child: ['children','domestic','joy'],
-  baby: ['children','domestic','love'],
-  parenting: ['children','domestic','family'],
-  birth: ['children','domestic','family'],
-  pregnancy: ['children','domestic','family'],
-  love: ['love','joy','domestic'],
-  affection: ['love','joy','kindness'],
-  romance: ['love','joy','separation'],
-  heartbroken: ['love','grief','separation'],
-  breakup: ['love','separation','grief'],
-  crush: ['love','joy','separation'],
-  unrequited: ['love','separation','grief'],
-  hospitality: ['hospitality','generosity','kindness'],
-  guest: ['hospitality','generosity','kindness'],
-  host: ['hospitality','generosity','kindness'],
-  generous: ['generosity','kindness','hospitality'],
-  generosity: ['generosity','kindness','hospitality'],
-  donate: ['giving','generosity','kindness'],
-  charity: ['giving','generosity','compassion'],
-  share: ['giving','generosity','kindness'],
-  speak: ['speech','words','eloquence'],
-  speech: ['speech','words','eloquence'],
-  words: ['speech','words','eloquence'],
-  language: ['speech','words','eloquence'],
-  communication: ['speech','words','eloquence'],
-  talk: ['speech','words','eloquence'],
-  silence: ['silence','wisdom','speech'],
-  quiet: ['silence','wisdom','peace'],
-  harsh: ['speech','anger','arrogance'],
-  insult: ['speech','arrogance','anger'],
-  abuse: ['speech','anger','arrogance'],
-  gossip: ['speech','slander','friendship'],
-  slander: ['slander','speech','friendship'],
-  rumour: ['slander','speech','gossip'],
-  backbite: ['slander','speech','friendship'],
-  gratitude: ['gratitude','thankfulness','kindness'],
-  grateful: ['gratitude','thankfulness','kindness'],
-  thankful: ['gratitude','thankfulness','kindness'],
-  ungrateful: ['gratitude','thankfulness','betrayal'],
-  thanks: ['gratitude','thankfulness','kindness'],
-  appreciate: ['gratitude','thankfulness','kindness'],
-  fair: ['impartiality','justice','virtue'],
-  fairness: ['impartiality','justice','virtue'],
-  bias: ['impartiality','justice','virtue'],
-  equality: ['impartiality','justice','virtue'],
-  equal: ['impartiality','justice','virtue'],
-  discrimination: ['impartiality','justice','virtue'],
-  selfcontrol: ['self-control','patience','virtue'],
-  discipline: ['self-control','virtue','action'],
-  temptation: ['self-control','desire','virtue'],
-  impulse: ['self-control','anger','virtue'],
-  restraint: ['self-control','patience','virtue'],
-  control: ['self-control','patience','virtue'],
-  conduct: ['virtue','ethics','action'],
-  behaviour: ['virtue','ethics','action'],
-  sin: ['virtue','ethics','evil'],
-  evil: ['virtue','ethics','evil'],
-  wrong: ['virtue','ethics','wrong'],
-  mistake: ['virtue','ethics','correction'],
-  regret: ['virtue','ethics','grief'],
-  guilt: ['shame','virtue','ethics'],
-  shame: ['shame','virtue','modesty'],
-  kill: ['killing','compassion','virtue'],
-  violence: ['violence','compassion','virtue'],
-  nonviolence: ['compassion','virtue','killing'],
-  meat: ['abstaining','virtue','compassion'],
-  vegetarian: ['abstaining','virtue','compassion'],
-  vegan: ['abstaining','virtue','compassion'],
-  animal: ['compassion','killing','virtue'],
-  cruelty: ['cruelty','compassion','virtue'],
-  cruel: ['cruelty','compassion','virtue'],
-  trust: ['friendship','truth','loyalty'],
+  god: ['god', 'virtue', 'faith'],
+  prayer: ['god', 'virtue', 'faith'],
+  faith: ['god', 'virtue', 'faith'],
+  worship: ['god', 'virtue', 'faith'],
+  divine: ['god', 'virtue', 'faith'],
+  bless: ['god', 'virtue', 'faith'],
+  blessed: ['god', 'virtue', 'blessing'],
+  spiritual: ['god', 'virtue', 'faith'],
+  religion: ['god', 'virtue', 'faith'],
+  temple: ['god', 'virtue', 'faith'],
+  rain: ['rain', 'nature', 'farming'],
+  drought: ['rain', 'nature', 'poverty'],
+  nature: ['rain', 'nature', 'farming'],
+  environment: ['rain', 'nature', 'farming'],
+  water: ['rain', 'nature', 'health'],
+  virtue: ['virtue', 'ethics', 'morality'],
+  moral: ['virtue', 'ethics', 'morality'],
+  ethics: ['virtue', 'ethics', 'morality'],
+  righteous: ['virtue', 'ethics', 'morality'],
+  integrity: ['virtue', 'ethics', 'morality'],
+  honesty: ['virtue', 'ethics', 'truth'],
+  lie: ['truth', 'fraud', 'honesty'],
+  lying: ['truth', 'fraud', 'honesty'],
+  corrupt: ['virtue', 'ethics', 'governance'],
+  family: ['domestic', 'love', 'children'],
+  home: ['domestic', 'love', 'family'],
+  house: ['domestic', 'love', 'family'],
+  wife: ['domestic', 'love', 'marriage'],
+  husband: ['domestic', 'love', 'marriage'],
+  marriage: ['love', 'domestic', 'marriage'],
+  married: ['love', 'domestic', 'marriage'],
+  divorce: ['love', 'separation', 'marriage'],
+  relationship: ['love', 'friendship', 'domestic'],
+  parent: ['domestic', 'children', 'family'],
+  parents: ['domestic', 'children', 'family'],
+  mother: ['domestic', 'love', 'children'],
+  father: ['domestic', 'love', 'children'],
+  son: ['children', 'domestic', 'love'],
+  daughter: ['children', 'domestic', 'love'],
+  children: ['children', 'domestic', 'joy'],
+  child: ['children', 'domestic', 'joy'],
+  baby: ['children', 'domestic', 'love'],
+  parenting: ['children', 'domestic', 'family'],
+  birth: ['children', 'domestic', 'family'],
+  pregnancy: ['children', 'domestic', 'family'],
+  love: ['love', 'joy', 'domestic'],
+  affection: ['love', 'joy', 'kindness'],
+  romance: ['love', 'joy', 'separation'],
+  heartbroken: ['love', 'grief', 'separation'],
+  breakup: ['love', 'separation', 'grief'],
+  crush: ['love', 'joy', 'separation'],
+  unrequited: ['love', 'separation', 'grief'],
+  hospitality: ['hospitality', 'generosity', 'kindness'],
+  guest: ['hospitality', 'generosity', 'kindness'],
+  host: ['hospitality', 'generosity', 'kindness'],
+  generous: ['generosity', 'kindness', 'hospitality'],
+  generosity: ['generosity', 'kindness', 'hospitality'],
+  donate: ['giving', 'generosity', 'kindness'],
+  charity: ['giving', 'generosity', 'compassion'],
+  share: ['giving', 'generosity', 'kindness'],
+  speak: ['speech', 'words', 'eloquence'],
+  speech: ['speech', 'words', 'eloquence'],
+  words: ['speech', 'words', 'eloquence'],
+  language: ['speech', 'words', 'eloquence'],
+  communication: ['speech', 'words', 'eloquence'],
+  talk: ['speech', 'words', 'eloquence'],
+  silence: ['silence', 'wisdom', 'speech'],
+  quiet: ['silence', 'wisdom', 'peace'],
+  harsh: ['speech', 'anger', 'arrogance'],
+  insult: ['speech', 'arrogance', 'anger'],
+  abuse: ['speech', 'anger', 'arrogance'],
+  gossip: ['speech', 'slander', 'friendship'],
+  slander: ['slander', 'speech', 'friendship'],
+  rumour: ['slander', 'speech', 'gossip'],
+  backbite: ['slander', 'speech', 'friendship'],
+  gratitude: ['gratitude', 'thankfulness', 'kindness'],
+  grateful: ['gratitude', 'thankfulness', 'kindness'],
+  thankful: ['gratitude', 'thankfulness', 'kindness'],
+  ungrateful: ['gratitude', 'thankfulness', 'betrayal'],
+  thanks: ['gratitude', 'thankfulness', 'kindness'],
+  appreciate: ['gratitude', 'thankfulness', 'kindness'],
+  fair: ['impartiality', 'justice', 'virtue'],
+  fairness: ['impartiality', 'justice', 'virtue'],
+  bias: ['impartiality', 'justice', 'virtue'],
+  equality: ['impartiality', 'justice', 'virtue'],
+  equal: ['impartiality', 'justice', 'virtue'],
+  discrimination: ['impartiality', 'justice', 'virtue'],
+  selfcontrol: ['self-control', 'patience', 'virtue'],
+  discipline: ['self-control', 'virtue', 'action'],
+  temptation: ['self-control', 'desire', 'virtue'],
+  impulse: ['self-control', 'anger', 'virtue'],
+  restraint: ['self-control', 'patience', 'virtue'],
+  control: ['self-control', 'patience', 'virtue'],
+  conduct: ['virtue', 'ethics', 'action'],
+  behaviour: ['virtue', 'ethics', 'action'],
+  sin: ['virtue', 'ethics', 'evil'],
+  evil: ['virtue', 'ethics', 'evil'],
+  wrong: ['virtue', 'ethics', 'wrong'],
+  mistake: ['virtue', 'ethics', 'correction'],
+  regret: ['virtue', 'ethics', 'grief'],
+  guilt: ['shame', 'virtue', 'ethics'],
+  shame: ['shame', 'virtue', 'modesty'],
+  kill: ['killing', 'compassion', 'virtue'],
+  violence: ['violence', 'compassion', 'virtue'],
+  nonviolence: ['compassion', 'virtue', 'killing'],
+  meat: ['abstaining', 'virtue', 'compassion'],
+  vegetarian: ['abstaining', 'virtue', 'compassion'],
+  vegan: ['abstaining', 'virtue', 'compassion'],
+  animal: ['compassion', 'killing', 'virtue'],
+  cruelty: ['cruelty', 'compassion', 'virtue'],
+  cruel: ['cruelty', 'compassion', 'virtue'],
+  trust: ['friendship', 'truth', 'loyalty'],
 };
 
 /**
@@ -175,31 +175,31 @@ const SYNONYMS: Record<string, string[]> = {
 function stringSimilarity(str1: string, str2: string): number {
   const s1 = str1.toLowerCase().trim();
   const s2 = str2.toLowerCase().trim();
-  
+
   if (s1 === s2) return 1.0;
-  
+
   const len1 = s1.length;
   const len2 = s2.length;
   const maxLen = Math.max(len1, len2);
-  
+
   if (maxLen === 0) return 1.0;
-  
+
   // Simple substring matching as a fast approximation
   if (s1.includes(s2) || s2.includes(s1)) {
     return Math.min(len1, len2) / maxLen;
   }
-  
+
   // Calculate Levenshtein distance
   const matrix: number[][] = [];
-  
+
   for (let i = 0; i <= len1; i++) {
     matrix[i] = [i];
   }
-  
+
   for (let j = 0; j <= len2; j++) {
     matrix[0][j] = j;
   }
-  
+
   for (let i = 1; i <= len1; i++) {
     for (let j = 1; j <= len2; j++) {
       const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
@@ -210,7 +210,7 @@ function stringSimilarity(str1: string, str2: string): number {
       );
     }
   }
-  
+
   const distance = matrix[len1][len2];
   return 1 - (distance / maxLen);
 }
@@ -224,24 +224,24 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
     .from('question_kural_mappings')
     .select('*')
     .eq('verified', true);
-  
+
   if (error || !mappings || mappings.length === 0) {
     return null;
   }
-  
+
   const normalized = message.toLowerCase().trim();
   let bestMatch: { kural: number; score: number; confidence: string } | null = null;
-  
+
   for (const mapping of mappings) {
     // Check English questions
     const questions = mapping.questions || [];
     for (const question of questions) {
       const similarity = stringSimilarity(normalized, question);
-      
+
       // Dynamic threshold: 75%+ similarity for good match
       // High confidence mappings get slightly lower threshold (73%)
       const threshold = mapping.confidence_level === 'high' ? 0.73 : 0.75;
-      
+
       if (similarity >= threshold) {
         if (!bestMatch || similarity > bestMatch.score) {
           bestMatch = {
@@ -252,14 +252,14 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
         }
       }
     }
-    
+
     // Check Tamil questions
     const questionsTamil = mapping.questions_tamil || [];
     for (const question of questionsTamil) {
       const similarity = stringSimilarity(normalized, question);
-      
+
       const threshold = mapping.confidence_level === 'high' ? 0.73 : 0.75;
-      
+
       if (similarity >= threshold) {
         if (!bestMatch || similarity > bestMatch.score) {
           bestMatch = {
@@ -271,12 +271,12 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
       }
     }
   }
-  
+
   // Return kural if we have a good match (75%+)
   if (bestMatch && bestMatch.score >= 0.73) {
     return bestMatch.kural;
   }
-  
+
   return null;
 }
 
@@ -285,28 +285,28 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
  */
 function extractDirectKuralNumber(message: string): number | null {
   const lower = message.toLowerCase().trim();
-  
+
   const justNumber = /^(\d{1,4})$/;
   const match1 = lower.match(justNumber);
   if (match1) {
     const num = parseInt(match1[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-  
+
   const kuralPattern = /(?:kural|குறள்|kuṟaḷ)\s*[#:]?\s*(\d{1,4})/;
   const match2 = lower.match(kuralPattern);
   if (match2) {
     const num = parseInt(match2[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-  
+
   const giveShowPattern = /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/;
   const match3 = lower.match(giveShowPattern);
   if (match3) {
     const num = parseInt(match3[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-  
+
   return null;
 }
 
@@ -315,51 +315,51 @@ function extractDirectKuralNumber(message: string): number | null {
  */
 function extractChapterKuralQuery(message: string): number | null {
   const lower = message.toLowerCase().trim();
-  
+
   const enPattern1 = /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
   const match1 = lower.match(enPattern1);
   if (match1) {
     const position = ORDINALS_EN[match1[1]] || parseInt(match1[1]);
     const chapterNum = parseInt(match1[2]);
-    
+
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-  
+
   const enPattern2 = /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
   const match2 = lower.match(enPattern2);
   if (match2) {
     const chapterNum = parseInt(match2[1]);
     const position = ORDINALS_EN[match2[2]] || parseInt(match2[2]);
-    
+
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-  
+
   const taPattern = /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
   const match3 = message.match(taPattern);
   if (match3) {
     const position = ORDINALS_TA[match3[1]];
     const chapterNum = parseInt(match3[2]);
-    
+
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-  
+
   const taPattern2 = /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
   const match4 = message.match(taPattern2);
   if (match4) {
     const chapterNum = parseInt(match4[1]);
     const position = ORDINALS_TA[match4[2]];
-    
+
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-  
+
   return null;
 }
 
@@ -368,11 +368,11 @@ function extractChapterKuralQuery(message: string): number | null {
  */
 async function getKuralByNumber(num: number) {
   const { data, error } = await supabase
-    .from('kurals')
+    .from('kurals-new')
     .select('*')
     .eq('number', num)
     .single();
-    
+
   if (error || !data) return null;
   return data;
 }
@@ -467,15 +467,15 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
   const queryString = keywords.join(' ');
 
   const { data: ftResults } = await supabase
-    .from('kurals')
+    .from('kurals-new')
     .select('*')
     .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
     .limit(50);
 
   if (ftResults && ftResults.length > 0) {
     const scored = (ftResults as Record<string, unknown>[])
-      .map(k => ({ 
-        kural: k, 
+      .map(k => ({
+        kural: k,
         score: scoreKural(k, keywords),
         semanticScore: 0
       }))
@@ -499,15 +499,15 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
   }
 
   const { data: themeMatches } = await supabase
-    .from('kurals')
+    .from('kurals-new')
     .select('*')
     .overlaps('themes', keywords)
     .limit(30);
 
   if (themeMatches && themeMatches.length > 0) {
     const scored = (themeMatches as Record<string, unknown>[])
-      .map(k => ({ 
-        kural: k, 
+      .map(k => ({
+        kural: k,
         score: scoreKural(k, keywords),
         semanticScore: 0
       }))
@@ -532,15 +532,15 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
 
   for (const kw of keywords.slice(0, 5)) {
     const { data } = await supabase
-      .from('kurals')
+      .from('kurals-new')
       .select('*')
       .ilike('english', `%${kw}%`)
       .limit(20);
 
     if (data && data.length > 0) {
       const scored = (data as Record<string, unknown>[])
-        .map(k => ({ 
-          kural: k, 
+        .map(k => ({
+          kural: k,
           score: scoreKural(k, keywords),
           semanticScore: 0
         }))
@@ -564,7 +564,7 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
     }
   }
 
-  const { data: all } = await supabase.from('kurals').select('*').limit(100);
+  const { data: all } = await supabase.from('kurals-new').select('*').limit(100);
   if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
   return null;
 }
