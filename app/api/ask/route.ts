@@ -238,8 +238,11 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
     for (const question of questions) {
       const similarity = stringSimilarity(normalized, question);
       
-      // High confidence match: 0.85+ similarity
-      if (similarity >= 0.85) {
+      // Dynamic threshold: 75%+ similarity for good match
+      // High confidence mappings get slightly lower threshold (73%)
+      const threshold = mapping.confidence_level === 'high' ? 0.73 : 0.75;
+      
+      if (similarity >= threshold) {
         if (!bestMatch || similarity > bestMatch.score) {
           bestMatch = {
             kural: mapping.kural_number,
@@ -255,7 +258,9 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
     for (const question of questionsTamil) {
       const similarity = stringSimilarity(normalized, question);
       
-      if (similarity >= 0.85) {
+      const threshold = mapping.confidence_level === 'high' ? 0.73 : 0.75;
+      
+      if (similarity >= threshold) {
         if (!bestMatch || similarity > bestMatch.score) {
           bestMatch = {
             kural: mapping.kural_number,
@@ -267,8 +272,8 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
     }
   }
   
-  // Return kural if we have a strong match
-  if (bestMatch && bestMatch.score >= 0.85) {
+  // Return kural if we have a good match (75%+)
+  if (bestMatch && bestMatch.score >= 0.73) {
     return bestMatch.kural;
   }
   
