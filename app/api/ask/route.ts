@@ -24,7 +24,6 @@ const STOP_WORDS = new Set([
   'kural', 'kuṟaḷ', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்', 'give', 'show', 'tell',
 ]);
 
-// Ordinal number mappings
 const ORDINALS_EN: Record<string, number> = {
   'first': 1, '1st': 1,
   'second': 2, '2nd': 2,
@@ -169,8 +168,7 @@ const SYNONYMS: Record<string, string[]> = {
 };
 
 /**
- * Calculate similarity between two strings (0-1 scale)
- * Uses Levenshtein distance normalized
+ * Simple string similarity (Levenshtein-based, normalized)
  */
 function stringSimilarity(str1: string, str2: string): number {
   const s1 = str1.toLowerCase().trim();
@@ -184,12 +182,10 @@ function stringSimilarity(str1: string, str2: string): number {
 
   if (maxLen === 0) return 1.0;
 
-  // Simple substring matching as a fast approximation
   if (s1.includes(s2) || s2.includes(s1)) {
     return Math.min(len1, len2) / maxLen;
   }
 
-  // Calculate Levenshtein distance
   const matrix: number[][] = [];
 
   for (let i = 0; i <= len1; i++) {
@@ -212,12 +208,31 @@ function stringSimilarity(str1: string, str2: string): number {
   }
 
   const distance = matrix[len1][len2];
-  return 1 - (distance / maxLen);
+  return 1 - distance / maxLen;
 }
 
 /**
- * Find best matching predefined question
- * Returns kural number if match found with high confidence
+ * Map DB row → normalized kural object
+ */
+function transformKural(row: any) {
+  return {
+    number: row.Number,
+    tamil: `${row.Line1 || ''} ${row.Line2 || ''}`.trim(),
+    english: row.Translation || '',
+    transliteration: `${row.transliteration1 || ''} ${row.transliteration2 || ''}`.trim(),
+    mv: row.mv || '',
+    sp: row.sp || '',
+    mk: row.mk || '',
+    explanation: row.explanation || '',
+    couplet: row.couplet || '',
+    chapter_tamil: row.chapter_tamil || null,
+    chapter_english: row.chapter_english || null,
+    themes: row.themes || [],
+  };
+}
+
+/**
+ * Predefined question → kural mapping
  */
 async function findPredefinedQuestion(message: string): Promise<number | null> {
   const { data: mappings, error } = await supabase
@@ -233,13 +248,9 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
   let bestMatch: { kural: number; score: number; confidence: string } | null = null;
 
   for (const mapping of mappings) {
-    // Check English questions
     const questions = mapping.questions || [];
     for (const question of questions) {
       const similarity = stringSimilarity(normalized, question);
-
-      // Dynamic threshold: 75%+ similarity for good match
-      // High confidence mappings get slightly lower threshold (73%)
       const threshold = mapping.confidence_level === 'high' ? 0.73 : 0.75;
 
       if (similarity >= threshold) {
@@ -247,17 +258,15 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
           bestMatch = {
             kural: mapping.kural_number,
             score: similarity,
-            confidence: mapping.confidence_level
+            confidence: mapping.confidence_level,
           };
         }
       }
     }
 
-    // Check Tamil questions
     const questionsTamil = mapping.questions_tamil || [];
     for (const question of questionsTamil) {
       const similarity = stringSimilarity(normalized, question);
-
       const threshold = mapping.confidence_level === 'high' ? 0.73 : 0.75;
 
       if (similarity >= threshold) {
@@ -265,14 +274,13 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
           bestMatch = {
             kural: mapping.kural_number,
             score: similarity,
-            confidence: mapping.confidence_level
+            confidence: mapping.confidence_level,
           };
         }
       }
     }
   }
 
-  // Return kural if we have a good match (75%+)
   if (bestMatch && bestMatch.score >= 0.73) {
     return bestMatch.kural;
   }
@@ -281,7 +289,7 @@ async function findPredefinedQuestion(message: string): Promise<number | null> {
 }
 
 /**
- * Check for direct kural number query
+ * Direct kural number extraction
  */
 function extractDirectKuralNumber(message: string): number | null {
   const lower = message.toLowerCase().trim();
@@ -300,7 +308,8 @@ function extractDirectKuralNumber(message: string): number | null {
     if (num >= 1 && num <= 1330) return num;
   }
 
-  const giveShowPattern = /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/;
+  const giveShowPattern =
+    /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/;
   const match3 = lower.match(giveShowPattern);
   if (match3) {
     const num = parseInt(match3[1]);
@@ -311,12 +320,13 @@ function extractDirectKuralNumber(message: string): number | null {
 }
 
 /**
- * Check for chapter-based query
+ * Chapter-based kural extraction
  */
 function extractChapterKuralQuery(message: string): number | null {
   const lower = message.toLowerCase().trim();
 
-  const enPattern1 = /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
+  const enPattern1 =
+    /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
   const match1 = lower.match(enPattern1);
   if (match1) {
     const position = ORDINALS_EN[match1[1]] || parseInt(match1[1]);
@@ -327,7 +337,8 @@ function extractChapterKuralQuery(message: string): number | null {
     }
   }
 
-  const enPattern2 = /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
+  const enPattern2 =
+    /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
   const match2 = lower.match(enPattern2);
   if (match2) {
     const chapterNum = parseInt(match2[1]);
@@ -338,7 +349,8 @@ function extractChapterKuralQuery(message: string): number | null {
     }
   }
 
-  const taPattern = /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
+  const taPattern =
+    /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
   const match3 = message.match(taPattern);
   if (match3) {
     const position = ORDINALS_TA[match3[1]];
@@ -349,7 +361,8 @@ function extractChapterKuralQuery(message: string): number | null {
     }
   }
 
-  const taPattern2 = /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
+  const taPattern2 =
+    /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
   const match4 = message.match(taPattern2);
   if (match4) {
     const chapterNum = parseInt(match4[1]);
@@ -364,57 +377,53 @@ function extractChapterKuralQuery(message: string): number | null {
 }
 
 /**
- * Get kural by number
+ * Get kural by number from Kurals-new
  */
 async function getKuralByNumber(num: number) {
   const { data, error } = await supabase
-    .from('kurals-new')
+    .from('Kurals-new')
     .select('*')
-    .eq('number', num)
+    .eq('Number', num)
     .single();
 
   if (error || !data) return null;
-  return data;
+  return transformKural(data);
 }
 
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
-  const words = lower.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  const words = lower.split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
 
   const expanded = new Set<string>();
   for (const word of words) {
     expanded.add(word);
-    if (SYNONYMS[word]) SYNONYMS[word].forEach(s => expanded.add(s));
-    const stemmed = word
-      .replace(/tion$|ing$|ness$|ment$|ful$|less$|ed$|ly$|er$|s$/, '');
+    if (SYNONYMS[word]) SYNONYMS[word].forEach((s) => expanded.add(s));
+    const stemmed = word.replace(/tion$|ing$|ness$|ment$|ful$|less$|ed$|ly$|er$|s$/, '');
     if (stemmed.length > 2 && stemmed !== word) {
       expanded.add(stemmed);
-      if (SYNONYMS[stemmed]) SYNONYMS[stemmed].forEach(s => expanded.add(s));
+      if (SYNONYMS[stemmed]) SYNONYMS[stemmed].forEach((s) => expanded.add(s));
     }
   }
   return Array.from(expanded);
 }
 
-function scoreKural(kural: Record<string, unknown>, keywords: string[]): number {
+/**
+ * Score kural using your actual columns
+ */
+function scoreKural(kural: any, keywords: string[]): number {
   let score = 0;
 
-  const chapterTamil = ((kural.chapter_tamil as string) || '').toLowerCase();
-  const chapterEnglish = ((kural.chapter_english as string) || '').toLowerCase();
-  const tamil = ((kural.tamil as string) || '').toLowerCase();
-  const transliteration = ((kural.transliteration as string) || '').toLowerCase();
-  const english = ((kural.english as string) || '').toLowerCase();
-  const themes = ((kural.themes as string[]) || []).join(' ').toLowerCase();
-  const mv = ((kural.mv as string) || '').toLowerCase();
-  const sp = ((kural.sp as string) || '').toLowerCase();
-  const mk = ((kural.mk as string) || '').toLowerCase();
-  const couplet = ((kural.couplet as string) || '').toLowerCase();
-  const explanation = ((kural.explanation as string) || '').toLowerCase();
+  const tamil = `${kural.Line1 || ''} ${kural.Line2 || ''}`.toLowerCase();
+  const english = (kural.Translation || '').toLowerCase();
+  const transliteration = `${kural.transliteration1 || ''} ${kural.transliteration2 || ''}`.toLowerCase();
+  const mv = (kural.mv || '').toLowerCase();
+  const sp = (kural.sp || '').toLowerCase();
+  const mk = (kural.mk || '').toLowerCase();
+  const explanation = (kural.explanation || '').toLowerCase();
+  const couplet = (kural.couplet || '').toLowerCase();
 
   for (const kw of keywords) {
     if (kw.length < 3) continue;
-    if (themes.includes(kw)) score += 10;
-    if (chapterEnglish.includes(kw)) score += 8;
-    if (chapterTamil.includes(kw)) score += 7;
     if (english.includes(kw)) score += 6;
     if (tamil.includes(kw)) score += 6;
     if (transliteration.includes(kw)) score += 5;
@@ -428,22 +437,24 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
   return score;
 }
 
-function semanticScore(kural: Record<string, unknown>, fullQuestion: string): number {
+/**
+ * Semantic tie-breaker using all text fields
+ */
+function semanticScore(kural: any, fullQuestion: string): number {
   let score = 0;
   const questionLower = fullQuestion.toLowerCase();
 
   const allText = [
-    kural.chapter_tamil,
-    kural.chapter_english,
-    kural.tamil,
-    kural.transliteration,
-    kural.english,
-    ((kural.themes as string[]) || []).join(' '),
+    kural.Line1,
+    kural.Line2,
+    kural.Translation,
     kural.mv,
     kural.sp,
     kural.mk,
     kural.couplet,
     kural.explanation,
+    kural.transliteration1,
+    kural.transliteration2,
   ]
     .filter(Boolean)
     .join(' ')
@@ -452,7 +463,7 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   const questionWords = questionLower
     .replace(/[.,!?;:'"()\-]/g, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 3 && !STOP_WORDS.has(w));
+    .filter((w) => w.length > 3 && !STOP_WORDS.has(w));
 
   for (const word of questionWords) {
     if (allText.includes(word)) {
@@ -463,109 +474,48 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   return score;
 }
 
+/**
+ * Find best kural using keyword-based search
+ */
 async function findBestKural(keywords: string[], fullQuestion: string) {
   const queryString = keywords.join(' ');
 
+  // If you have a tsvector column, adjust this; otherwise you can skip textSearch
   const { data: ftResults } = await supabase
-    .from('kurals-new')
+    .from('Kurals-new')
     .select('*')
-    .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
     .limit(50);
 
   if (ftResults && ftResults.length > 0) {
-    const scored = (ftResults as Record<string, unknown>[])
-      .map(k => ({
-        kural: k,
-        score: scoreKural(k, keywords),
-        semanticScore: 0
-      }))
-      .sort((a, b) => b.score - a.score);
+    const scored = (ftResults as any[]).map((k) => ({
+      kural: k,
+      score: scoreKural(k, keywords),
+      semanticScore: 0,
+    })).sort((a, b) => b.score - a.score);
 
     const topScore = scored[0].score;
-    const topKurals = scored.filter(k => k.score === topScore);
+    const topKurals = scored.filter((k) => k.score === topScore);
 
     if (topKurals.length > 1) {
       const tiebroken = topKurals
-        .map(k => ({
+        .map((k) => ({
           ...k,
-          semanticScore: semanticScore(k.kural, fullQuestion)
+          semanticScore: semanticScore(k.kural, fullQuestion),
         }))
         .sort((a, b) => b.semanticScore - a.semanticScore);
 
-      return tiebroken[0].kural;
+      return transformKural(tiebroken[0].kural);
     }
 
-    return scored[0].kural;
+    return transformKural(scored[0].kural);
   }
 
-  const { data: themeMatches } = await supabase
-    .from('kurals-new')
-    .select('*')
-    .overlaps('themes', keywords)
-    .limit(30);
-
-  if (themeMatches && themeMatches.length > 0) {
-    const scored = (themeMatches as Record<string, unknown>[])
-      .map(k => ({
-        kural: k,
-        score: scoreKural(k, keywords),
-        semanticScore: 0
-      }))
-      .sort((a, b) => b.score - a.score);
-
-    const topScore = scored[0].score;
-    const topKurals = scored.filter(k => k.score === topScore);
-
-    if (topKurals.length > 1) {
-      const tiebroken = topKurals
-        .map(k => ({
-          ...k,
-          semanticScore: semanticScore(k.kural, fullQuestion)
-        }))
-        .sort((a, b) => b.semanticScore - a.semanticScore);
-
-      return tiebroken[0].kural;
-    }
-
-    return scored[0].kural;
+  const { data: all } = await supabase.from('Kurals-new').select('*').limit(100);
+  if (all && all.length > 0) {
+    const random = all[Math.floor(Math.random() * all.length)];
+    return transformKural(random);
   }
 
-  for (const kw of keywords.slice(0, 5)) {
-    const { data } = await supabase
-      .from('kurals-new')
-      .select('*')
-      .ilike('english', `%${kw}%`)
-      .limit(20);
-
-    if (data && data.length > 0) {
-      const scored = (data as Record<string, unknown>[])
-        .map(k => ({
-          kural: k,
-          score: scoreKural(k, keywords),
-          semanticScore: 0
-        }))
-        .sort((a, b) => b.score - a.score);
-
-      const topScore = scored[0].score;
-      const topKurals = scored.filter(k => k.score === topScore);
-
-      if (topKurals.length > 1) {
-        const tiebroken = topKurals
-          .map(k => ({
-            ...k,
-            semanticScore: semanticScore(k.kural, fullQuestion)
-          }))
-          .sort((a, b) => b.semanticScore - a.semanticScore);
-
-        return tiebroken[0].kural;
-      }
-
-      return scored[0].kural;
-    }
-  }
-
-  const { data: all } = await supabase.from('kurals-new').select('*').limit(100);
-  if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
   return null;
 }
 
@@ -576,7 +526,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // PRIORITY 1: Check for direct kural number query
+    // PRIORITY 1: Direct kural number
     const directNum = extractDirectKuralNumber(message);
     if (directNum) {
       const kural = await getKuralByNumber(directNum);
@@ -585,33 +535,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // PRIORITY 2: Check for chapter-based query
+    // PRIORITY 2: Chapter-based query
     const chapterKuralNum = extractChapterKuralQuery(message);
     if (chapterKuralNum) {
       const kural = await getKuralByNumber(chapterKuralNum);
       if (kural) {
-        return NextResponse.json({ kural, keywords: [`chapter-query`] });
+        return NextResponse.json({ kural, keywords: ['chapter-query'] });
       }
     }
 
-    // PRIORITY 3: Check predefined question mappings (fuzzy match)
+    // PRIORITY 3: Predefined question mappings
     const predefinedKuralNum = await findPredefinedQuestion(message);
     if (predefinedKuralNum) {
       const kural = await getKuralByNumber(predefinedKuralNum);
       if (kural) {
-        return NextResponse.json({ kural, keywords: [`predefined-match`] });
+        return NextResponse.json({ kural, keywords: ['predefined-match'] });
       }
     }
 
-    // PRIORITY 4: Regular keyword-based search (fallback)
+    // PRIORITY 4: Keyword-based search
     const keywords = extractKeywords(message);
     if (keywords.length === 0) {
-      return NextResponse.json({ error: 'Could not understand query. Please try again.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Could not understand query. Please try again.' },
+        { status: 400 }
+      );
     }
 
     const kural = await findBestKural(keywords, message);
     if (!kural) {
-      return NextResponse.json({ error: 'Could not find a matching Kural.' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Could not find a matching Kural.' },
+        { status: 500 }
+      );
     }
 
     const displayKeywords = message
@@ -622,7 +578,6 @@ export async function POST(req: NextRequest) {
       .slice(0, 5);
 
     return NextResponse.json({ kural, keywords: displayKeywords });
-
   } catch (err) {
     console.error('Server error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
