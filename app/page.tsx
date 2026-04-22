@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from './page.module.css';
+import AskKuralMobile from './AskKuralMobile';
 
 interface Kural {
   number: number;
@@ -40,7 +41,18 @@ export default function Home() {
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   async function handleSend(text: string) {
     if (!text.trim() || loading) return;
@@ -63,6 +75,12 @@ export default function Home() {
     setTimeout(() => inputRef.current?.focus(), 100);
   }
 
+  // Mobile view
+  if (isMobile) {
+    return <AskKuralMobile />;
+  }
+
+  // Desktop view (your existing layout)
   return (
     <div className={styles.shell}>
 
