@@ -7,38 +7,38 @@ const supabase = createClient(
 );
 
 const STOP_WORDS = new Set([
-  'i', 'me', 'my', 'myself', 'we', 'our', 'you', 'your', 'he', 'him', 'his', 'she', 'her',
-  'they', 'them', 'their', 'it', 'its', 'a', 'an', 'the', 'and', 'or', 'but', 'if', 'in',
-  'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
-  'be', 'been', 'being', 'have', 'has', 'had', 'do', 'did', 'does', 'will', 'would',
-  'could', 'should', 'may', 'might', 'shall', 'can', 'need', 'must', 'am', 'this',
-  'that', 'these', 'those', 'so', 'up', 'out', 'about', 'into', 'than', 'then', 'there',
-  'when', 'where', 'who', 'how', 'what', 'which', 'why', 'not', 'no', 'yes', 'just',
-  'very', 'too', 'also', 'still', 'even', 'already', 'now', 'today', 'yesterday',
-  'please', 'want', 'like', 'get', 'got', 'getting', 'make', 'made', 'say', 'said',
-  'think', 'know', 'feel', 'feels', 'feeling', 'felt', 'going', 'come', 'came', 'really',
-  'actually', 'always', 'never', 'sometimes', 'maybe', 'perhaps', 'again', 'back',
-  'way', 'thing', 'things', 'something', 'anything', 'everything', 'nothing', 'tell',
-  'let', 'see', 'look', 'try', 'use', 'give', 'take', 'put', 'keep', 'start', 'end',
-  'find', 'ask', 'show', 'call', 'turn', 'move', 'live', 'leave', 'help', 'work',
-  'kural', 'kuṟaḷ', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்', 'give', 'show', 'tell',
-  'what', 'when', 'where', 'who', 'why', 'how', 'which', 'whom', 'whose', 'can', 'will',
-  'would', 'should', 'could', 'may', 'might', 'must', 'shall', 'ought', 'had', 'have',
-  'has', 'do', 'did', 'does', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-  'about', 'above', 'across', 'after', 'against', 'along', 'among', 'around', 'as', 'at',
-  'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'but', 'by',
-  'down', 'during', 'except', 'for', 'from', 'in', 'inside', 'into', 'like', 'near', 'of',
-  'off', 'on', 'onto', 'out', 'outside', 'over', 'past', 'through', 'to', 'under', 'until',
-  'up', 'upon', 'with', 'within', 'without', 'according', 'alongside', 'amid', 'amongst',
-  'apropos', 'around', 'as', 'aside', 'at', 'atop', 'barring', 'because', 'before',
-  'behind', 'below', 'beneath', 'beside', 'besides', 'between', 'beyond', 'but',
-  'by', 'concerning', 'considering', 'despite', 'down', 'due', 'during', 'except',
-  'excepting', 'excluding', 'following', 'for', 'from', 'given', 'in', 'including',
-  'inside', 'into', 'less', 'like', 'minus', 'near', 'notwithstanding', 'of', 'off',
-  'on', 'onto', 'opposite', 'out', 'outside', 'over', 'past', 'per', 'plus', 'prior',
-  'regarding', 'regardless', 'save', 'since', 'than', 'through', 'throughout', 'till',
-  'to', 'toward', 'towards', 'under', 'underneath', 'unlike', 'until', 'unto', 'up',
-  'upon', 'versus', 'via', 'with', 'within', 'without', 'worth'
+  'i','me','my','myself','we','our','you','your','he','him','his','she','her',
+  'they','them','their','it','its','a','an','the','and','or','but','if','in',
+  'on','at','to','for','of','with','by','from','as','is','was','are','were',
+  'be','been','being','have','has','had','do','did','does','will','would',
+  'could','should','may','might','shall','can','need','must','am','this',
+  'that','these','those','so','up','out','about','into','than','then','there',
+  'when','where','who','how','what','which','why','not','no','yes','just',
+  'very','too','also','still','even','already','now','today','yesterday',
+  'please','want','like','get','got','getting','make','made','say','said',
+  'think','know','feel','feels','feeling','felt','going','come','came','really',
+  'actually','always','never','sometimes','maybe','perhaps','again','back',
+  'way','thing','things','something','anything','everything','nothing','tell',
+  'let','see','look','try','use','give','take','put','keep','start','end',
+  'find','ask','show','call','turn','move','live','leave','help','work',
+  'kural','kuṟaḷ','குறள்','chapter','adhikaram','அதிகாரம்','give','show','tell',
+  'what','when','where','who','why','how','which','whom','whose','can','will',
+  'would','should','could','may','might','must','shall','ought','had','have',
+  'has','do','did','does','am','is','are','was','were','be','been','being',
+  'about','above','across','after','against','along','among','around','as','at',
+  'before','behind','below','beneath','beside','between','beyond','but','by',
+  'down','during','except','for','from','in','inside','into','like','near','of',
+  'off','on','onto','out','outside','over','past','through','to','under','until',
+  'up','upon','with','within','without','according','alongside','amid','amongst',
+  'apropos','around','as','aside','at','atop','barring','because','before',
+  'behind','below','beneath','beside','besides','between','beyond','but',
+  'by','concerning','considering','despite','down','due','during','except',
+  'excepting','excluding','following','for','from','given','in','including',
+  'inside','into','less','like','minus','near','notwithstanding','of','off',
+  'on','onto','opposite','out','outside','over','past','per','plus','prior',
+  'regarding','regardless','save','since','than','through','throughout','till',
+  'to','toward','towards','under','underneath','unlike','until','unto','up',
+  'upon','versus','via','with','within','without','worth'
 ]);
 
 // Ordinal number mappings - English and Tamil
@@ -176,25 +176,18 @@ const SYNONYMS: Record<string, string[]> = {
   'conflict': ['strife', 'discord', 'dispute'],
   'unity': ['harmony', 'solidarity', 'cohesion'],
   'division': ['disunity', 'schism', 'fragmentation'],
-  'purity': ['innocence', 'chastity', 'virtue'],
-  'impurity': ['contamination', 'defilement', 'vice'],
-  'impatience': ['restlessness', 'eagerness', 'haste'],
   'self-control': ['restraint', 'temperance', 'discipline'],
   'indulgence': ['excess', 'gratification', 'immoderation'],
   'moderation': ['temperance', 'restraint', 'prudence'],
   'extremism': ['radicalism', 'fanaticism', 'immoderation'],
-  'charity': ['benevolence', 'philanthropy', 'generosity'],
   'greed': ['avarice', 'covetousness', 'materialism'],
   'sacrifice': ['offering', 'devotion', 'selflessness'],
   'selfishness': ['egotism', 'self-centeredness', 'narcissism'],
-  'cowardice': ['timidity', 'fearfulness', 'pusillanimity'],
   'hope': ['optimism', 'expectation', 'faith'],
-  'despair': ['hopelessness', 'dejection', 'gloom'],
   'trust': ['faith', 'confidence', 'reliance'],
   'distrust': ['suspicion', 'doubt', 'mistrust'],
   'respect': ['esteem', 'admiration', 'deference'],
   'disrespect': ['contempt', 'disregard', 'insolence'],
-  'humility': ['modesty', 'meekness', 'unpretentiousness'],
   'arrogance': ['haughtiness', 'conceit', 'pride'],
   'simplicity': ['plainness', 'unpretentiousness', 'modesty'],
   'complexity': ['intricacy', 'complication', 'sophistication'],
@@ -293,7 +286,7 @@ const SYNONYMS: Record<string, string[]> = {
  */
 function extractDirectKuralNumber(message: string): number | null {
   const lower = message.toLowerCase().trim();
-
+  
   // Pattern 1: Just a number (1-1330)
   const justNumber = /^(\d{1,4})$/;
   const match1 = lower.match(justNumber);
@@ -301,7 +294,7 @@ function extractDirectKuralNumber(message: string): number | null {
     const num = parseInt(match1[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-
+  
   // Pattern 2: "kural 123", "குறள் 123", "kuṟaḷ 123"
   const kuralPattern = /(?:kural|குறள்|kuṟaḷ)\s*[#:]?\s*(\d{1,4})/;
   const match2 = lower.match(kuralPattern);
@@ -309,7 +302,7 @@ function extractDirectKuralNumber(message: string): number | null {
     const num = parseInt(match2[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-
+  
   // Pattern 3: "give me 123", "show 456", "number 789"
   const giveShowPattern = /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/;
   const match3 = lower.match(giveShowPattern);
@@ -317,7 +310,7 @@ function extractDirectKuralNumber(message: string): number | null {
     const num = parseInt(match3[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-
+  
   return null;
 }
 
@@ -328,55 +321,55 @@ function extractDirectKuralNumber(message: string): number | null {
  */
 function extractChapterKuralQuery(message: string): number | null {
   const lower = message.toLowerCase().trim();
-
+  
   // Pattern 1: "first kural of chapter 5" or "1st kural of chapter 5"
   const enPattern1 = /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
   const match1 = lower.match(enPattern1);
   if (match1) {
     const position = ORDINALS_EN[match1[1]] || parseInt(match1[1]);
     const chapterNum = parseInt(match1[2]);
-
+    
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
+  
   // Pattern 2: "chapter 5 kural 3" or "chapter 5's 3rd kural"
   const enPattern2 = /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
   const match2 = lower.match(enPattern2);
   if (match2) {
     const chapterNum = parseInt(match2[1]);
     const position = ORDINALS_EN[match2[2]] || parseInt(match2[2]);
-
+    
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
+  
   // Pattern 3: Tamil - "இரண்டாவது அதிகாரத்தின் முதல் குறள்"
   const taPattern = /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
   const match3 = message.match(taPattern);
   if (match3) {
     const position = ORDINALS_TA[match3[1]];
     const chapterNum = parseInt(match3[2]);
-
+    
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
+  
   // Pattern 4: Tamil reverse - "அதிகாரம் 5 இன் முதல் குறள்"
   const taPattern2 = /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
   const match4 = message.match(taPattern2);
   if (match4) {
     const chapterNum = parseInt(match4[1]);
     const position = ORDINALS_TA[match4[2]];
-
+    
     if (chapterNum >= 1 && chapterNum <= 133 && position >= 1 && position <= 10) {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
+  
   return null;
 }
 
@@ -389,7 +382,7 @@ async function getKuralByNumber(num: number) {
     .select('*')
     .eq('number', num)
     .single();
-
+    
   if (error || !data) return null;
   return data;
 }
@@ -403,7 +396,7 @@ function extractKeywords(text: string): string[] {
     expanded.add(word);
     // Add synonyms
     if (SYNONYMS[word]) SYNONYMS[word].forEach(s => expanded.add(s));
-
+    
     // Basic stemming for English words
     const stemmed = word
       .replace(/ing$|es$|s$|ed$|er$|ly$|ful$|less$|ment$|tion$/, '');
@@ -542,9 +535,10 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
   const { data: randomKural } = await supabase
     .from('kurals')
     .select('*')
-    .limit(1)
-    .order('number', { ascending: false })
-    .offset(Math.floor(Math.random() * 1330)); // Get a random kural
+    .range(
+      Math.floor(Math.random() * 1330),
+      Math.floor(Math.random() * 1330)
+    ); // Get a random kural
 
   return randomKural ? randomKural[0] : null;
 }
@@ -582,9 +576,10 @@ export async function GET(request: NextRequest) {
     const { data: randomKural } = await supabase
       .from('kurals')
       .select('*')
-      .limit(1)
-      .order('number', { ascending: false })
-      .offset(Math.floor(Math.random() * 1330));
+      .range(
+        Math.floor(Math.random() * 1330),
+        Math.floor(Math.random() * 1330)
+      );
     return NextResponse.json({ kural: randomKural ? randomKural[0] : null });
   }
 
@@ -597,9 +592,10 @@ export async function GET(request: NextRequest) {
     const { data: randomKural } = await supabase
       .from('kurals')
       .select('*')
-      .limit(1)
-      .order('number', { ascending: false })
-      .offset(Math.floor(Math.random() * 1330));
+      .range(
+        Math.floor(Math.random() * 1330),
+        Math.floor(Math.random() * 1330)
+      );
     return NextResponse.json({ kural: randomKural ? randomKural[0] : null });
   }
 }
