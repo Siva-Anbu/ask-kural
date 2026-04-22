@@ -24,7 +24,7 @@ const STOP_WORDS = new Set([
   'kural','kuṟaḷ','குறள்','chapter','adhikaram','அதிகாரம்','give','show','tell',
 ]);
 
-// Ordinal number mappings - English and Tamil
+// Ordinal number mappings
 const ORDINALS_EN: Record<string, number> = {
   'first': 1, '1st': 1,
   'second': 2, '2nd': 2,
@@ -53,23 +53,234 @@ const ORDINALS_TA: Record<string, number> = {
   'கடைசி': 10,
 };
 
-// Comprehensive synonym map
 const SYNONYMS: Record<string, string[]> = {
-  // [Previous synonyms remain the same - truncated for brevity]
   god: ['god','virtue','faith'],
   prayer: ['god','virtue','faith'],
-  // ... (keep all existing synonyms)
+  faith: ['god','virtue','faith'],
+  worship: ['god','virtue','faith'],
+  divine: ['god','virtue','faith'],
+  bless: ['god','virtue','faith'],
+  blessed: ['god','virtue','blessing'],
+  spiritual: ['god','virtue','faith'],
+  religion: ['god','virtue','faith'],
+  temple: ['god','virtue','faith'],
+  rain: ['rain','nature','farming'],
+  drought: ['rain','nature','poverty'],
+  nature: ['rain','nature','farming'],
+  environment: ['rain','nature','farming'],
+  water: ['rain','nature','health'],
+  virtue: ['virtue','ethics','morality'],
+  moral: ['virtue','ethics','morality'],
+  ethics: ['virtue','ethics','morality'],
+  righteous: ['virtue','ethics','morality'],
+  integrity: ['virtue','ethics','morality'],
+  honesty: ['virtue','ethics','truth'],
+  lie: ['truth','fraud','honesty'],
+  lying: ['truth','fraud','honesty'],
+  corrupt: ['virtue','ethics','governance'],
+  family: ['domestic','love','children'],
+  home: ['domestic','love','family'],
+  house: ['domestic','love','family'],
+  wife: ['domestic','love','marriage'],
+  husband: ['domestic','love','marriage'],
+  marriage: ['love','domestic','marriage'],
+  married: ['love','domestic','marriage'],
+  divorce: ['love','separation','marriage'],
+  relationship: ['love','friendship','domestic'],
+  parent: ['domestic','children','family'],
+  parents: ['domestic','children','family'],
+  mother: ['domestic','love','children'],
+  father: ['domestic','love','children'],
+  son: ['children','domestic','love'],
+  daughter: ['children','domestic','love'],
+  children: ['children','domestic','joy'],
+  child: ['children','domestic','joy'],
+  baby: ['children','domestic','love'],
+  parenting: ['children','domestic','family'],
+  birth: ['children','domestic','family'],
+  pregnancy: ['children','domestic','family'],
+  love: ['love','joy','domestic'],
+  affection: ['love','joy','kindness'],
+  romance: ['love','joy','separation'],
+  heartbroken: ['love','grief','separation'],
+  breakup: ['love','separation','grief'],
+  crush: ['love','joy','separation'],
+  unrequited: ['love','separation','grief'],
+  hospitality: ['hospitality','generosity','kindness'],
+  guest: ['hospitality','generosity','kindness'],
+  host: ['hospitality','generosity','kindness'],
+  generous: ['generosity','kindness','hospitality'],
+  generosity: ['generosity','kindness','hospitality'],
+  donate: ['giving','generosity','kindness'],
+  charity: ['giving','generosity','compassion'],
+  share: ['giving','generosity','kindness'],
+  speak: ['speech','words','eloquence'],
+  speech: ['speech','words','eloquence'],
+  words: ['speech','words','eloquence'],
+  language: ['speech','words','eloquence'],
+  communication: ['speech','words','eloquence'],
+  talk: ['speech','words','eloquence'],
+  silence: ['silence','wisdom','speech'],
+  quiet: ['silence','wisdom','peace'],
+  harsh: ['speech','anger','arrogance'],
+  insult: ['speech','arrogance','anger'],
+  abuse: ['speech','anger','arrogance'],
+  gossip: ['speech','slander','friendship'],
+  slander: ['slander','speech','friendship'],
+  rumour: ['slander','speech','gossip'],
+  backbite: ['slander','speech','friendship'],
+  gratitude: ['gratitude','thankfulness','kindness'],
+  grateful: ['gratitude','thankfulness','kindness'],
+  thankful: ['gratitude','thankfulness','kindness'],
+  ungrateful: ['gratitude','thankfulness','betrayal'],
+  thanks: ['gratitude','thankfulness','kindness'],
+  appreciate: ['gratitude','thankfulness','kindness'],
+  fair: ['impartiality','justice','virtue'],
+  fairness: ['impartiality','justice','virtue'],
+  bias: ['impartiality','justice','virtue'],
+  equality: ['impartiality','justice','virtue'],
+  equal: ['impartiality','justice','virtue'],
+  discrimination: ['impartiality','justice','virtue'],
+  selfcontrol: ['self-control','patience','virtue'],
+  discipline: ['self-control','virtue','action'],
+  temptation: ['self-control','desire','virtue'],
+  impulse: ['self-control','anger','virtue'],
+  restraint: ['self-control','patience','virtue'],
+  control: ['self-control','patience','virtue'],
+  conduct: ['virtue','ethics','action'],
+  behaviour: ['virtue','ethics','action'],
+  sin: ['virtue','ethics','evil'],
+  evil: ['virtue','ethics','evil'],
+  wrong: ['virtue','ethics','wrong'],
+  mistake: ['virtue','ethics','correction'],
+  regret: ['virtue','ethics','grief'],
+  guilt: ['shame','virtue','ethics'],
+  shame: ['shame','virtue','modesty'],
+  kill: ['killing','compassion','virtue'],
+  violence: ['violence','compassion','virtue'],
+  nonviolence: ['compassion','virtue','killing'],
+  meat: ['abstaining','virtue','compassion'],
+  vegetarian: ['abstaining','virtue','compassion'],
+  vegan: ['abstaining','virtue','compassion'],
+  animal: ['compassion','killing','virtue'],
+  cruelty: ['cruelty','compassion','virtue'],
+  cruel: ['cruelty','compassion','virtue'],
   trust: ['friendship','truth','loyalty'],
 };
 
 /**
- * Check if the message is asking for a direct kural by number
- * Supports: "kural 1", "give me kural 500", "show 100", just "25", etc.
+ * Calculate similarity between two strings (0-1 scale)
+ * Uses Levenshtein distance normalized
+ */
+function stringSimilarity(str1: string, str2: string): number {
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+  
+  if (s1 === s2) return 1.0;
+  
+  const len1 = s1.length;
+  const len2 = s2.length;
+  const maxLen = Math.max(len1, len2);
+  
+  if (maxLen === 0) return 1.0;
+  
+  // Simple substring matching as a fast approximation
+  if (s1.includes(s2) || s2.includes(s1)) {
+    return Math.min(len1, len2) / maxLen;
+  }
+  
+  // Calculate Levenshtein distance
+  const matrix: number[][] = [];
+  
+  for (let i = 0; i <= len1; i++) {
+    matrix[i] = [i];
+  }
+  
+  for (let j = 0; j <= len2; j++) {
+    matrix[0][j] = j;
+  }
+  
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  
+  const distance = matrix[len1][len2];
+  return 1 - (distance / maxLen);
+}
+
+/**
+ * Find best matching predefined question
+ * Returns kural number if match found with high confidence
+ */
+async function findPredefinedQuestion(message: string): Promise<number | null> {
+  const { data: mappings, error } = await supabase
+    .from('question_kural_mappings')
+    .select('*')
+    .eq('verified', true);
+  
+  if (error || !mappings || mappings.length === 0) {
+    return null;
+  }
+  
+  const normalized = message.toLowerCase().trim();
+  let bestMatch: { kural: number; score: number; confidence: string } | null = null;
+  
+  for (const mapping of mappings) {
+    // Check English questions
+    const questions = mapping.questions || [];
+    for (const question of questions) {
+      const similarity = stringSimilarity(normalized, question);
+      
+      // High confidence match: 0.85+ similarity
+      if (similarity >= 0.85) {
+        if (!bestMatch || similarity > bestMatch.score) {
+          bestMatch = {
+            kural: mapping.kural_number,
+            score: similarity,
+            confidence: mapping.confidence_level
+          };
+        }
+      }
+    }
+    
+    // Check Tamil questions
+    const questionsTamil = mapping.questions_tamil || [];
+    for (const question of questionsTamil) {
+      const similarity = stringSimilarity(normalized, question);
+      
+      if (similarity >= 0.85) {
+        if (!bestMatch || similarity > bestMatch.score) {
+          bestMatch = {
+            kural: mapping.kural_number,
+            score: similarity,
+            confidence: mapping.confidence_level
+          };
+        }
+      }
+    }
+  }
+  
+  // Return kural if we have a strong match
+  if (bestMatch && bestMatch.score >= 0.85) {
+    return bestMatch.kural;
+  }
+  
+  return null;
+}
+
+/**
+ * Check for direct kural number query
  */
 function extractDirectKuralNumber(message: string): number | null {
   const lower = message.toLowerCase().trim();
   
-  // Pattern 1: Just a number (1-1330)
   const justNumber = /^(\d{1,4})$/;
   const match1 = lower.match(justNumber);
   if (match1) {
@@ -77,7 +288,6 @@ function extractDirectKuralNumber(message: string): number | null {
     if (num >= 1 && num <= 1330) return num;
   }
   
-  // Pattern 2: "kural 123", "குறள் 123", "kuṟaḷ 123"
   const kuralPattern = /(?:kural|குறள்|kuṟaḷ)\s*[#:]?\s*(\d{1,4})/;
   const match2 = lower.match(kuralPattern);
   if (match2) {
@@ -85,7 +295,6 @@ function extractDirectKuralNumber(message: string): number | null {
     if (num >= 1 && num <= 1330) return num;
   }
   
-  // Pattern 3: "give me 123", "show 456", "number 789"
   const giveShowPattern = /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/;
   const match3 = lower.match(giveShowPattern);
   if (match3) {
@@ -97,14 +306,11 @@ function extractDirectKuralNumber(message: string): number | null {
 }
 
 /**
- * Check if message is asking for nth kural of a chapter
- * Examples: "first kural of chapter 2", "third kural of second chapter"
- * Tamil: "இரண்டாவது அதிகாரத்தின் முதல் குறள்"
+ * Check for chapter-based query
  */
 function extractChapterKuralQuery(message: string): number | null {
   const lower = message.toLowerCase().trim();
   
-  // Pattern 1: "first kural of chapter 5" or "1st kural of chapter 5"
   const enPattern1 = /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
   const match1 = lower.match(enPattern1);
   if (match1) {
@@ -116,7 +322,6 @@ function extractChapterKuralQuery(message: string): number | null {
     }
   }
   
-  // Pattern 2: "chapter 5 kural 3" or "chapter 5's 3rd kural"
   const enPattern2 = /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
   const match2 = lower.match(enPattern2);
   if (match2) {
@@ -128,7 +333,6 @@ function extractChapterKuralQuery(message: string): number | null {
     }
   }
   
-  // Pattern 3: Tamil - "இரண்டாவது அதிகாரத்தின் முதல் குறள்"
   const taPattern = /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
   const match3 = message.match(taPattern);
   if (match3) {
@@ -140,7 +344,6 @@ function extractChapterKuralQuery(message: string): number | null {
     }
   }
   
-  // Pattern 4: Tamil reverse - "அதிகாரம் 5 இன் முதல் குறள்"
   const taPattern2 = /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
   const match4 = message.match(taPattern2);
   if (match4) {
@@ -156,7 +359,7 @@ function extractChapterKuralQuery(message: string): number | null {
 }
 
 /**
- * Get kural by direct number
+ * Get kural by number
  */
 async function getKuralByNumber(num: number) {
   const { data, error } = await supabase
@@ -386,7 +589,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // PRIORITY 3: Regular keyword-based search
+    // PRIORITY 3: Check predefined question mappings (fuzzy match)
+    const predefinedKuralNum = await findPredefinedQuestion(message);
+    if (predefinedKuralNum) {
+      const kural = await getKuralByNumber(predefinedKuralNum);
+      if (kural) {
+        return NextResponse.json({ kural, keywords: [`predefined-match`] });
+      }
+    }
+
+    // PRIORITY 4: Regular keyword-based search (fallback)
     const keywords = extractKeywords(message);
     if (keywords.length === 0) {
       return NextResponse.json({ error: 'Could not understand query. Please try again.' }, { status: 400 });
