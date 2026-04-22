@@ -196,243 +196,148 @@ const SYNONYMS: Record<string, string[]> = {
   dead: ['impermanence','fate','grief'],
   loss: ['impermanence','grief','suffering'],
   grief: ['grief','suffering','impermanence'],
-  mourn: ['grief','suffering','impermanence'],
-  mortality: ['impermanence','fate','virtue'],
-  life: ['impermanence','virtue','fate'],
-  time: ['impermanence','time','fate'],
-  renounce: ['renunciation','penance','virtue'],
-  detach: ['renunciation','wisdom','peace'],
-  attachment: ['renunciation','desire','love'],
-  letting: ['renunciation','wisdom','peace'],
-  desire: ['desire','greed','self-control'],
-  greed: ['greed','desire','wealth'],
-  greedy: ['greed','desire','wealth'],
-  lust: ['desire','greed','lust'],
-  possessive: ['desire','greed','self-control'],
-  jealous: ['jealousy','desire','self-control'],
-  jealousy: ['jealousy','desire','self-control'],
-  envy: ['jealousy','desire','self-control'],
-  envious: ['jealousy','desire','self-control'],
-  compare: ['jealousy','desire','self-control'],
-  fate: ['fate','impermanence','virtue'],
-  destiny: ['fate','impermanence','virtue'],
-  luck: ['fate','fortune','virtue'],
-  fortune: ['fate','fortune','wealth'],
-  unlucky: ['fate','fortune','suffering'],
-  accident: ['fate','impermanence','suffering'],
-  chance: ['fate','fortune','action'],
-
-  // BOOK OF WEALTH
-  king: ['governance','leadership','royalty'],
-  ruler: ['governance','leadership','royalty'],
-  govern: ['governance','leadership','royalty'],
-  government: ['governance','leadership','justice'],
-  politics: ['governance','leadership','justice'],
-  politician: ['governance','leadership','justice'],
-  election: ['governance','leadership','justice'],
-  democracy: ['governance','justice','leadership'],
-  minister: ['governance','leadership','royalty'],
-  learn: ['knowledge','education','wisdom'],
-  learning: ['knowledge','education','wisdom'],
-  education: ['knowledge','education','wisdom'],
-  study: ['knowledge','education','wisdom'],
-  school: ['knowledge','education','wisdom'],
-  university: ['knowledge','education','wisdom'],
-  college: ['knowledge','education','wisdom'],
-  degree: ['knowledge','education','wisdom'],
-  read: ['knowledge','education','wisdom'],
-  book: ['knowledge','education','wisdom'],
-  ignorant: ['ignorance','knowledge','wisdom'],
-  ignorance: ['ignorance','knowledge','wisdom'],
-  uneducated: ['ignorance','knowledge','education'],
-  stupid: ['ignorance','knowledge','wisdom'],
-  foolish: ['foolishness','ignorance','wisdom'],
-  fool: ['foolishness','ignorance','wisdom'],
-  naive: ['foolishness','ignorance','wisdom'],
-  reckless: ['foolishness','action','wisdom'],
-  careless: ['foolishness','action','wisdom'],
-  listen: ['listening','wisdom','knowledge'],
-  hear: ['listening','wisdom','knowledge'],
-  advice: ['listening','wisdom','knowledge'],
-  wisdom: ['wisdom','knowledge','virtue'],
-  wise: ['wisdom','knowledge','virtue'],
-  smart: ['wisdom','knowledge','education'],
-  intelligent: ['wisdom','knowledge','education'],
-  clever: ['wisdom','knowledge','education'],
-  confused: ['wisdom','knowledge','ignorance'],
-  lost: ['wisdom','knowledge','guidance'],
-  guidance: ['wisdom','knowledge','leadership'],
-  decision: ['wisdom','knowledge','action'],
-  handle: ['wisdom','action','leadership'],
-  tackle: ['wisdom','action','enemy'],
-  fault: ['correction','virtue','wisdom'],
-  flaw: ['correction','virtue','wisdom'],
-  improve: ['correction','virtue','action'],
-  growth: ['correction','virtue','action'],
-  feedback: ['correction','wisdom','speech'],
-  criticism: ['correction','speech','wisdom'],
-  greatness: ['greatness','virtue','wisdom'],
-  noble: ['nobility','virtue','greatness'],
-  nobility: ['nobility','virtue','greatness'],
-  dignity: ['nobility','virtue','greatness'],
-  lazy: ['laziness','action','sloth'],
-  laziness: ['laziness','action','sloth'],
-  procrastinate: ['laziness','action','sloth'],
-  idle: ['laziness','action','sloth'],
-  inactive: ['laziness','action','sloth'],
-  sloth: ['laziness','action','sloth'],
-  sluggish: ['laziness','action','sloth'],
-  unmotivated: ['laziness','action','energy'],
-  active: ['action','energy','diligence'],
-  diligent: ['diligence','action','energy'],
-  diligence: ['diligence','action','energy'],
-  persistent: ['perseverance','action','energy'],
-  firm: ['firmness','action','perseverance'],
-  timing: ['time','action','wisdom'],
-  opportunity: ['time','action','wisdom'],
-  moment: ['time','impermanence','action'],
-  friend: ['friendship','love','loyalty'],
-  friends: ['friendship','love','loyalty'],
-  friendship: ['friendship','love','loyalty'],
-  loyal: ['friendship','love','loyalty'],
-  loyalty: ['friendship','love','loyalty'],
-  betrayal: ['betrayal','friendship','truth'],
-  betray: ['betrayal','friendship','truth'],
-  betrayed: ['betrayal','friendship','truth'],
-  backstab: ['betrayal','friendship','slander'],
-  cheating: ['betrayal','friendship','truth'],
-  toxic: ['bad-friendship','anger','betrayal'],
-  colleague: ['friendship','work','loyalty'],
-  team: ['friendship','leadership','action'],
-  enemy: ['enmity','wisdom','courage'],
-  enemies: ['enmity','wisdom','courage'],
-  rival: ['enmity','wisdom','competition'],
-  compete: ['enmity','action','competition'],
-  competition: ['enmity','action','wisdom'],
-  conflict: ['enmity','anger','wisdom'],
-  fight: ['enmity','anger','violence'],
-  action: ['action','energy','diligence'],
-  energy: ['energy','action','perseverance'],
-  effort: ['effort','action','energy'],
-  hardwork: ['effort','action','perseverance'],
-  succeed: ['effort','action','perseverance'],
-  success: ['effort','action','perseverance'],
-  achieve: ['effort','action','perseverance'],
-  goal: ['effort','action','wisdom'],
-  motivation: ['energy','action','perseverance'],
-  motivate: ['energy','action','perseverance'],
-  inspire: ['energy','leadership','action'],
-  persevere: ['perseverance','effort','strength'],
-  perseverance: ['perseverance','effort','strength'],
-  persist: ['perseverance','effort','strength'],
-  resilience: ['perseverance','strength','courage'],
-  resilient: ['perseverance','strength','courage'],
-  overcome: ['perseverance','courage','strength'],
-  survive: ['perseverance','strength','fate'],
-  obstacle: ['perseverance','courage','action'],
-  challenge: ['perseverance','courage','action'],
-  failure: ['perseverance','effort','grief'],
-  fail: ['perseverance','effort','grief'],
-  perfect: ['perfection','virtue','greatness'],
-  perfection: ['perfection','virtue','greatness'],
-  excellence: ['perfection','virtue','greatness'],
-  eloquent: ['eloquence','speech','wisdom'],
-  eloquence: ['eloquence','speech','wisdom'],
-  persuade: ['eloquence','speech','wisdom'],
-  debate: ['eloquence','speech','wisdom'],
-  presentation: ['eloquence','speech','wisdom'],
-  interview: ['eloquence','speech','wisdom'],
-  courage: ['courage','strength','perseverance'],
-  courageous: ['courage','strength','perseverance'],
-  brave: ['courage','strength','perseverance'],
-  fear: ['fear','courage','strength'],
-  afraid: ['fear','courage','strength'],
-  scared: ['fear','courage','strength'],
-  coward: ['fear','courage','strength'],
-  daring: ['courage','strength','action'],
-  anxiety: ['fear','peace','health'],
-  anxious: ['fear','peace','health'],
-  worry: ['fear','peace','health'],
-  worried: ['fear','peace','health'],
-  kind: ['kindness','compassion','love'],
-  kindness: ['kindness','compassion','love'],
-  benevolent: ['kindness','compassion','love'],
-  caring: ['kindness','compassion','love'],
-  warm: ['kindness','compassion','love'],
-  help: ['kindness','compassion','hospitality'],
-  support: ['kindness','friendship','compassion'],
-  endure: ['endurance','perseverance','strength'],
-  endurance: ['endurance','perseverance','strength'],
-  patience: ['patience','endurance','self-control'],
-  patient: ['patience','endurance','self-control'],
-  impatient: ['patience','self-control','anger'],
-  tolerance: ['endurance','patience','self-control'],
-  tolerate: ['endurance','patience','self-control'],
-  modest: ['modesty','virtue','shame'],
-  modesty: ['modesty','virtue','shame'],
-  humble: ['modesty','virtue','shame'],
-  humility: ['modesty','virtue','shame'],
-  arrogant: ['arrogance','pride','shame'],
-  arrogance: ['arrogance','pride','shame'],
-  ego: ['arrogance','pride','shame'],
-  pride: ['arrogance','pride','shame'],
-  selfish: ['arrogance','selfishness','shame'],
-  rude: ['arrogance','anger','shame'],
-  wealth: ['wealth','poverty','generosity'],
-  rich: ['wealth','giving','generosity'],
-  money: ['wealth','giving','poverty'],
-  poor: ['poverty','wealth','suffering'],
-  poverty: ['poverty','wealth','suffering'],
-  debt: ['poverty','wealth','suffering'],
-  financial: ['wealth','poverty','action'],
-  savings: ['wealth','action','future'],
-  invest: ['wealth','action','future'],
-  salary: ['wealth','work','action'],
-  income: ['wealth','work','action'],
-  jobless: ['wealth','effort','poverty'],
-  unemployed: ['wealth','effort','poverty'],
-  fired: ['effort','perseverance','poverty'],
-  job: ['effort','wealth','action'],
-  career: ['effort','wealth','action'],
-  promotion: ['effort','wealth','action'],
-  office: ['effort','wealth','action'],
-  starve: ['poverty','suffering','wealth'],
-  hungry: ['poverty','suffering','health'],
-  homeless: ['poverty','suffering','wealth'],
-  struggle: ['poverty','suffering','perseverance'],
-  alcohol: ['alcohol','vice','virtue'],
-  drink: ['alcohol','vice','virtue'],
-  drunk: ['alcohol','vice','virtue'],
-  addiction: ['alcohol','vice','self-control'],
-  addicted: ['alcohol','vice','self-control'],
-  gambling: ['gambling','vice','virtue'],
-  gamble: ['gambling','vice','virtue'],
-  bet: ['gambling','vice','virtue'],
-  sick: ['health','suffering','medicine'],
-  illness: ['health','suffering','medicine'],
-  disease: ['health','suffering','medicine'],
-  medicine: ['health','medicine','suffering'],
-  doctor: ['health','medicine','wisdom'],
-  hospital: ['health','medicine','suffering'],
-  heal: ['health','medicine','perseverance'],
-  healing: ['health','medicine','perseverance'],
-  pain: ['suffering','health','grief'],
-  painful: ['suffering','health','grief'],
-  physical: ['health','body','suffering'],
-  body: ['health','body','suffering'],
-  recover: ['health','perseverance','medicine'],
-  mental: ['health','peace','suffering'],
-  depression: ['suffering','peace','health'],
-  depressed: ['suffering','peace','health'],
-  stressed: ['suffering','peace','health'],
-  stress: ['suffering','peace','health'],
-  overwhelmed: ['suffering','peace','health'],
-  burnout: ['effort','laziness','health'],
-  exhausted: ['effort','perseverance','health'],
+  mourn: ['grief','suffering','death'],
+  sorrow: ['grief','suffering','love'],
+  pain: ['suffering','grief','health'],
+  suffering: ['suffering','grief','compassion'],
   hurt: ['suffering','grief','love'],
   ache: ['suffering','grief','health'],
-  aching: ['suffering','grief','health'],
-  sorrow: ['grief','suffering','impermanence'],
+  agony: ['suffering','grief','torture'],
+  torture: ['suffering','cruelty','compassion'],
+  patient: ['patience','perseverance','virtue'],
+  patience: ['patience','perseverance','virtue'],
+  wait: ['patience','perseverance','hope'],
+  persevere: ['perseverance','courage','effort'],
+  perseverance: ['perseverance','courage','effort'],
+  persistence: ['perseverance','courage','effort'],
+  endure: ['perseverance','suffering','courage'],
+  courage: ['courage','strength','virtue'],
+  brave: ['courage','strength','virtue'],
+  fear: ['fear','courage','danger'],
+  afraid: ['fear','courage','danger'],
+  scared: ['fear','courage','danger'],
+  terror: ['fear','courage','danger'],
+  panic: ['fear','courage','self-control'],
+  worry: ['anxiety','fear','wisdom'],
+  anxious: ['anxiety','fear','patience'],
+  anxiety: ['anxiety','fear','wisdom'],
+  stress: ['anxiety','effort','health'],
+  tension: ['anxiety','anger','health'],
+  friend: ['friendship','love','kindness'],
+  friendship: ['friendship','love','loyalty'],
+  companion: ['friendship','love','loyalty'],
+  betray: ['betrayal','friendship','trust'],
+  betrayal: ['betrayal','friendship','grief'],
+  traitor: ['betrayal','friendship','trust'],
+  treachery: ['betrayal','fraud','friendship'],
+  forgive: ['forgiveness','compassion','virtue'],
+  forgiveness: ['forgiveness','compassion','virtue'],
+  pardon: ['forgiveness','compassion','virtue'],
+  reconcile: ['forgiveness','friendship','love'],
+  reconciliation: ['forgiveness','friendship','peace'],
+  enemy: ['enmity','hatred','courage'],
+  enemies: ['enmity','hatred','courage'],
+  enmity: ['enmity','hatred','friendship'],
+  hatred: ['hatred','anger','enmity'],
+  hate: ['hatred','anger','enmity'],
+  hostility: ['enmity','hatred','anger'],
+  revenge: ['vengeance','anger','enmity'],
+  vengeance: ['vengeance','anger','justice'],
+  retaliate: ['vengeance','anger','justice'],
+  wealth: ['wealth','prosperity','greed'],
+  rich: ['wealth','prosperity','poverty'],
+  riches: ['wealth','prosperity','greed'],
+  money: ['wealth','prosperity','greed'],
+  fortune: ['wealth','prosperity','fate'],
+  prosperity: ['prosperity','wealth','joy'],
+  poverty: ['poverty','suffering','wealth'],
+  poor: ['poverty','suffering','compassion'],
+  destitute: ['poverty','suffering','compassion'],
+  beggar: ['poverty','suffering','giving'],
+  famine: ['poverty','suffering','rain'],
+  hunger: ['poverty','suffering','health'],
+  starve: ['poverty','suffering','health'],
+  greed: ['greed','desire','virtue'],
+  greedy: ['greed','desire','virtue'],
+  selfish: ['greed','arrogance','virtue'],
+  selfishness: ['greed','arrogance','virtue'],
+  covet: ['greed','desire','virtue'],
+  jealous: ['jealousy','desire','love'],
+  jealousy: ['jealousy','desire','love'],
+  envy: ['jealousy','desire','virtue'],
+  learn: ['learning','wisdom','knowledge'],
+  learning: ['learning','wisdom','knowledge'],
+  knowledge: ['knowledge','wisdom','learning'],
+  education: ['learning','wisdom','knowledge'],
+  study: ['learning','knowledge','effort'],
+  teach: ['teaching','wisdom','knowledge'],
+  teacher: ['teaching','wisdom','knowledge'],
+  mentor: ['teaching','wisdom','guidance'],
+  student: ['learning','wisdom','knowledge'],
+  ignorance: ['ignorance','wisdom','knowledge'],
+  ignorant: ['ignorance','wisdom','folly'],
+  fool: ['folly','ignorance','wisdom'],
+  foolish: ['folly','ignorance','wisdom'],
+  folly: ['folly','ignorance','wisdom'],
+  stupid: ['folly','ignorance','wisdom'],
+  idiot: ['folly','ignorance','arrogance'],
+  wise: ['wisdom','knowledge','virtue'],
+  wisdom: ['wisdom','knowledge','virtue'],
+  sage: ['wisdom','knowledge','virtue'],
+  intelligent: ['wisdom','knowledge','learning'],
+  intelligence: ['wisdom','knowledge','learning'],
+  smart: ['wisdom','knowledge','learning'],
+  clever: ['wisdom','knowledge','fraud'],
+  cunning: ['fraud','wisdom','virtue'],
+  scheme: ['fraud','planning','virtue'],
+  plot: ['fraud','planning','enmity'],
+  plan: ['planning','wisdom','action'],
+  planning: ['planning','wisdom','action'],
+  strategy: ['planning','wisdom','action'],
+  prepare: ['preparation','planning','action'],
+  preparation: ['preparation','planning','action'],
+  ready: ['preparation','courage','action'],
+  lazy: ['laziness','sloth','action'],
+  laziness: ['laziness','sloth','virtue'],
+  sloth: ['sloth','laziness','virtue'],
+  procrastinate: ['laziness','sloth','action'],
+  idle: ['laziness','sloth','action'],
+  work: ['action','effort','wealth'],
+  effort: ['effort','action','perseverance'],
+  strive: ['effort','perseverance','action'],
+  labor: ['effort','action','wealth'],
+  toil: ['effort','suffering','action'],
+  diligent: ['effort','perseverance','action'],
+  diligence: ['effort','perseverance','virtue'],
+  industry: ['effort','action','wealth'],
+  skill: ['skill','knowledge','action'],
+  skilled: ['skill','knowledge','action'],
+  talent: ['skill','knowledge','virtue'],
+  expert: ['skill','knowledge','wisdom'],
+  master: ['skill','knowledge','wisdom'],
+  mastery: ['skill','knowledge','wisdom'],
+  power: ['power','strength','governance'],
+  powerful: ['power','strength','governance'],
+  authority: ['power','governance','leadership'],
+  ruler: ['governance','leadership','power'],
+  king: ['governance','leadership','power'],
+  queen: ['governance','leadership','power'],
+  govern: ['governance','leadership','justice'],
+  governance: ['governance','leadership','justice'],
+  government: ['governance','leadership','justice'],
+  politics: ['governance','leadership','justice'],
+  political: ['governance','leadership','justice'],
+  humble: ['humility','modesty','virtue'],
+  humility: ['humility','modesty','virtue'],
+  modesty: ['modesty','humility','virtue'],
+  modest: ['modesty','humility','virtue'],
+  pride: ['pride','arrogance','virtue'],
+  arrogance: ['arrogance','pride','virtue'],
+  arrogant: ['arrogance','pride','virtue'],
+  vain: ['vanity','arrogance','beauty'],
+  vanity: ['vanity','arrogance','pride'],
+  boast: ['arrogance','pride','speech'],
+  brag: ['arrogance','pride','speech'],
   sad: ['grief','suffering','love'],
   crying: ['grief','suffering','love'],
   justice: ['justice','governance','virtue'],
@@ -534,22 +439,106 @@ function extractKeywords(text: string): string[] {
   return Array.from(expanded);
 }
 
+/**
+ * Enhanced scoring function that considers ALL specified fields:
+ * - chapter_tamil
+ * - chapter_english
+ * - tamil
+ * - transliteration
+ * - english
+ * - themes
+ * - mv (Mu Varadarajan)
+ * - sp (Salamon Pappaiah)
+ * - mk (Manakkudavar)
+ * - couplet
+ * - explanation
+ */
 function scoreKural(kural: Record<string, unknown>, keywords: string[]): number {
   let score = 0;
-  const english = ((kural.english as string) || '').toLowerCase();
-  const chapter  = ((kural.chapter_english as string) || '').toLowerCase();
-  const themes   = ((kural.themes as string[]) || []).join(' ').toLowerCase();
 
+  // Extract and normalize all fields
+  const chapterTamil = ((kural.chapter_tamil as string) || '').toLowerCase();
+  const chapterEnglish = ((kural.chapter_english as string) || '').toLowerCase();
+  const tamil = ((kural.tamil as string) || '').toLowerCase();
+  const transliteration = ((kural.transliteration as string) || '').toLowerCase();
+  const english = ((kural.english as string) || '').toLowerCase();
+  const themes = ((kural.themes as string[]) || []).join(' ').toLowerCase();
+  const mv = ((kural.mv as string) || '').toLowerCase();
+  const sp = ((kural.sp as string) || '').toLowerCase();
+  const mk = ((kural.mk as string) || '').toLowerCase();
+  const couplet = ((kural.couplet as string) || '').toLowerCase();
+  const explanation = ((kural.explanation as string) || '').toLowerCase();
+
+  // Process each keyword
   for (const kw of keywords) {
     if (kw.length < 3) continue;
-    if (themes.includes(kw))  score += 5;
-    if (english.includes(kw)) score += 3;
-    if (chapter.includes(kw)) score += 2;
+
+    // Highest priority: Themes (direct conceptual match)
+    if (themes.includes(kw)) score += 10;
+
+    // High priority: Chapter names (structural relevance)
+    if (chapterEnglish.includes(kw)) score += 8;
+    if (chapterTamil.includes(kw)) score += 7;
+
+    // Core content: The kural itself
+    if (english.includes(kw)) score += 6;
+    if (tamil.includes(kw)) score += 6;
+    if (transliteration.includes(kw)) score += 5;
+    if (couplet.includes(kw)) score += 5;
+
+    // Commentary and explanations (deeper understanding)
+    if (explanation.includes(kw)) score += 4;
+    if (mv.includes(kw)) score += 3;
+    if (sp.includes(kw)) score += 3;
+    if (mk.includes(kw)) score += 3;
   }
+
   return score;
 }
 
-async function findBestKural(keywords: string[]) {
+/**
+ * Enhanced tie-breaking for kurals with identical scores.
+ * Uses a full-text semantic score against the entire question.
+ */
+function semanticScore(kural: Record<string, unknown>, fullQuestion: string): number {
+  let score = 0;
+  const questionLower = fullQuestion.toLowerCase();
+
+  // Combine all text fields for semantic matching
+  const allText = [
+    kural.chapter_tamil,
+    kural.chapter_english,
+    kural.tamil,
+    kural.transliteration,
+    kural.english,
+    ((kural.themes as string[]) || []).join(' '),
+    kural.mv,
+    kural.sp,
+    kural.mk,
+    kural.couplet,
+    kural.explanation,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  // Extract meaningful words from the question
+  const questionWords = questionLower
+    .replace(/[.,!?;:'"()\-]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 3 && !STOP_WORDS.has(w));
+
+  // Count how many question words appear in the kural's combined text
+  for (const word of questionWords) {
+    if (allText.includes(word)) {
+      score += 1;
+    }
+  }
+
+  return score;
+}
+
+async function findBestKural(keywords: string[], fullQuestion: string) {
   const queryString = keywords.join(' ');
 
   // Use select('*') so all columns including mv, sp, mk are returned
@@ -557,43 +546,108 @@ async function findBestKural(keywords: string[]) {
     .from('kurals')
     .select('*')
     .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
-    .limit(30);
+    .limit(50); // Increased limit for better candidate pool
 
   if (ftResults && ftResults.length > 0) {
     const scored = (ftResults as Record<string, unknown>[])
-      .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+      .map(k => ({ 
+        kural: k, 
+        score: scoreKural(k, keywords),
+        semanticScore: 0 // Will be calculated if needed
+      }))
       .sort((a, b) => b.score - a.score);
-    const top = scored.slice(0, 3);
-    return top[Math.floor(Math.random() * top.length)].kural;
+
+    // Get the top score
+    const topScore = scored[0].score;
+
+    // Find all kurals with the top score (ties)
+    const topKurals = scored.filter(k => k.score === topScore);
+
+    // If there's a tie, use semantic scoring on the full question
+    if (topKurals.length > 1) {
+      const tiebroken = topKurals
+        .map(k => ({
+          ...k,
+          semanticScore: semanticScore(k.kural, fullQuestion)
+        }))
+        .sort((a, b) => b.semanticScore - a.semanticScore);
+
+      return tiebroken[0].kural;
+    }
+
+    // No tie, return the top kural
+    return scored[0].kural;
   }
 
+  // Fallback to theme-based matching
   const { data: themeMatches } = await supabase
     .from('kurals')
     .select('*')
     .overlaps('themes', keywords)
-    .limit(20);
+    .limit(30);
 
   if (themeMatches && themeMatches.length > 0) {
     const scored = (themeMatches as Record<string, unknown>[])
-      .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+      .map(k => ({ 
+        kural: k, 
+        score: scoreKural(k, keywords),
+        semanticScore: 0
+      }))
       .sort((a, b) => b.score - a.score);
+
+    const topScore = scored[0].score;
+    const topKurals = scored.filter(k => k.score === topScore);
+
+    if (topKurals.length > 1) {
+      const tiebroken = topKurals
+        .map(k => ({
+          ...k,
+          semanticScore: semanticScore(k.kural, fullQuestion)
+        }))
+        .sort((a, b) => b.semanticScore - a.semanticScore);
+
+      return tiebroken[0].kural;
+    }
+
     return scored[0].kural;
   }
 
+  // Fallback to partial English matching
   for (const kw of keywords.slice(0, 5)) {
     const { data } = await supabase
       .from('kurals')
       .select('*')
       .ilike('english', `%${kw}%`)
-      .limit(10);
+      .limit(20);
+
     if (data && data.length > 0) {
       const scored = (data as Record<string, unknown>[])
-        .map(k => ({ kural: k, score: scoreKural(k, keywords) }))
+        .map(k => ({ 
+          kural: k, 
+          score: scoreKural(k, keywords),
+          semanticScore: 0
+        }))
         .sort((a, b) => b.score - a.score);
+
+      const topScore = scored[0].score;
+      const topKurals = scored.filter(k => k.score === topScore);
+
+      if (topKurals.length > 1) {
+        const tiebroken = topKurals
+          .map(k => ({
+            ...k,
+            semanticScore: semanticScore(k.kural, fullQuestion)
+          }))
+          .sort((a, b) => b.semanticScore - a.semanticScore);
+
+        return tiebroken[0].kural;
+      }
+
       return scored[0].kural;
     }
   }
 
+  // Final fallback
   const { data: all } = await supabase.from('kurals').select('*').limit(100);
   if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
   return null;
@@ -611,7 +665,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not understand query. Please try again.' }, { status: 400 });
     }
 
-    const kural = await findBestKural(keywords);
+    // Pass both keywords and full question for tie-breaking
+    const kural = await findBestKural(keywords, message);
     if (!kural) {
       return NextResponse.json({ error: 'Could not find a matching Kural.' }, { status: 500 });
     }
