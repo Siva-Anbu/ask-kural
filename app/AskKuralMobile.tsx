@@ -28,14 +28,12 @@ const AskKuralMobile = () => {
   const [error, setError] = useState('');
 
   const quickPrompts = [
-    { tamil: 'எனக்கு தோல்வி படும்', english: 'I feel like a failure' },
-    { tamil: 'எனக்கு கோபம்', english: 'I am angry' },
-    { tamil: 'நான் மகிழ்ச்சியாக', english: 'I seek happiness' },
-    { tamil: 'நான் தவறு செய்தேன்', english: 'I made a mistake' },
-    { tamil: 'நான் தொலைந்தேன்', english: 'I feel lost' },
-    { tamil: 'என்னைப் பயப்படுத்துகிறது', english: 'I am afraid' },
-    { tamil: 'நான் முன்னேற கேண்டும்', english: 'I want to grow' },
-    { tamil: 'என் பேரு நம்பிக்கை இல்லை', english: 'I have no hope' },
+    { tamil: 'வாழ்க்கையில் தோல்வி', english: 'I feel like a failure' },
+    { tamil: 'கோபம் அடங்கவில்லை', english: 'I cannot control my anger' },
+    { tamil: 'தனிமையாக இருக்கிறேன்', english: 'I feel lonely abroad' },
+    { tamil: 'செய்வதை தள்ளிப்போடுகிறேன்', english: 'I keep procrastinating' },
+    { tamil: 'அப்பாவிடம் சண்டை', english: 'I fought with my father' },
+    { tamil: 'வேலை கிடைக்கவில்லை', english: 'I cannot find a job' },
   ];
 
   const handleQuickPrompt = (prompt: { tamil: string; english: string }) => {
@@ -184,6 +182,14 @@ const AskKuralMobile = () => {
         <h2 style={styles.titleEnglish}>ASK KURAL</h2>
       </div>
 
+      {/* Inspirational Quote */}
+      {!isLoading && !error && (
+        <div style={styles.quoteSection}>
+          <p style={styles.quoteTamil}>"எண்ணிய எண்ணியாங்கு எய்துப"</p>
+          <p style={styles.quoteEnglish}>What you seek with clear intent, you shall find.</p>
+        </div>
+      )}
+
       {/* Quick Prompts Grid */}
       {!isLoading && !error && (
         <div style={styles.promptsGrid}>
@@ -277,11 +283,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     opacity: 0.8,
   },
+  quoteSection: {
+    textAlign: 'center',
+    marginBottom: '32px',
+    padding: '0 20px',
+  },
+  quoteTamil: {
+    fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
+    fontSize: '20px',
+    fontWeight: 400,
+    color: '#f5e6d3',
+    margin: '0 0 8px 0',
+    letterSpacing: '0.5px',
+    lineHeight: 1.6,
+  },
+  quoteEnglish: {
+    fontSize: '14px',
+    fontWeight: 300,
+    color: '#c4c4c4',
+    margin: 0,
+    fontStyle: 'italic',
+    opacity: 0.9,
+  },
   promptsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    display: 'flex',
+    overflowX: 'auto',
     gap: '12px',
     marginBottom: '32px',
+    paddingBottom: '8px',
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none',
   },
   promptCard: {
     background: 'rgba(25, 25, 25, 0.6)',
@@ -291,6 +322,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     textAlign: 'left',
+    minWidth: '200px',
+    flexShrink: 0,
   },
   promptTamil: {
     fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
