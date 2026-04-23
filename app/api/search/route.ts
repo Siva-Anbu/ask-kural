@@ -170,161 +170,144 @@ async function getKuralByNumber(num: number) {
 }
 
 /**
+ * Calculate similarity between two strings (0-100%)
+ * Simple word overlap percentage
+ */
+function calculateSimilarity(str1: string, str2: string): number {
+  const normalize = (s: string) => s.toLowerCase().trim().replace(/[.,!?;:'"()\-]/g, ' ');
+  
+  const text1 = normalize(str1);
+  const text2 = normalize(str2);
+  
+  // Exact match
+  if (text1 === text2) return 100;
+  
+  const words1 = text1.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  const words2 = text2.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  
+  if (words1.length === 0 || words2.length === 0) return 0;
+  
+  let matches = 0;
+  for (const word of words1) {
+    if (words2.includes(word)) {
+      matches++;
+    }
+  }
+  
+  // Calculate percentage based on the shorter list
+  const percentage = (matches / Math.min(words1.length, words2.length)) * 100;
+  return percentage;
+}
+
+/**
  * Search the Questionare table for matching situations
  * Returns the best matching kural if found, null otherwise
  */
 async function searchQuestionare(message: string) {
-  const keywords = extractKeywords(message);
-  const messageLower = message.toLowerCase().trim();
-  
   // Fetch all situations from Questionare table
   const { data: situations, error } = await supabase
     .from('Questionare')
     .select('*');
   
   if (error || !situations || situations.length === 0) {
-    console.log('Questionare: No situations found or error', error);
     return null;
   }
   
-  console.log(`Questionare: Checking ${situations.length} situations for: "${message}"`);
+  // Find the best matching situation
+  let bestMatch = null;
+  let bestSimilarity = 0;
   
-  // Extract meaningful words from the message (excluding stop words)
-  const messageWords = messageLower
-    .replace(/[.,!?;:'"()\-]/g, ' ')
-    .split(/\s+/)
-    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  for (const situation of situations) {
+    const situationText = (situation.Situation as string) || '';
+    const similarity = calculateSimilarity(message, situationText);
+    
+    if (similarity > bestSimilarity) {
+      bestSimilarity = similarity;
+      bestMatch = situation;
+    }
+  }
   
-  // Score each situation based on keyword matches
-  const scoredSituations = situations.map(situation => {
-    const situationText = ((situation.Situation as string) || '').toLowerCase().trim();
-    let score = 0;
-    let matchedWords = 0;
-    
-    // EXACT MATCH CHECK - highest priority
-    if (messageLower === situationText) {
-      console.log('Questionare: EXACT MATCH found:', situationText);
-      return {
-        situation,
-        score: 1000, // Very high score for exact match
-        matchedWords: messageWords.length,
-        matchPercentage: 100,
-        totalWords: messageWords.length,
-        isExactMatch: true
-      };
-    }
-    
-    // Extract words from situation for comparison
-    const situationWords = situationText
-      .replace(/[.,!?;:'"()\-]/g, ' ')
-      .split(/\s+/)
-      .filter(w => w.length > 2 && !STOP_WORDS.has(w));
-    
-    // Count how many meaningful words from the message appear in the situation
-    for (const word of messageWords) {
-      if (situationText.includes(word)) {
-        matchedWords++;
-        // Give higher weight to longer words (more specific)
-        score += word.length > 4 ? 3 : 2;
-      }
-    }
-    
-    // Also check extracted keywords with higher weight
-    for (const kw of keywords) {
-      if (situationText.includes(kw)) {
-        score += 5;
-      }
-    }
-    
-    // Calculate match percentage
-    const matchPercentage = messageWords.length > 0 
-      ? (matchedWords / messageWords.length) * 100 
-      : 0;
-    
-    return { 
-      situation, 
-      score, 
-      matchedWords,
-      matchPercentage,
-      totalWords: messageWords.length,
-      isExactMatch: false
-    };
-  })
-    .filter(s => s.score > 0)
-    .sort((a, b) => {
-      // Exact matches always win
-      if (a.isExactMatch && !b.isExactMatch) return -1;
-      if (!a.isExactMatch && b.isExactMatch) return 1;
-      
-      // Sort by match percentage first, then by score
-      if (Math.abs(a.matchPercentage - b.matchPercentage) > 10) {
-        return b.matchPercentage - a.matchPercentage;
-      }
-      return b.score - a.score;
+  // Require at least 50% similarity to consider it a match
+  if (!bestMatch || bestSimilarity < 50) {
+    return null;
+  }
+  
+  // Get all 3 kurals for this situation
+  const kurals = [];
+  
+  if (bestMatch.Kural_1) {
+    kurals.push({ 
+      num: bestMatch.Kural_1, 
+      tamil1: bestMatch.Tamil1_1, 
+      tamil2: bestMatch.Tamil2_1, 
+      meaning: bestMatch.Meaning_1 
     });
+  }
+  if (bestMatch.Kural_2) {
+    kurals.push({ 
+      num: bestMatch.Kural_2, 
+      tamil1: bestMatch.Tamil1_2, 
+      tamil2: bestMatch.Tamil2_2, 
+      meaning: bestMatch.Meaning_2 
+    });
+  }
+  if (bestMatch.Kural_3) {
+    kurals.push({ 
+      num: bestMatch.Kural_3, 
+      tamil1: bestMatch.Tamil1_3, 
+      tamil2: bestMatch.Tamil2_3, 
+      meaning: bestMatch.Meaning_3 
+    });
+  }
   
-  console.log('Questionare: Top 3 matches:', scoredSituations.slice(0, 3).map(s => ({
-    situation: s.situation.Situation,
-    matchPercentage: s.matchPercentage,
-    score: s.score,
-    matchedWords: s.matchedWords,
-    totalWords: s.totalWords,
-    isExact: s.isExactMatch
-  })));
-  
-  // Lower threshold to 20% to catch more potential matches
-  const validMatches = scoredSituations.filter(s => s.matchPercentage >= 20 || s.isExactMatch);
-  
-  if (validMatches.length === 0) {
-    console.log('Questionare: No matches found above 20% threshold');
+  if (kurals.length === 0) {
     return null;
   }
   
-  // Take the best matching situation
-  const bestMatch = validMatches[0];
-  const bestSituation = bestMatch.situation;
+  // Score each kural based on how well its meaning matches the user's message
+  const keywords = extractKeywords(message);
+  let bestKural = null;
+  let bestKuralScore = 0;
   
-  console.log('Questionare: Selected situation:', {
-    situation: bestSituation.Situation,
-    matchPercentage: bestMatch.matchPercentage,
-    matchedWords: bestMatch.matchedWords,
-    totalWords: bestMatch.totalWords,
-    score: bestMatch.score,
-    isExact: bestMatch.isExactMatch
-  });
-  
-  // Now we have up to 3 kurals associated with this situation
-  // We need to fetch each kural and score them against the original message
-  const kuralCandidates: Array<{ kural: any; score: number; kuralNum: number }> = [];
-  
-  for (let i = 1; i <= 3; i++) {
-    const kuralNum = bestSituation[`Kural_${i}` as keyof typeof bestSituation] as number;
+  for (const k of kurals) {
+    let score = 0;
+    const meaningLower = (k.meaning || '').toLowerCase();
     
-    if (kuralNum) {
-      const kural = await getKuralByNumber(kuralNum);
-      if (kural) {
-        // Score this kural against the message keywords
-        const kuralScore = scoreKural(kural, keywords) + semanticScore(kural, message);
-        kuralCandidates.push({ kural, score: kuralScore, kuralNum });
-        console.log(`Questionare: Kural_${i} = ${kuralNum}, score = ${kuralScore}`);
+    // Check how many keywords appear in the meaning
+    for (const keyword of keywords) {
+      if (meaningLower.includes(keyword)) {
+        score += 10;
       }
+    }
+    
+    // Also give some base score to the first kural (it's usually most relevant)
+    if (k.num === bestMatch.Kural_1) {
+      score += 5;
+    }
+    
+    if (score > bestKuralScore) {
+      bestKuralScore = score;
+      bestKural = k;
     }
   }
   
-  // If we found kural candidates, return the best one
-  if (kuralCandidates.length > 0) {
-    kuralCandidates.sort((a, b) => b.score - a.score);
-    console.log('Questionare: Selected Kural:', kuralCandidates[0].kuralNum);
-    return {
-      kural: kuralCandidates[0].kural,
-      matchedSituation: bestSituation.Situation,
-      situationScore: bestMatch.score,
-      matchPercentage: bestMatch.matchPercentage
-    };
+  // If no kural scored well, just return the first one
+  if (!bestKural || bestKuralScore === 0) {
+    bestKural = kurals[0];
   }
   
-  console.log('Questionare: No kurals found for matched situation');
-  return null;
+  // Fetch the full kural data from the Kurals-new table
+  const fullKural = await getKuralByNumber(bestKural.num);
+  
+  if (!fullKural) {
+    return null;
+  }
+  
+  return {
+    kural: fullKural,
+    matchedSituation: bestMatch.Situation,
+    similarity: bestSimilarity
+  };
 }
 
 function extractKeywords(text: string): string[] {
