@@ -175,6 +175,7 @@ async function getKuralByNumber(num: number) {
  */
 async function searchQuestionare(message: string) {
   const keywords = extractKeywords(message);
+  const messageLower = message.toLowerCase().trim();
   
   // Fetch all situations from Questionare table
   const { data: situations, error } = await supabase
@@ -185,42 +186,73 @@ async function searchQuestionare(message: string) {
     return null;
   }
   
+  // Extract meaningful words from the message (excluding stop words)
+  const messageWords = messageLower
+    .replace(/[.,!?;:'"()\-]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  
   // Score each situation based on keyword matches
   const scoredSituations = situations.map(situation => {
     const situationText = ((situation.Situation as string) || '').toLowerCase();
     let score = 0;
+    let matchedWords = 0;
     
-    // Check for keyword matches in the situation
-    for (const kw of keywords) {
-      if (situationText.includes(kw)) {
-        score += 1;
-      }
-    }
-    
-    // Also check for full message substring match (more accurate)
-    const messageLower = message.toLowerCase();
-    const messageWords = messageLower
-      .replace(/[.,!?;:'"()\-]/g, ' ')
-      .split(/\s+/)
-      .filter(w => w.length > 2);
-    
+    // Count how many meaningful words from the message appear in the situation
     for (const word of messageWords) {
       if (situationText.includes(word)) {
-        score += 1;
+        matchedWords++;
+        // Give higher weight to longer words (more specific)
+        score += word.length > 4 ? 3 : 2;
       }
     }
     
-    return { situation, score };
-  }).filter(s => s.score > 0)
-    .sort((a, b) => b.score - a.score);
+    // Also check extracted keywords with higher weight
+    for (const kw of keywords) {
+      if (situationText.includes(kw)) {
+        score += 5;
+      }
+    }
+    
+    // Calculate match percentage
+    const matchPercentage = messageWords.length > 0 
+      ? (matchedWords / messageWords.length) * 100 
+      : 0;
+    
+    return { 
+      situation, 
+      score, 
+      matchedWords,
+      matchPercentage,
+      totalWords: messageWords.length 
+    };
+  })
+    .filter(s => s.score > 0 && s.matchPercentage >= 30) // Require at least 30% word match
+    .sort((a, b) => {
+      // Sort by match percentage first, then by score
+      if (Math.abs(a.matchPercentage - b.matchPercentage) > 10) {
+        return b.matchPercentage - a.matchPercentage;
+      }
+      return b.score - a.score;
+    });
   
-  // If no matching situations found, return null
+  // If no matching situations found with sufficient threshold, return null
   if (scoredSituations.length === 0) {
     return null;
   }
   
   // Take the best matching situation
   const bestSituation = scoredSituations[0].situation;
+  const bestScore = scoredSituations[0];
+  
+  // Log for debugging (optional - can be removed in production)
+  console.log('Questionare Match:', {
+    situation: bestSituation.Situation,
+    matchPercentage: bestScore.matchPercentage,
+    matchedWords: bestScore.matchedWords,
+    totalWords: bestScore.totalWords,
+    score: bestScore.score
+  });
   
   // Now we have up to 3 kurals associated with this situation
   // We need to fetch each kural and score them against the original message
@@ -245,7 +277,8 @@ async function searchQuestionare(message: string) {
     return {
       kural: kuralCandidates[0].kural,
       matchedSituation: bestSituation.Situation,
-      situationScore: scoredSituations[0].score
+      situationScore: scoredSituations[0].score,
+      matchPercentage: scoredSituations[0].matchPercentage
     };
   }
   
