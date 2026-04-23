@@ -5,15 +5,12 @@ import styles from './page.module.css';
 import AskKuralMobile from './AskKuralMobile';
 
 interface Kural {
-  number: number;
-  chapter_english: string;
-  chapter_tamil: string;
-  book_english: string;
-  book_tamil: string;
-  tamil: string;
-  transliteration: string;
-  english: string;
-  themes: string[];
+  Number: number;
+  Line1: string;
+  Line2: string;
+  Translation: string;
+  transliteration1: string;
+  transliteration2: string;
   mv?: string;
   sp?: string;
   mk?: string;
@@ -58,7 +55,7 @@ export default function Home() {
     if (!text.trim() || loading) return;
     setError(''); setResult(null); setLoading(true);
     try {
-      const res = await fetch('/api/ask', {
+      const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
@@ -147,22 +144,23 @@ export default function Home() {
             <div className={styles.leftCol}>
               <div className={styles.kuralCard}>
                 <div className={styles.kuralMeta}>
-                  <span className={styles.kuralNum}>குறள் #{result.kural.number}</span>
-                  <span className={styles.kuralChapter}>{result.kural.chapter_tamil} · {result.kural.book_tamil}</span>
+                  <span className={styles.kuralNum}>குறள் #{result.kural.Number}</span>
+                  {/* Chapter info removed since new table doesn't have it */}
                 </div>
                 <p className={styles.kuralTamil}>
-                  {result.kural.tamil.replace(/\\n/g, '\n')}
+                  {result.kural.Line1}
+                  {'\n'}
+                  {result.kural.Line2}
                 </p>
                 <p className={styles.kuralTranslit}>
-                  {result.kural.transliteration.replace(/\\n/g, '\n')}
+                  {result.kural.transliteration1}
+                  {'\n'}
+                  {result.kural.transliteration2}
                 </p>
                 <div className={styles.kuralEnBox}>
-                  <p className={styles.kuralEn}>&ldquo;{result.kural.english}&rdquo;</p>
+                  <p className={styles.kuralEn}>&ldquo;{result.kural.Translation}&rdquo;</p>
                 </div>
-                <div className={styles.kuralFooter}>
-                  <span>{result.kural.chapter_english.toUpperCase()}</span>
-                  <span>{result.kural.book_english.toUpperCase()}</span>
-                </div>
+                {/* Chapter footer removed since new table doesn't have it */}
               </div>
             </div>
 
