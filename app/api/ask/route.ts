@@ -160,9 +160,9 @@ function extractChapterKuralQuery(message: string): number | null {
  */
 async function getKuralByNumber(num: number) {
   const { data, error } = await supabase
-    .from('kurals')
+    .from('Kurals-new')
     .select('*')
-    .eq('number', num)
+    .eq('Number', num)
     .single();
     
   if (error || !data) return null;
@@ -190,12 +190,12 @@ function extractKeywords(text: string): string[] {
 function scoreKural(kural: Record<string, unknown>, keywords: string[]): number {
   let score = 0;
 
-  const chapterTamil = ((kural.chapter_tamil as string) || '').toLowerCase();
-  const chapterEnglish = ((kural.chapter_english as string) || '').toLowerCase();
-  const tamil = ((kural.tamil as string) || '').toLowerCase();
-  const transliteration = ((kural.transliteration as string) || '').toLowerCase();
-  const english = ((kural.english as string) || '').toLowerCase();
-  const themes = ((kural.themes as string[]) || []).join(' ').toLowerCase();
+  // New table structure - updated column names
+  const line1 = ((kural.Line1 as string) || '').toLowerCase();
+  const line2 = ((kural.Line2 as string) || '').toLowerCase();
+  const translation = ((kural.Translation as string) || '').toLowerCase();
+  const transliteration1 = ((kural.transliteration1 as string) || '').toLowerCase();
+  const transliteration2 = ((kural.transliteration2 as string) || '').toLowerCase();
   const mv = ((kural.mv as string) || '').toLowerCase();
   const sp = ((kural.sp as string) || '').toLowerCase();
   const mk = ((kural.mk as string) || '').toLowerCase();
@@ -204,17 +204,24 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
 
   for (const kw of keywords) {
     if (kw.length < 3) continue;
-    if (themes.includes(kw)) score += 10;
-    if (chapterEnglish.includes(kw)) score += 8;
-    if (chapterTamil.includes(kw)) score += 7;
-    if (english.includes(kw)) score += 6;
-    if (tamil.includes(kw)) score += 6;
-    if (transliteration.includes(kw)) score += 5;
+    
+    // Primary matches in translation and explanation
+    if (translation.includes(kw)) score += 10;
+    if (explanation.includes(kw)) score += 8;
+    
+    // Tamil text matches
+    if (line1.includes(kw)) score += 7;
+    if (line2.includes(kw)) score += 7;
+    
+    // Transliteration matches
+    if (transliteration1.includes(kw)) score += 6;
+    if (transliteration2.includes(kw)) score += 6;
+    
+    // Couplet and commentary matches
     if (couplet.includes(kw)) score += 5;
-    if (explanation.includes(kw)) score += 4;
-    if (mv.includes(kw)) score += 3;
-    if (sp.includes(kw)) score += 3;
-    if (mk.includes(kw)) score += 3;
+    if (mv.includes(kw)) score += 4;
+    if (sp.includes(kw)) score += 4;
+    if (mk.includes(kw)) score += 4;
   }
 
   return score;
@@ -225,12 +232,11 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   const questionLower = fullQuestion.toLowerCase();
 
   const allText = [
-    kural.chapter_tamil,
-    kural.chapter_english,
-    kural.tamil,
-    kural.transliteration,
-    kural.english,
-    ((kural.themes as string[]) || []).join(' '),
+    kural.Line1,
+    kural.Line2,
+    kural.Translation,
+    kural.transliteration1,
+    kural.transliteration2,
     kural.mv,
     kural.sp,
     kural.mk,
@@ -256,107 +262,70 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
 }
 
 async function findBestKural(keywords: string[], fullQuestion: string) {
-  const queryString = keywords.join(' ');
+  // Since the new table doesn't have search_vector or themes columns,
+  // we'll use a simpler search strategy with ilike on Translation and explanation fields
+  
+  const searchResults: Record<string, unknown>[] = [];
 
-  const { data: ftResults } = await supabase
-    .from('kurals')
-    .select('*')
-    .textSearch('search_vector', queryString, { type: 'plain', config: 'english' })
-    .limit(50);
-
-  if (ftResults && ftResults.length > 0) {
-    const scored = (ftResults as Record<string, unknown>[])
-      .map(k => ({ 
-        kural: k, 
-        score: scoreKural(k, keywords),
-        semanticScore: 0
-      }))
-      .sort((a, b) => b.score - a.score);
-
-    const topScore = scored[0].score;
-    const topKurals = scored.filter(k => k.score === topScore);
-
-    if (topKurals.length > 1) {
-      const tiebroken = topKurals
-        .map(k => ({
-          ...k,
-          semanticScore: semanticScore(k.kural, fullQuestion)
-        }))
-        .sort((a, b) => b.semanticScore - a.semanticScore);
-
-      return tiebroken[0].kural;
-    }
-
-    return scored[0].kural;
-  }
-
-  const { data: themeMatches } = await supabase
-    .from('kurals')
-    .select('*')
-    .overlaps('themes', keywords)
-    .limit(30);
-
-  if (themeMatches && themeMatches.length > 0) {
-    const scored = (themeMatches as Record<string, unknown>[])
-      .map(k => ({ 
-        kural: k, 
-        score: scoreKural(k, keywords),
-        semanticScore: 0
-      }))
-      .sort((a, b) => b.score - a.score);
-
-    const topScore = scored[0].score;
-    const topKurals = scored.filter(k => k.score === topScore);
-
-    if (topKurals.length > 1) {
-      const tiebroken = topKurals
-        .map(k => ({
-          ...k,
-          semanticScore: semanticScore(k.kural, fullQuestion)
-        }))
-        .sort((a, b) => b.semanticScore - a.semanticScore);
-
-      return tiebroken[0].kural;
-    }
-
-    return scored[0].kural;
-  }
-
+  // Search in Translation field
   for (const kw of keywords.slice(0, 5)) {
     const { data } = await supabase
-      .from('kurals')
+      .from('Kurals-new')
       .select('*')
-      .ilike('english', `%${kw}%`)
-      .limit(20);
+      .ilike('Translation', `%${kw}%`)
+      .limit(30);
 
     if (data && data.length > 0) {
-      const scored = (data as Record<string, unknown>[])
-        .map(k => ({ 
-          kural: k, 
-          score: scoreKural(k, keywords),
-          semanticScore: 0
-        }))
-        .sort((a, b) => b.score - a.score);
-
-      const topScore = scored[0].score;
-      const topKurals = scored.filter(k => k.score === topScore);
-
-      if (topKurals.length > 1) {
-        const tiebroken = topKurals
-          .map(k => ({
-            ...k,
-            semanticScore: semanticScore(k.kural, fullQuestion)
-          }))
-          .sort((a, b) => b.semanticScore - a.semanticScore);
-
-        return tiebroken[0].kural;
-      }
-
-      return scored[0].kural;
+      searchResults.push(...data);
     }
   }
 
-  const { data: all } = await supabase.from('kurals').select('*').limit(100);
+  // Search in explanation field
+  for (const kw of keywords.slice(0, 5)) {
+    const { data } = await supabase
+      .from('Kurals-new')
+      .select('*')
+      .ilike('explanation', `%${kw}%`)
+      .limit(30);
+
+    if (data && data.length > 0) {
+      searchResults.push(...data);
+    }
+  }
+
+  // Remove duplicates based on Number
+  const uniqueResults = Array.from(
+    new Map(searchResults.map(k => [k.Number, k])).values()
+  );
+
+  if (uniqueResults.length > 0) {
+    const scored = uniqueResults
+      .map(k => ({ 
+        kural: k, 
+        score: scoreKural(k, keywords),
+        semanticScore: 0
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    const topScore = scored[0].score;
+    const topKurals = scored.filter(k => k.score === topScore);
+
+    if (topKurals.length > 1) {
+      const tiebroken = topKurals
+        .map(k => ({
+          ...k,
+          semanticScore: semanticScore(k.kural, fullQuestion)
+        }))
+        .sort((a, b) => b.semanticScore - a.semanticScore);
+
+      return tiebroken[0].kural;
+    }
+
+    return scored[0].kural;
+  }
+
+  // Fallback: return a random kural if no matches found
+  const { data: all } = await supabase.from('Kurals-new').select('*').limit(100);
   if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
   return null;
 }
