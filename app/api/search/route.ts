@@ -169,6 +169,89 @@ async function getKuralByNumber(num: number) {
   return data;
 }
 
+/**
+ * Search the Questionare table for matching situations
+ * Returns the best matching kural if found, null otherwise
+ */
+async function searchQuestionare(message: string) {
+  const keywords = extractKeywords(message);
+  
+  // Fetch all situations from Questionare table
+  const { data: situations, error } = await supabase
+    .from('Questionare')
+    .select('*');
+  
+  if (error || !situations || situations.length === 0) {
+    return null;
+  }
+  
+  // Score each situation based on keyword matches
+  const scoredSituations = situations.map(situation => {
+    const situationText = ((situation.Situation as string) || '').toLowerCase();
+    let score = 0;
+    
+    // Check for keyword matches in the situation
+    for (const kw of keywords) {
+      if (situationText.includes(kw)) {
+        score += 1;
+      }
+    }
+    
+    // Also check for full message substring match (more accurate)
+    const messageLower = message.toLowerCase();
+    const messageWords = messageLower
+      .replace(/[.,!?;:'"()\-]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 2);
+    
+    for (const word of messageWords) {
+      if (situationText.includes(word)) {
+        score += 1;
+      }
+    }
+    
+    return { situation, score };
+  }).filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score);
+  
+  // If no matching situations found, return null
+  if (scoredSituations.length === 0) {
+    return null;
+  }
+  
+  // Take the best matching situation
+  const bestSituation = scoredSituations[0].situation;
+  
+  // Now we have up to 3 kurals associated with this situation
+  // We need to fetch each kural and score them against the original message
+  const kuralCandidates: Array<{ kural: any; score: number; kuralNum: number }> = [];
+  
+  for (let i = 1; i <= 3; i++) {
+    const kuralNum = bestSituation[`Kural_${i}` as keyof typeof bestSituation] as number;
+    
+    if (kuralNum) {
+      const kural = await getKuralByNumber(kuralNum);
+      if (kural) {
+        // Score this kural against the message keywords
+        const kuralScore = scoreKural(kural, keywords) + semanticScore(kural, message);
+        kuralCandidates.push({ kural, score: kuralScore, kuralNum });
+      }
+    }
+  }
+  
+  // If we found kural candidates, return the best one
+  if (kuralCandidates.length > 0) {
+    kuralCandidates.sort((a, b) => b.score - a.score);
+    return {
+      kural: kuralCandidates[0].kural,
+      matchedSituation: bestSituation.Situation,
+      situationScore: scoredSituations[0].score
+    };
+  }
+  
+  return null;
+}
+
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
   const words = lower.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
@@ -355,7 +438,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // PRIORITY 3: Regular keyword-based search
+    // PRIORITY 3: Check for matching situations in Questionare table
+    const questionareResult = await searchQuestionare(message);
+    if (questionareResult) {
+      return NextResponse.json({ 
+        kural: questionareResult.kural, 
+        keywords: ['situation-match'],
+        matchedSituation: questionareResult.matchedSituation,
+        source: 'questionare'
+      });
+    }
+
+    // PRIORITY 4: Regular keyword-based search
     const keywords = extractKeywords(message);
     if (keywords.length === 0) {
       return NextResponse.json({ error: 'Could not understand query. Please try again.' }, { status: 400 });
