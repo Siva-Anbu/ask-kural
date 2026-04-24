@@ -3,15 +3,12 @@
 import { useState } from 'react';
 
 interface Kural {
-  number: number;
-  chapter_english: string;
-  chapter_tamil: string;
-  book_english: string;
-  book_tamil: string;
-  tamil: string;
-  transliteration: string;
-  english: string;
-  themes: string[];
+  Number: number;
+  Line1: string;
+  Line2: string;
+  Translation: string;
+  transliteration1: string;
+  transliteration2: string;
   mv?: string;
   sp?: string;
   mk?: string;
@@ -48,7 +45,7 @@ const AskKuralMobile = () => {
     setError('');
     
     try {
-      const res = await fetch('/api/ask', {
+      const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: searchQuery }),
@@ -101,14 +98,22 @@ const AskKuralMobile = () => {
 
         {/* Kural Card */}
         <div style={styles.kuralCard}>
-          <div style={styles.kuralNumber}>Kural #{kural.number}</div>
+          <div style={styles.kuralNumber}>Kural #{kural.Number}</div>
           
           <div style={styles.kuralTamil}>
-            {kural.tamil.replace(/\\n/g, '\n')}
+            {kural.Line1}
+            {'\n'}
+            {kural.Line2}
+          </div>
+
+          <div style={styles.kuralTranslit}>
+            {kural.transliteration1}
+            {'\n'}
+            {kural.transliteration2}
           </div>
 
           <div style={styles.kuralEnglish}>
-            {kural.english}
+            &ldquo;{kural.Translation}&rdquo;
           </div>
         </div>
 
@@ -428,9 +433,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '22px',
     lineHeight: 1.7,
     color: '#f5e6d3',
-    marginBottom: '20px',
+    marginBottom: '16px',
     fontWeight: 400,
     letterSpacing: '0.3px',
+    whiteSpace: 'pre-line',
+  },
+  kuralTranslit: {
+    fontSize: '15px',
+    lineHeight: 1.7,
+    color: '#c4c4c4',
+    marginBottom: '16px',
+    fontWeight: 300,
+    fontStyle: 'italic',
+    opacity: 0.8,
     whiteSpace: 'pre-line',
   },
   kuralEnglish: {
