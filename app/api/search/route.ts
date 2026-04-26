@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Enhanced Supabase client with service role key fallback
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -25,7 +24,6 @@ const STOP_WORDS = new Set([
   'kural', 'kuṟaḷ', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்', 'give', 'show', 'tell',
 ]);
 
-// Ordinal number mappings
 const ORDINALS_EN: Record<string, number> = {
   'first': 1, '1st': 1, 'second': 2, '2nd': 2, 'third': 3, '3rd': 3,
   'fourth': 4, '4th': 4, 'fifth': 5, '5th': 5, 'sixth': 6, '6th': 6,
@@ -40,6 +38,69 @@ const ORDINALS_TA: Record<string, number> = {
   'ஆறாம்': 6, 'ஆறாவது': 6, 'ஏழாம்': 7, 'ஏழாவது': 7,
   'எட்டாம்': 8, 'எட்டாவது': 8, 'ஒன்பதாம்': 9, 'ஒன்பதாவது': 9,
   'பத்தாம்': 10, 'பத்தாவது': 10, 'கடைசி': 10,
+};
+
+// NEW: Thirukkural-specific theme mappings
+const THIRUKKURAL_THEMES: Record<string, string[]> = {
+  // Love & Relationships - காமத்துப்பால்
+  'heartbreak': ['பிரிவு', 'separation', 'pallor', 'பசலை', 'longing', 'pine', 'sorrow', 'grief'],
+  'failed_love': ['பிரிவு', 'separation', 'lost', 'pain', 'துக்கம்', 'பசலை', 'sallow'],
+  'breakup': ['பிரிவு', 'separation', 'apart', 'left', 'gone', 'நோய்', 'anguish'],
+  'missing_lover': ['நினைவு', 'remember', 'absence', 'தனிமை', 'longing', 'yearn', 'embrace'],
+  'unrequited_love': ['காதல்', 'love', 'rejection', 'pain', 'sorrow', 'நோய்'],
+  'betrayed_love': ['நம்பிக்கை', 'trust', 'betrayal', 'broken', 'deceit', 'வஞ்சம்'],
+
+  // Career & Work - பொருட்பால்
+  'lost_job': ['தொழில்', 'வேலை', 'unemployment', 'வறுமை', 'poverty', 'struggle', 'hardship'],
+  'career_failure': ['தோல்வி', 'setback', 'failure', 'perseverance', 'பொறுமை', 'effort'],
+  'work_stress': ['வேலை', 'pressure', 'burden', 'தொழில்', 'struggle', 'fatigue'],
+  'no_job': ['வேலை', 'தொழில்', 'unemployment', 'search', 'opportunity', 'வறுமை'],
+  'business_loss': ['செல்வம்', 'wealth', 'loss', 'தோல்வி', 'bankruptcy', 'வறுமை'],
+
+  // Family - அறத்துப்பால்
+  'parent_conflict': ['பெற்றோர்', 'மரியாதை', 'respect', 'duty', 'கடமை', 'honor', 'அறம்'],
+  'father_fight': ['பெற்றோர்', 'அப்பா', 'father', 'மரியாதை', 'respect', 'அறம்'],
+  'mother_issue': ['பெற்றோர்', 'அம்மா', 'mother', 'மரியாதை', 'care', 'அன்பு'],
+  'family_betrayal': ['நட்பு', 'trust', 'நம்பிக்கை', 'broken', 'குடும்பம்', 'relatives'],
+  'sibling_rivalry': ['குடும்பம்', 'family', 'jealousy', 'பொறாமை', 'conflict'],
+
+  // Emotions & Mental State - அறத்துப்பால்
+  'anger_control': ['கோபம்', 'சினம்', 'patience', 'பொறுமை', 'calm', 'self-control', 'அடக்கம்'],
+  'loneliness': ['தனிமை', 'solitude', 'அன்பு', 'companionship', 'alone', 'isolated'],
+  'depression': ['துக்கம்', 'sorrow', 'sadness', 'grief', 'despair', 'hopeless'],
+  'anxiety': ['அச்சம்', 'பயம்', 'fear', 'worry', 'nervous', 'dread'],
+  'grief': ['துக்கம்', 'sorrow', 'அழுகை', 'loss', 'mourning', 'pain'],
+  'jealousy': ['பொறாமை', 'envy', 'resentment', 'covet'],
+  'pride_ego': ['செருக்கு', 'arrogance', 'ego', 'vanity', 'conceit'],
+  'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation'],
+
+  // Spiritual & Purpose - அறத்துப்பால்
+  'faith_crisis': ['கடவுள்', 'இறை', 'virtue', 'அறம்', 'doubt', 'belief'],
+  'life_purpose': ['அறம்', 'dharma', 'duty', 'கடமை', 'meaning', 'purpose'],
+  'lost_direction': ['வழி', 'path', 'direction', 'purpose', 'கடமை'],
+  'moral_dilemma': ['அறம்', 'virtue', 'right', 'wrong', 'ethics', 'நீதி'],
+
+  // Personal Struggles
+  'procrastination': ['சோம்பல்', 'lazy', 'delay', 'postpone', 'effort', 'முயற்சி'],
+  'failure_feeling': ['தோல்வி', 'failure', 'defeat', 'worthless', 'shame'],
+  'betrayed_friend': ['நட்பு', 'friendship', 'நம்பிக்கை', 'trust', 'betrayal', 'வஞ்சம்'],
+  'trust_broken': ['நம்பிக்கை', 'trust', 'betrayal', 'deceit', 'வஞ்சம்', 'broken'],
+  'insult': ['அவமானம்', 'insult', 'disgrace', 'humiliation', 'shame', 'நாணம்'],
+
+  // Wealth & Poverty - பொருட்பால்
+  'poverty': ['வறுமை', 'poor', 'poverty', 'struggle', 'hardship', 'செல்வம்'],
+  'greed': ['பேராசை', 'greedy', 'avarice', 'covet', 'desire'],
+  'debt': ['கடன்', 'debt', 'owe', 'burden', 'வறுமை'],
+
+  // Health & Suffering
+  'illness': ['நோய்', 'sick', 'disease', 'pain', 'suffering', 'health'],
+  'physical_pain': ['வலி', 'pain', 'ache', 'suffer', 'நோய்'],
+  'death_grief': ['இறப்பு', 'death', 'died', 'மரணம்', 'loss', 'துக்கம்'],
+
+  // Social Issues
+  'gossip_rumor': ['புகழ்', 'reputation', 'rumor', 'gossip', 'slander'],
+  'public_shame': ['அவமானம்', 'shame', 'disgrace', 'public', 'humiliation'],
+  'false_accusation': ['பொய்', 'false', 'lie', 'accusation', 'slander'],
 };
 
 // Enhanced synonym map with Tamil translations
@@ -325,6 +386,46 @@ async function searchQuestionare(message: string) {
   };
 }
 
+/**
+ * NEW: Detect themes from message and enrich keywords
+ */
+function detectThemes(message: string): string[] {
+  const messageLower = message.toLowerCase();
+  const detectedThemes: string[] = [];
+
+  for (const [theme, _] of Object.entries(THIRUKKURAL_THEMES)) {
+    const themeWords = theme.split('_');
+    let matchCount = 0;
+
+    for (const word of themeWords) {
+      if (messageLower.includes(word)) {
+        matchCount++;
+      }
+    }
+
+    // If 50%+ of theme words match, add this theme
+    if (matchCount >= Math.max(1, themeWords.length * 0.5)) {
+      detectedThemes.push(theme);
+    }
+  }
+
+  return detectedThemes;
+}
+
+/**
+ * NEW: Enrich keywords with theme-specific terms
+ */
+function enrichKeywordsWithThemes(baseKeywords: string[], themes: string[]): string[] {
+  const enriched = new Set(baseKeywords);
+
+  for (const theme of themes) {
+    const themeKeywords = THIRUKKURAL_THEMES[theme] || [];
+    themeKeywords.forEach(kw => enriched.add(kw));
+  }
+
+  return Array.from(enriched);
+}
+
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
   const words = lower.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
@@ -343,9 +444,6 @@ function extractKeywords(text: string): string[] {
   return Array.from(expanded);
 }
 
-/**
- * NEW: Multi-keyword scoring - counts how many keywords appear in the kural
- */
 function scoreKuralByKeywordCount(kural: Record<string, unknown>, keywords: string[]): number {
   let matchedKeywords = 0;
   const keywordsLower = keywords.map(k => k.toLowerCase());
@@ -442,14 +540,10 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   return score;
 }
 
-/**
- * ENHANCED: Find best kural using multi-keyword matching
- */
 async function findBestKural(keywords: string[], fullQuestion: string) {
   const searchResults: Record<string, unknown>[] = [];
 
-  // Search in Translation and explanation fields
-  for (const kw of keywords.slice(0, 10)) { // Increased from 5 to 10 keywords
+  for (const kw of keywords.slice(0, 15)) { // Increased from 10 to 15
     const { data } = await supabase
       .from('Kurals-new')
       .select('*')
@@ -461,13 +555,11 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
     }
   }
 
-  // Remove duplicates
   const uniqueResults = Array.from(
     new Map(searchResults.map(k => [k.Number, k])).values()
   );
 
   if (uniqueResults.length > 0) {
-    // NEW: First sort by keyword count (how many keywords matched)
     const scoredByKeywordCount = uniqueResults
       .map(k => ({
         kural: k,
@@ -475,28 +567,23 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
         weightedScore: scoreKural(k, keywords),
         semanticScore: 0
       }))
-      .filter(k => k.keywordCount > 0) // Only keep kurals that matched at least 1 keyword
+      .filter(k => k.keywordCount > 0)
       .sort((a, b) => {
-        // Primary sort: keyword count (more keywords = better)
         if (b.keywordCount !== a.keywordCount) {
           return b.keywordCount - a.keywordCount;
         }
-        // Secondary sort: weighted score
         return b.weightedScore - a.weightedScore;
       });
 
     if (scoredByKeywordCount.length === 0) {
-      // Fallback: random kural
       const { data: all } = await supabase.from('Kurals-new').select('*').limit(100);
       if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
       return null;
     }
 
-    // Get top candidates (all with same keyword count as the best)
     const topKeywordCount = scoredByKeywordCount[0].keywordCount;
     const topCandidates = scoredByKeywordCount.filter(k => k.keywordCount === topKeywordCount);
 
-    // If multiple kurals matched the same number of keywords, use semantic tiebreaker
     if (topCandidates.length > 1) {
       const tiebroken = topCandidates
         .map(k => ({
@@ -511,7 +598,6 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
     return scoredByKeywordCount[0].kural;
   }
 
-  // Fallback
   const { data: all } = await supabase.from('Kurals-new').select('*').limit(100);
   if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
   return null;
@@ -532,7 +618,6 @@ function getConfidenceMessage(source: string, similarity?: number, keywordCount?
     }
   }
 
-  // For keyword-based matches
   if (keywordCount && keywordCount >= 3) {
     return "Here's a kural that closely relates to your query:";
   } else if (keywordCount && keywordCount >= 2) {
@@ -624,23 +709,25 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // PRIORITY 4: Keyword-based search with multi-keyword matching
-    const keywords = extractKeywords(message);
-    if (keywords.length === 0) {
+    // PRIORITY 4: Theme-enriched keyword search
+    const baseKeywords = extractKeywords(message);
+    const detectedThemes = detectThemes(message);
+    const enrichedKeywords = enrichKeywordsWithThemes(baseKeywords, detectedThemes);
+
+    if (enrichedKeywords.length === 0) {
       return NextResponse.json({
         error: 'Could not understand query. Please try again.'
       }, { status: 400 });
     }
 
-    const kural = await findBestKural(keywords, message);
+    const kural = await findBestKural(enrichedKeywords, message);
     if (!kural) {
       return NextResponse.json({
         error: 'Could not find a matching Kural.'
       }, { status: 500 });
     }
 
-    // Calculate how many original keywords matched
-    keywordCount = scoreKuralByKeywordCount(kural, keywords);
+    keywordCount = scoreKuralByKeywordCount(kural, enrichedKeywords);
 
     const displayKeywords = message
       .toLowerCase()
@@ -659,7 +746,8 @@ export async function POST(req: NextRequest) {
       source,
       confidence,
       confidenceMessage,
-      keywordCount
+      keywordCount,
+      detectedThemes // NEW: Return detected themes for debugging
     });
 
   } catch (err) {

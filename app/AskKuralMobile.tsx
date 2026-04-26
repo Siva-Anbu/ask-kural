@@ -25,6 +25,7 @@ interface ApiResponse {
   matchedSituation?: string;
   similarity?: number;
   keywordCount?: number;
+  detectedThemes?: string[];
 }
 
 const AskKuralMobile = () => {
@@ -34,12 +35,13 @@ const AskKuralMobile = () => {
   const [confidenceMessage, setConfidenceMessage] = useState<string>('');
   const [confidence, setConfidence] = useState<'high' | 'medium' | 'low'>('medium');
   const [keywordCount, setKeywordCount] = useState<number>(0);
+  const [detectedThemes, setDetectedThemes] = useState<string[]>([]);
   const [expandedCommentary, setExpandedCommentary] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const quickPrompts = [
-    { tamil: 'வாழ்க்கையில் தோல்வி', english: 'I feel like a failure' },
+    { tamil: 'காதலில் தோல்வி', english: 'I failed in love' },
     { tamil: 'கோபம் அடங்கவில்லை', english: 'I cannot control my anger' },
     { tamil: 'தனிமையாக இருக்கிறேன்', english: 'I feel lonely abroad' },
     { tamil: 'செய்வதை தள்ளிப்போடுகிறேன்', english: 'I keep procrastinating' },
@@ -74,6 +76,7 @@ const AskKuralMobile = () => {
         setConfidenceMessage(data.confidenceMessage || '');
         setConfidence(data.confidence);
         setKeywordCount(data.keywordCount || 0);
+        setDetectedThemes(data.detectedThemes || []);
         setShowResult(true);
       }
     } catch (err) {
@@ -94,8 +97,16 @@ const AskKuralMobile = () => {
     setConfidenceMessage('');
     setConfidence('medium');
     setKeywordCount(0);
+    setDetectedThemes([]);
     setExpandedCommentary(null);
     setError('');
+  };
+
+  // Format theme names for display
+  const formatThemeName = (theme: string): string => {
+    return theme.split('_').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
   };
 
   if (showResult && kural) {
@@ -117,7 +128,18 @@ const AskKuralMobile = () => {
           </div>
         </div>
 
-        {/* Confidence Message with Keyword Match Indicator */}
+        {/* Theme Tags */}
+        {detectedThemes.length > 0 && (
+          <div style={styles.themeTags}>
+            {detectedThemes.slice(0, 3).map((theme, index) => (
+              <span key={index} style={styles.themeTag}>
+                {formatThemeName(theme)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Confidence Message */}
         {confidenceMessage && (
           <div style={{
             ...styles.confidenceMessage,
@@ -482,7 +504,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     lineHeight: 1.5,
   },
-  // Enhanced confidence message with icon and keyword indicator
+  themeTags: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginBottom: '16px',
+  },
+  themeTag: {
+    background: 'rgba(212, 175, 122, 0.15)',
+    border: '1px solid rgba(212, 175, 122, 0.3)',
+    borderRadius: '20px',
+    padding: '6px 14px',
+    fontSize: '12px',
+    color: '#d4af7a',
+    fontWeight: 400,
+    letterSpacing: '0.3px',
+  },
   confidenceMessage: {
     display: 'flex',
     alignItems: 'flex-start',
