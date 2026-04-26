@@ -16,10 +16,22 @@ interface Kural {
   explanation?: string;
 }
 
+interface ApiResponse {
+  kural: Kural;
+  keywords: string[];
+  source: 'direct' | 'chapter' | 'questionare' | 'keyword';
+  confidence: 'high' | 'medium' | 'low';
+  confidenceMessage?: string;
+  matchedSituation?: string;
+  similarity?: number;
+}
+
 const AskKuralMobile = () => {
   const [showResult, setShowResult] = useState(false);
   const [question, setQuestion] = useState('');
   const [kural, setKural] = useState<Kural | null>(null);
+  const [confidenceMessage, setConfidenceMessage] = useState<string>('');
+  const [confidence, setConfidence] = useState<'high' | 'medium' | 'low'>('medium');
   const [expandedCommentary, setExpandedCommentary] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,23 +52,25 @@ const AskKuralMobile = () => {
 
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: searchQuery }),
       });
-      
-      const data = await res.json();
-      
-      if (data.error) {
-        setError(data.error);
+
+      const data: ApiResponse = await res.json();
+
+      if ('error' in data) {
+        setError((data as any).error);
       } else {
         setKural(data.kural);
+        setConfidenceMessage(data.confidenceMessage || '');
+        setConfidence(data.confidence);
         setShowResult(true);
       }
     } catch (err) {
@@ -74,6 +88,8 @@ const AskKuralMobile = () => {
     setShowResult(false);
     setQuestion('');
     setKural(null);
+    setConfidenceMessage('');
+    setConfidence('medium');
     setExpandedCommentary(null);
     setError('');
   };
@@ -96,10 +112,29 @@ const AskKuralMobile = () => {
           </div>
         </div>
 
+        {/* Confidence Message - NEW */}
+        {confidenceMessage && (
+          <div style={{
+            ...styles.confidenceMessage,
+            ...(confidence === 'high' ? styles.confidenceHigh :
+              confidence === 'medium' ? styles.confidenceMedium :
+                styles.confidenceLow)
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                fill="currentColor"
+                opacity="0.6"
+              />
+            </svg>
+            <span>{confidenceMessage}</span>
+          </div>
+        )}
+
         {/* Kural Card */}
         <div style={styles.kuralCard}>
           <div style={styles.kuralNumber}>Kural #{kural.Number}</div>
-          
+
           <div style={styles.kuralTamil}>
             {kural.Line1}
             {'\n'}
@@ -120,7 +155,7 @@ const AskKuralMobile = () => {
         {/* Commentaries */}
         <div style={styles.commentaries}>
           {commentaries.map((commentary, index) => (
-            <div 
+            <div
               key={index}
               style={{
                 ...styles.commentaryItem,
@@ -130,26 +165,26 @@ const AskKuralMobile = () => {
             >
               <div style={styles.commentaryHeader}>
                 <span style={styles.commentaryAuthor}>{commentary.author}</span>
-                <svg 
+                <svg
                   style={{
                     ...styles.chevron,
                     transform: expandedCommentary === index ? 'rotate(180deg)' : 'rotate(0deg)'
                   }}
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 20 20" 
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
                   fill="none"
                 >
-                  <path 
-                    d="M5 7.5L10 12.5L15 7.5" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
+                  <path
+                    d="M5 7.5L10 12.5L15 7.5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
               </div>
-              
+
               {expandedCommentary === index && (
                 <div style={styles.commentaryContent}>
                   {commentary.text}
@@ -160,20 +195,20 @@ const AskKuralMobile = () => {
         </div>
 
         {/* Ask Again Button */}
-        <button 
+        <button
           style={styles.askAgainBtn}
           onClick={handleReset}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path 
-              d="M4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C9.25 4 6.82 5.38 5.38 7.5M5.38 7.5V4M5.38 7.5H8.88" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <path
+              d="M4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C9.25 4 6.82 5.38 5.38 7.5M5.38 7.5V4M5.38 7.5H8.88"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          Ask Again
+          Ask Valluvar Again
         </button>
       </div>
     );
@@ -242,7 +277,7 @@ const AskKuralMobile = () => {
               }
             }}
           />
-          <button 
+          <button
             style={{
               ...styles.searchBtn,
               ...((!question.trim() || isLoading) ? styles.searchBtnDisabled : {})
@@ -251,7 +286,7 @@ const AskKuralMobile = () => {
             disabled={!question.trim() || isLoading}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
@@ -410,6 +445,34 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '15px',
     margin: 0,
     lineHeight: 1.5,
+  },
+  // NEW: Confidence message styles
+  confidenceMessage: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '14px 18px',
+    borderRadius: '14px',
+    fontSize: '14px',
+    fontWeight: 400,
+    marginBottom: '16px',
+    lineHeight: 1.5,
+    transition: 'all 0.3s ease',
+  },
+  confidenceHigh: {
+    background: 'rgba(100, 200, 100, 0.1)',
+    border: '1px solid rgba(100, 200, 100, 0.25)',
+    color: '#a8e6a8',
+  },
+  confidenceMedium: {
+    background: 'rgba(212, 175, 122, 0.1)',
+    border: '1px solid rgba(212, 175, 122, 0.25)',
+    color: '#d4af7a',
+  },
+  confidenceLow: {
+    background: 'rgba(212, 175, 122, 0.08)',
+    border: '1px solid rgba(212, 175, 122, 0.2)',
+    color: '#c4c4c4',
   },
   kuralCard: {
     background: 'rgba(20, 20, 20, 0.6)',
