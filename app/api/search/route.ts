@@ -40,31 +40,23 @@ const ORDINALS_TA: Record<string, number> = {
   'பத்தாம்': 10, 'பத்தாவது': 10, 'கடைசி': 10,
 };
 
-// NEW: Thirukkural-specific theme mappings
 const THIRUKKURAL_THEMES: Record<string, string[]> = {
-  // Love & Relationships - காமத்துப்பால்
   'heartbreak': ['பிரிவு', 'separation', 'pallor', 'பசலை', 'longing', 'pine', 'sorrow', 'grief'],
   'failed_love': ['பிரிவு', 'separation', 'lost', 'pain', 'துக்கம்', 'பசலை', 'sallow'],
   'breakup': ['பிரிவு', 'separation', 'apart', 'left', 'gone', 'நோய்', 'anguish'],
   'missing_lover': ['நினைவு', 'remember', 'absence', 'தனிமை', 'longing', 'yearn', 'embrace'],
   'unrequited_love': ['காதல்', 'love', 'rejection', 'pain', 'sorrow', 'நோய்'],
   'betrayed_love': ['நம்பிக்கை', 'trust', 'betrayal', 'broken', 'deceit', 'வஞ்சம்'],
-
-  // Career & Work - பொருட்பால்
   'lost_job': ['தொழில்', 'வேலை', 'unemployment', 'வறுமை', 'poverty', 'struggle', 'hardship'],
   'career_failure': ['தோல்வி', 'setback', 'failure', 'perseverance', 'பொறுமை', 'effort'],
   'work_stress': ['வேலை', 'pressure', 'burden', 'தொழில்', 'struggle', 'fatigue'],
   'no_job': ['வேலை', 'தொழில்', 'unemployment', 'search', 'opportunity', 'வறுமை'],
   'business_loss': ['செல்வம்', 'wealth', 'loss', 'தோல்வி', 'bankruptcy', 'வறுமை'],
-
-  // Family - அறத்துப்பால்
   'parent_conflict': ['பெற்றோர்', 'மரியாதை', 'respect', 'duty', 'கடமை', 'honor', 'அறம்'],
   'father_fight': ['பெற்றோர்', 'அப்பா', 'father', 'மரியாதை', 'respect', 'அறம்'],
   'mother_issue': ['பெற்றோர்', 'அம்மா', 'mother', 'மரியாதை', 'care', 'அன்பு'],
   'family_betrayal': ['நட்பு', 'trust', 'நம்பிக்கை', 'broken', 'குடும்பம்', 'relatives'],
   'sibling_rivalry': ['குடும்பம்', 'family', 'jealousy', 'பொறாமை', 'conflict'],
-
-  // Emotions & Mental State - அறத்துப்பால்
   'anger_control': ['கோபம்', 'சினம்', 'patience', 'பொறுமை', 'calm', 'self-control', 'அடக்கம்'],
   'loneliness': ['தனிமை', 'solitude', 'அன்பு', 'companionship', 'alone', 'isolated'],
   'depression': ['துக்கம்', 'sorrow', 'sadness', 'grief', 'despair', 'hopeless'],
@@ -73,37 +65,26 @@ const THIRUKKURAL_THEMES: Record<string, string[]> = {
   'jealousy': ['பொறாமை', 'envy', 'resentment', 'covet'],
   'pride_ego': ['செருக்கு', 'arrogance', 'ego', 'vanity', 'conceit'],
   'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation'],
-
-  // Spiritual & Purpose - அறத்துப்பால்
   'faith_crisis': ['கடவுள்', 'இறை', 'virtue', 'அறம்', 'doubt', 'belief'],
   'life_purpose': ['அறம்', 'dharma', 'duty', 'கடமை', 'meaning', 'purpose'],
   'lost_direction': ['வழி', 'path', 'direction', 'purpose', 'கடமை'],
   'moral_dilemma': ['அறம்', 'virtue', 'right', 'wrong', 'ethics', 'நீதி'],
-
-  // Personal Struggles
   'procrastination': ['சோம்பல்', 'lazy', 'delay', 'postpone', 'effort', 'முயற்சி'],
   'failure_feeling': ['தோல்வி', 'failure', 'defeat', 'worthless', 'shame'],
   'betrayed_friend': ['நட்பு', 'friendship', 'நம்பிக்கை', 'trust', 'betrayal', 'வஞ்சம்'],
   'trust_broken': ['நம்பிக்கை', 'trust', 'betrayal', 'deceit', 'வஞ்சம்', 'broken'],
   'insult': ['அவமானம்', 'insult', 'disgrace', 'humiliation', 'shame', 'நாணம்'],
-
-  // Wealth & Poverty - பொருட்பால்
   'poverty': ['வறுமை', 'poor', 'poverty', 'struggle', 'hardship', 'செல்வம்'],
   'greed': ['பேராசை', 'greedy', 'avarice', 'covet', 'desire'],
   'debt': ['கடன்', 'debt', 'owe', 'burden', 'வறுமை'],
-
-  // Health & Suffering
   'illness': ['நோய்', 'sick', 'disease', 'pain', 'suffering', 'health'],
   'physical_pain': ['வலி', 'pain', 'ache', 'suffer', 'நோய்'],
   'death_grief': ['இறப்பு', 'death', 'died', 'மரணம்', 'loss', 'துக்கம்'],
-
-  // Social Issues
   'gossip_rumor': ['புகழ்', 'reputation', 'rumor', 'gossip', 'slander'],
   'public_shame': ['அவமானம்', 'shame', 'disgrace', 'public', 'humiliation'],
   'false_accusation': ['பொய்', 'false', 'lie', 'accusation', 'slander'],
 };
 
-// Enhanced synonym map with Tamil translations
 const SYNONYMS: Record<string, string[]> = {
   fear: ['afraid', 'scared', 'frightened', 'anxiety', 'worry', 'terror', 'dread', 'அச்சம்', 'பயம்'],
   afraid: ['fear', 'scared', 'frightened', 'anxiety', 'terrified', 'பயம்', 'அச்சம்'],
@@ -162,34 +143,29 @@ const SYNONYMS: Record<string, string[]> = {
 
 function extractDirectKuralNumber(message: string): number | null {
   const lower = message.toLowerCase().trim();
-
   const justNumber = /^(\d{1,4})$/;
   const match1 = lower.match(justNumber);
   if (match1) {
     const num = parseInt(match1[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-
   const kuralPattern = /(?:kural|குறள்|kuṟaḷ)\s*[#:]?\s*(\d{1,4})/;
   const match2 = lower.match(kuralPattern);
   if (match2) {
     const num = parseInt(match2[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-
   const giveShowPattern = /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/;
   const match3 = lower.match(giveShowPattern);
   if (match3) {
     const num = parseInt(match3[1]);
     if (num >= 1 && num <= 1330) return num;
   }
-
   return null;
 }
 
 function extractChapterKuralQuery(message: string): number | null {
   const lower = message.toLowerCase().trim();
-
   const enPattern1 = /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
   const match1 = lower.match(enPattern1);
   if (match1) {
@@ -199,7 +175,6 @@ function extractChapterKuralQuery(message: string): number | null {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
   const enPattern2 = /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
   const match2 = lower.match(enPattern2);
   if (match2) {
@@ -209,7 +184,6 @@ function extractChapterKuralQuery(message: string): number | null {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
   const taPattern = /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
   const match3 = message.match(taPattern);
   if (match3) {
@@ -219,7 +193,6 @@ function extractChapterKuralQuery(message: string): number | null {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
   const taPattern2 = /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
   const match4 = message.match(taPattern2);
   if (match4) {
@@ -229,7 +202,6 @@ function extractChapterKuralQuery(message: string): number | null {
       return (chapterNum - 1) * 10 + position;
     }
   }
-
   return null;
 }
 
@@ -246,18 +218,13 @@ async function getKuralByNumber(num: number) {
 function calculateSimilarity(str1: string, str2: string): number {
   const normalize = (s: string) =>
     s.toLowerCase().trim().replace(/[.,!?;:'"()\-]/g, ' ').replace(/\s+/g, ' ');
-
   const text1 = normalize(str1);
   const text2 = normalize(str2);
-
   if (text1 === text2) return 100;
   if (text1.includes(text2) || text2.includes(text1)) return 85;
-
   const words1 = text1.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
   const words2 = text2.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
-
   if (words1.length === 0 || words2.length === 0) return 0;
-
   let score = 0;
   for (const word of words1) {
     if (words2.includes(word)) {
@@ -271,7 +238,6 @@ function calculateSimilarity(str1: string, str2: string): number {
       }
     }
   }
-
   const text1Words = text1.split(/\s+/);
   const text2Words = text2.split(/\s+/);
   for (let i = 0; i < text1Words.length - 1; i++) {
@@ -280,7 +246,6 @@ function calculateSimilarity(str1: string, str2: string): number {
       score += 15;
     }
   }
-
   const maxPossibleScore = words1.length * 10 + (text1Words.length * 15);
   return Math.min(100, (score / maxPossibleScore) * 100);
 }
@@ -288,34 +253,27 @@ function calculateSimilarity(str1: string, str2: string): number {
 async function searchQuestionare(message: string) {
   const keywords = extractKeywords(message);
   if (keywords.length === 0) return null;
-
   const { data: situations, error } = await supabase
     .from('Questionare')
     .select('*')
     .ilike('Situation', `%${keywords[0]}%`)
     .limit(30);
-
   if (error || !situations || situations.length === 0) {
     return null;
   }
-
   let bestMatch = null;
   let bestSimilarity = 0;
-
   for (const situation of situations) {
     const situationText = (situation.Situation as string) || '';
     const similarity = calculateSimilarity(message, situationText);
-
     if (similarity > bestSimilarity) {
       bestSimilarity = similarity;
       bestMatch = situation;
     }
   }
-
   if (!bestMatch || bestSimilarity < 50) {
     return null;
   }
-
   const kurals = [];
   if (bestMatch.Kural_1) {
     kurals.push({
@@ -341,44 +299,35 @@ async function searchQuestionare(message: string) {
       meaning: bestMatch.Meaning_3
     });
   }
-
   if (kurals.length === 0) {
     return null;
   }
-
   const keywordsLower = keywords.map(k => k.toLowerCase());
   let bestKural = null;
   let bestKuralScore = 0;
-
   for (const k of kurals) {
     let score = 0;
     const meaningLower = (k.meaning || '').toLowerCase();
-
     for (const keyword of keywordsLower) {
       if (meaningLower.includes(keyword)) {
         score += 10;
       }
     }
-
     if (k.num === bestMatch.Kural_1) {
       score += 5;
     }
-
     if (score > bestKuralScore) {
       bestKuralScore = score;
       bestKural = k;
     }
   }
-
   if (!bestKural || bestKuralScore === 0) {
     bestKural = kurals[0];
   }
-
   const fullKural = await getKuralByNumber(bestKural.num);
   if (!fullKural) {
     return null;
   }
-
   return {
     kural: fullKural,
     matchedSituation: bestMatch.Situation,
@@ -386,55 +335,48 @@ async function searchQuestionare(message: string) {
   };
 }
 
-/**
- * NEW: Detect themes from message and enrich keywords
- */
 function detectThemes(message: string): string[] {
   const messageLower = message.toLowerCase();
   const detectedThemes: string[] = [];
-
   for (const [theme, _] of Object.entries(THIRUKKURAL_THEMES)) {
     const themeWords = theme.split('_');
     let matchCount = 0;
-
     for (const word of themeWords) {
       if (messageLower.includes(word)) {
         matchCount++;
       }
     }
-
-    // If 50%+ of theme words match, add this theme
     if (matchCount >= Math.max(1, themeWords.length * 0.5)) {
       detectedThemes.push(theme);
     }
   }
-
   return detectedThemes;
 }
 
 /**
- * NEW: Enrich keywords with theme-specific terms
+ * UPDATED: Prioritize theme keywords over base keywords
  */
 function enrichKeywordsWithThemes(baseKeywords: string[], themes: string[]): string[] {
-  const enriched = new Set(baseKeywords);
+  const themeSpecific = new Set<string>();
+  const baseSet = new Set(baseKeywords);
 
+  // Add theme keywords FIRST (higher priority in search)
   for (const theme of themes) {
     const themeKeywords = THIRUKKURAL_THEMES[theme] || [];
-    themeKeywords.forEach(kw => enriched.add(kw));
+    themeKeywords.forEach(kw => themeSpecific.add(kw));
   }
 
-  return Array.from(enriched);
+  // Return theme keywords first, then base keywords
+  return [...Array.from(themeSpecific), ...Array.from(baseSet)];
 }
 
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
   const words = lower.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
-
   const expanded = new Set<string>();
   for (const word of words) {
     expanded.add(word);
     if (SYNONYMS[word]) SYNONYMS[word].forEach(s => expanded.add(s));
-
     const stemmed = word.replace(/tion$|ing$|ness$|ment$|ful$|less$|ed$|ly$|er$|s$/, '');
     if (stemmed.length > 2 && stemmed !== word) {
       expanded.add(stemmed);
@@ -447,7 +389,6 @@ function extractKeywords(text: string): string[] {
 function scoreKuralByKeywordCount(kural: Record<string, unknown>, keywords: string[]): number {
   let matchedKeywords = 0;
   const keywordsLower = keywords.map(k => k.toLowerCase());
-
   const allText = [
     kural.Line1,
     kural.Line2,
@@ -463,20 +404,17 @@ function scoreKuralByKeywordCount(kural: Record<string, unknown>, keywords: stri
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
-
   for (const kw of keywordsLower) {
     if (kw.length < 3) continue;
     if (allText.includes(kw)) {
       matchedKeywords++;
     }
   }
-
   return matchedKeywords;
 }
 
 function scoreKural(kural: Record<string, unknown>, keywords: string[]): number {
   let score = 0;
-
   const line1 = ((kural.Line1 as string) || '').toLowerCase();
   const line2 = ((kural.Line2 as string) || '').toLowerCase();
   const translation = ((kural.Translation as string) || '').toLowerCase();
@@ -487,10 +425,8 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
   const mk = ((kural.mk as string) || '').toLowerCase();
   const couplet = ((kural.couplet as string) || '').toLowerCase();
   const explanation = ((kural.explanation as string) || '').toLowerCase();
-
   for (const kw of keywords) {
     if (kw.length < 3) continue;
-
     if (translation.includes(kw)) score += 10;
     if (explanation.includes(kw)) score += 8;
     if (line1.includes(kw)) score += 7;
@@ -502,14 +438,12 @@ function scoreKural(kural: Record<string, unknown>, keywords: string[]): number 
     if (sp.includes(kw)) score += 4;
     if (mk.includes(kw)) score += 4;
   }
-
   return score;
 }
 
 function semanticScore(kural: Record<string, unknown>, fullQuestion: string): number {
   let score = 0;
   const questionLower = fullQuestion.toLowerCase();
-
   const allText = [
     kural.Line1,
     kural.Line2,
@@ -525,40 +459,33 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
-
   const questionWords = questionLower
     .replace(/[.,!?;:'"()\-]/g, ' ')
     .split(/\s+/)
     .filter(w => w.length > 3 && !STOP_WORDS.has(w));
-
   for (const word of questionWords) {
     if (allText.includes(word)) {
       score += 1;
     }
   }
-
   return score;
 }
 
 async function findBestKural(keywords: string[], fullQuestion: string) {
   const searchResults: Record<string, unknown>[] = [];
-
-  for (const kw of keywords.slice(0, 15)) { // Increased from 10 to 15
+  for (const kw of keywords.slice(0, 15)) {
     const { data } = await supabase
       .from('Kurals-new')
       .select('*')
       .or(`Translation.ilike.%${kw}%,explanation.ilike.%${kw}%,Line1.ilike.%${kw}%,Line2.ilike.%${kw}%`)
       .limit(50);
-
     if (data && data.length > 0) {
       searchResults.push(...data);
     }
   }
-
   const uniqueResults = Array.from(
     new Map(searchResults.map(k => [k.Number, k])).values()
   );
-
   if (uniqueResults.length > 0) {
     const scoredByKeywordCount = uniqueResults
       .map(k => ({
@@ -574,16 +501,13 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
         }
         return b.weightedScore - a.weightedScore;
       });
-
     if (scoredByKeywordCount.length === 0) {
       const { data: all } = await supabase.from('Kurals-new').select('*').limit(100);
       if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
       return null;
     }
-
     const topKeywordCount = scoredByKeywordCount[0].keywordCount;
     const topCandidates = scoredByKeywordCount.filter(k => k.keywordCount === topKeywordCount);
-
     if (topCandidates.length > 1) {
       const tiebroken = topCandidates
         .map(k => ({
@@ -591,13 +515,10 @@ async function findBestKural(keywords: string[], fullQuestion: string) {
           semanticScore: semanticScore(k.kural, fullQuestion)
         }))
         .sort((a, b) => b.semanticScore - a.semanticScore);
-
       return tiebroken[0].kural;
     }
-
     return scoredByKeywordCount[0].kural;
   }
-
   const { data: all } = await supabase.from('Kurals-new').select('*').limit(100);
   if (all && all.length > 0) return all[Math.floor(Math.random() * all.length)];
   return null;
@@ -607,7 +528,6 @@ function getConfidenceMessage(source: string, similarity?: number, keywordCount?
   if (source === 'direct' || source === 'chapter') {
     return '';
   }
-
   if (source === 'questionare') {
     if (similarity && similarity >= 80) {
       return "Here's a kural that closely matches your situation:";
@@ -617,13 +537,12 @@ function getConfidenceMessage(source: string, similarity?: number, keywordCount?
       return "Here's a kural that may offer perspective on your situation:";
     }
   }
-
   if (keywordCount && keywordCount >= 3) {
     return "Here's a kural that closely relates to your query:";
   } else if (keywordCount && keywordCount >= 2) {
     return "Here's a kural that might resonate:";
   } else {
-    return "This may be the kural for your input:";
+    return "This kural may resonate with your query:";
   }
 }
 
@@ -631,19 +550,16 @@ function getConfidenceLevel(source: string, similarity?: number, keywordCount?: 
   if (source === 'direct' || source === 'chapter') {
     return 'high';
   }
-
   if (source === 'questionare' && similarity) {
     if (similarity >= 80) return 'high';
     if (similarity >= 65) return 'medium';
     return 'low';
   }
-
   if (keywordCount) {
     if (keywordCount >= 3) return 'high';
     if (keywordCount >= 2) return 'medium';
     return 'low';
   }
-
   return 'low';
 }
 
@@ -653,12 +569,9 @@ export async function POST(req: NextRequest) {
     if (!message?.trim()) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
-
     let source = 'keyword';
     let similarity: number | undefined;
     let keywordCount: number | undefined;
-
-    // PRIORITY 1: Direct kural number
     const directNum = extractDirectKuralNumber(message);
     if (directNum) {
       const kural = await getKuralByNumber(directNum);
@@ -673,8 +586,6 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-
-    // PRIORITY 2: Chapter-based query
     const chapterKuralNum = extractChapterKuralQuery(message);
     if (chapterKuralNum) {
       const kural = await getKuralByNumber(chapterKuralNum);
@@ -689,15 +600,12 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-
-    // PRIORITY 3: Questionare
     const questionareResult = await searchQuestionare(message);
     if (questionareResult) {
       source = 'questionare';
       similarity = questionareResult.similarity;
       const confidenceMessage = getConfidenceMessage(source, similarity);
       const confidence = getConfidenceLevel(source, similarity);
-
       return NextResponse.json({
         kural: questionareResult.kural,
         keywords: ['situation-match'],
@@ -708,38 +616,30 @@ export async function POST(req: NextRequest) {
         confidenceMessage
       });
     }
-
-    // PRIORITY 4: Theme-enriched keyword search
     const baseKeywords = extractKeywords(message);
     const detectedThemes = detectThemes(message);
     const enrichedKeywords = enrichKeywordsWithThemes(baseKeywords, detectedThemes);
-
     if (enrichedKeywords.length === 0) {
       return NextResponse.json({
         error: 'Could not understand query. Please try again.'
       }, { status: 400 });
     }
-
     const kural = await findBestKural(enrichedKeywords, message);
     if (!kural) {
       return NextResponse.json({
         error: 'Could not find a matching Kural.'
       }, { status: 500 });
     }
-
     keywordCount = scoreKuralByKeywordCount(kural, enrichedKeywords);
-
     const displayKeywords = message
       .toLowerCase()
       .replace(/[.,!?;:'"()\-]/g, ' ')
       .split(/\s+/)
       .filter((w: string) => w.length > 2 && !STOP_WORDS.has(w))
       .slice(0, 5);
-
     source = 'keyword';
     const confidenceMessage = getConfidenceMessage(source, undefined, keywordCount);
     const confidence = getConfidenceLevel(source, undefined, keywordCount);
-
     return NextResponse.json({
       kural,
       keywords: displayKeywords,
@@ -747,9 +647,8 @@ export async function POST(req: NextRequest) {
       confidence,
       confidenceMessage,
       keywordCount,
-      detectedThemes // NEW: Return detected themes for debugging
+      detectedThemes
     });
-
   } catch (err) {
     console.error('Server error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

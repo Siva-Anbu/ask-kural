@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 interface Kural {
   Number: number;
@@ -9,687 +9,620 @@ interface Kural {
   Translation: string;
   transliteration1: string;
   transliteration2: string;
-  mv?: string;
-  sp?: string;
-  mk?: string;
-  couplet?: string;
-  explanation?: string;
+  mv: string;
+  sp: string;
+  mk: string;
+  couplet: string;
+  explanation: string;
 }
 
-interface ApiResponse {
+interface SearchResponse {
   kural: Kural;
   keywords: string[];
-  source: 'direct' | 'chapter' | 'questionare' | 'keyword';
-  confidence: 'high' | 'medium' | 'low';
-  confidenceMessage?: string;
+  source: string;
   matchedSituation?: string;
   similarity?: number;
+  confidence?: 'high' | 'medium' | 'low';
+  confidenceMessage?: string;
   keywordCount?: number;
   detectedThemes?: string[];
 }
 
-const AskKuralMobile = () => {
-  const [showResult, setShowResult] = useState(false);
+const QUICK_PROMPTS = [
+  { tamil: 'காதலில் தோல்வி', english: 'I failed in love' },
+  { tamil: 'வேலை இழந்தேன்', english: 'I lost my job' },
+  { tamil: 'தனிமையாக உணர்கிறேன்', english: 'I feel lonely' },
+  { tamil: 'கோபம் கட்டுப்படுத்த', english: 'How to control anger' },
+  { tamil: 'குடும்ப பிரச்சனை', english: 'Family problems' },
+  { tamil: 'வாழ்வின் நோக்கம்', english: 'Purpose of life' },
+];
+
+export default function AskKuralMobile() {
   const [question, setQuestion] = useState('');
-  const [kural, setKural] = useState<Kural | null>(null);
-  const [confidenceMessage, setConfidenceMessage] = useState<string>('');
-  const [confidence, setConfidence] = useState<'high' | 'medium' | 'low'>('medium');
-  const [keywordCount, setKeywordCount] = useState<number>(0);
-  const [detectedThemes, setDetectedThemes] = useState<string[]>([]);
-  const [expandedCommentary, setExpandedCommentary] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<SearchResponse | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const quickPrompts = [
-    { tamil: 'காதலில் தோல்வி', english: 'I failed in love' },
-    { tamil: 'கோபம் அடங்கவில்லை', english: 'I cannot control my anger' },
-    { tamil: 'தனிமையாக இருக்கிறேன்', english: 'I feel lonely abroad' },
-    { tamil: 'செய்வதை தள்ளிப்போடுகிறேன்', english: 'I keep procrastinating' },
-    { tamil: 'அப்பாவிடம் சண்டை', english: 'I fought with my father' },
-    { tamil: 'வேலை கிடைக்கவில்லை', english: 'I cannot find a job' },
-  ];
-
-  const handleQuickPrompt = (prompt: { tamil: string; english: string }) => {
-    setQuestion(prompt.english);
-    handleSearch(prompt.english);
-  };
-
   const handleSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      setError('Please enter a question');
+      return;
+    }
 
-    setIsLoading(true);
+    setLoading(true);
     setError('');
+    setResult(null);
 
     try {
-      const res = await fetch('/api/search', {
+      const response = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: searchQuery }),
       });
 
-      const data: ApiResponse = await res.json();
+      const data = await response.json();
 
-      if ('error' in data) {
-        setError((data as any).error);
-      } else {
-        setKural(data.kural);
-        setConfidenceMessage(data.confidenceMessage || '');
-        setConfidence(data.confidence);
-        setKeywordCount(data.keywordCount || 0);
-        setDetectedThemes(data.detectedThemes || []);
-        setShowResult(true);
+      if (!response.ok) {
+        throw new Error(data.error || 'Search failed');
       }
+
+      setResult(data);
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const toggleCommentary = (index: number) => {
-    setExpandedCommentary(expandedCommentary === index ? null : index);
+  const handleQuickPrompt = (prompt: string) => {
+    setQuestion(prompt);
+    handleSearch(prompt);
   };
 
   const handleReset = () => {
-    setShowResult(false);
     setQuestion('');
-    setKural(null);
-    setConfidenceMessage('');
-    setConfidence('medium');
-    setKeywordCount(0);
-    setDetectedThemes([]);
-    setExpandedCommentary(null);
+    setResult(null);
     setError('');
   };
 
-  // Format theme names for display
   const formatThemeName = (theme: string): string => {
-    return theme.split('_').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    return theme
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
-  if (showResult && kural) {
-    const commentaries = [
-      kural.mv ? { author: 'Mu. Varadharasanar', authorTamil: 'முனைவர் மு. வரதராசனார்', text: kural.mv, avatar: 'மு.வ' } : null,
-      kural.sp ? { author: 'Solomon Pappaiah', authorTamil: 'சாலமன் பாப்பையா', text: kural.sp, avatar: 'ச.பா' } : null,
-      kural.mk ? { author: 'Kalaignar Karunanidhi', authorTamil: 'கலைஞர் கருணாநிதி', text: kural.mk, avatar: 'க.க' } : null,
-      kural.explanation ? { author: 'English Explanation', authorTamil: 'விளக்கம்', text: kural.explanation, avatar: 'EN' } : null,
-    ].filter(Boolean) as { author: string; authorTamil: string; text: string; avatar: string }[];
-
-    return (
-      <div style={styles.container}>
-        {/* Header */}
-        <div style={styles.resultHeader}>
-          <h1 style={styles.titleSimple}>Ask Kural</h1>
-          <div style={styles.questionBubble}>
-            <span style={styles.questionLabel}>YOUR QUESTION</span>
-            <p style={styles.questionText}>{question}</p>
-          </div>
-        </div>
-
-        {/* Theme Tags */}
-        {detectedThemes.length > 0 && (
-          <div style={styles.themeTags}>
-            {detectedThemes.slice(0, 3).map((theme, index) => (
-              <span key={index} style={styles.themeTag}>
-                {formatThemeName(theme)}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Confidence Message */}
-        {confidenceMessage && (
-          <div style={{
-            ...styles.confidenceMessage,
-            ...(confidence === 'high' ? styles.confidenceHigh :
-              confidence === 'medium' ? styles.confidenceMedium :
-                styles.confidenceLow)
-          }}>
-            <div style={styles.confidenceIconWrapper}>
-              {confidence === 'high' ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                  <path
-                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : confidence === 'medium' ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="currentColor"
-                    opacity="0.7"
-                  />
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                  <path
-                    d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </div>
-            <div style={styles.confidenceTextWrapper}>
-              <span style={styles.confidenceMainText}>{confidenceMessage}</span>
-              {keywordCount > 0 && (
-                <span style={styles.keywordMatchIndicator}>
-                  {keywordCount} keyword{keywordCount > 1 ? 's' : ''} matched
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Kural Card */}
-        <div style={styles.kuralCard}>
-          <div style={styles.kuralNumber}>Kural #{kural.Number}</div>
-
-          <div style={styles.kuralTamil}>
-            {kural.Line1}
-            {'\n'}
-            {kural.Line2}
-          </div>
-
-          <div style={styles.kuralTranslit}>
-            {kural.transliteration1}
-            {'\n'}
-            {kural.transliteration2}
-          </div>
-
-          <div style={styles.kuralEnglish}>
-            &ldquo;{kural.Translation}&rdquo;
-          </div>
-        </div>
-
-        {/* Commentaries */}
-        <div style={styles.commentaries}>
-          {commentaries.map((commentary, index) => (
-            <div
-              key={index}
-              style={{
-                ...styles.commentaryItem,
-                ...(expandedCommentary === index ? styles.commentaryItemExpanded : {})
-              }}
-              onClick={() => toggleCommentary(index)}
-            >
-              <div style={styles.commentaryHeader}>
-                <span style={styles.commentaryAuthor}>{commentary.author}</span>
-                <svg
-                  style={{
-                    ...styles.chevron,
-                    transform: expandedCommentary === index ? 'rotate(180deg)' : 'rotate(0deg)'
-                  }}
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                >
-                  <path
-                    d="M5 7.5L10 12.5L15 7.5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              {expandedCommentary === index && (
-                <div style={styles.commentaryContent}>
-                  {commentary.text}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Ask Again Button */}
-        <button
-          style={styles.askAgainBtn}
-          onClick={handleReset}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C9.25 4 6.82 5.38 5.38 7.5M5.38 7.5V4M5.38 7.5H8.88"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Ask Valluvar Again
-        </button>
-      </div>
-    );
-  }
+  const getConfidenceIcon = (confidence?: 'high' | 'medium' | 'low') => {
+    if (confidence === 'high') return '✓';
+    if (confidence === 'medium') return '⭐';
+    return 'ℹ';
+  };
 
   return (
-    <div style={styles.container}>
-      {/* Header with Tamil Typography */}
-      <div style={styles.header}>
-        <h1 style={styles.titleTamil}>திருக்குறள் அருளுரை</h1>
-        <h2 style={styles.titleEnglish}>ASK KURAL</h2>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(to bottom, #0a0a0a, #1a1410)',
+        color: '#e5e7eb',
+        fontFamily: '"Noto Sans Tamil", sans-serif',
+        padding: '20px',
+        paddingBottom: '100px',
+      }}
+    >
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <h1
+          style={{
+            fontSize: 'clamp(28px, 6vw, 48px)',
+            fontWeight: 'bold',
+            background: 'linear-gradient(to right, #d4af7a, #f4e4c1)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '8px',
+          }}
+        >
+          திருக்குறள் அறுளரை
+        </h1>
+        <p style={{ fontSize: 'clamp(12px, 2.5vw, 16px)', color: '#9ca3af' }}>
+          ASK KURAL · வள்ளுவரிடம் கேட்டுங்கள் · ASK VALLUVAR ANYTHING
+        </p>
       </div>
 
-      {/* Inspirational Quote */}
-      {!isLoading && !error && (
-        <div style={styles.quoteSection}>
-          <p style={styles.quoteTamil}>"எண்ணிய எண்ணியாங்கு எய்துப"</p>
-          <p style={styles.quoteEnglish}>What you seek with clear intent, you shall find.</p>
+      {/* Quick Prompts - Only show when no result */}
+      {!result && !loading && (
+        <div style={{ marginBottom: '30px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '12px',
+              maxWidth: '900px',
+              margin: '0 auto',
+            }}
+          >
+            {QUICK_PROMPTS.map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleQuickPrompt(prompt.english)}
+                style={{
+                  background: 'rgba(212, 175, 122, 0.1)',
+                  border: '1px solid rgba(212, 175, 122, 0.3)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(212, 175, 122, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(212, 175, 122, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(212, 175, 122, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(212, 175, 122, 0.3)';
+                }}
+              >
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#d4af7a', marginBottom: '4px' }}>
+                  {prompt.tamil}
+                </div>
+                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                  {prompt.english}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Quick Prompts Grid */}
-      {!isLoading && !error && (
-        <div style={styles.promptsGrid}>
-          {quickPrompts.map((prompt, index) => (
-            <button
-              key={index}
-              style={styles.promptCard}
-              onClick={() => handleQuickPrompt(prompt)}
-            >
-              <div style={styles.promptTamil}>{prompt.tamil}</div>
-              <div style={styles.promptEnglish}>{prompt.english}</div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Loading */}
-      {isLoading && (
-        <div style={styles.center}>
-          <div style={styles.spinner} />
-          <p style={styles.loadingText}>Searching the palm-leaf manuscript...</p>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div style={styles.center}>
-          <p style={styles.errorText}>{error}</p>
-          <button style={styles.askAgainBtn} onClick={handleReset}>Try Again</button>
-        </div>
-      )}
-
-      {/* Search Input */}
-      {!isLoading && (
-        <div style={styles.searchContainer}>
-          <input
-            type="text"
-            style={styles.searchInput}
-            placeholder="Ask Valluvar anything..."
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && question.trim()) {
-                handleSearch(question);
-              }
+      {/* Loading State */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              border: '4px solid rgba(212, 175, 122, 0.2)',
+              borderTop: '4px solid #d4af7a',
+              borderRadius: '50%',
+              margin: '0 auto 16px',
+              animation: 'spin 1s linear infinite',
             }}
           />
-          <button
+          <p style={{ color: '#9ca3af' }}>வள்ளுவர் சிந்திக்கிறார்...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div
+          style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '20px',
+            color: '#ef4444',
+            maxWidth: '900px',
+            margin: '0 auto 20px',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Results */}
+      {result && (
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Detected Themes */}
+          {result.detectedThemes && result.detectedThemes.length > 0 && (
+            <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+              {result.detectedThemes.map((theme, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    background: 'rgba(212, 175, 122, 0.15)',
+                    color: '#d4af7a',
+                    padding: '4px 12px',
+                    borderRadius: '16px',
+                    fontSize: '12px',
+                    border: '1px solid rgba(212, 175, 122, 0.3)',
+                  }}
+                >
+                  {formatThemeName(theme)}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Confidence Message */}
+          {result.confidenceMessage && (
+            <div
+              style={{
+                background: 'rgba(212, 175, 122, 0.1)',
+                border: '1px solid rgba(212, 175, 122, 0.3)',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>{getConfidenceIcon(result.confidence)}</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#d4af7a', fontSize: '14px', margin: 0 }}>
+                  {result.confidenceMessage}
+                </p>
+                {result.keywordCount !== undefined && (
+                  <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>
+                    {result.keywordCount} keyword{result.keywordCount !== 1 ? 's' : ''} matched
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Responsive Layout: Mobile = Stack, Desktop = Two Columns */}
+          <div
             style={{
-              ...styles.searchBtn,
-              ...((!question.trim() || isLoading) ? styles.searchBtnDisabled : {})
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))',
+              gap: '24px',
+              marginBottom: '24px',
             }}
-            onClick={() => question.trim() && handleSearch(question)}
-            disabled={!question.trim() || isLoading}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            {/* Kural Card */}
+            <div
+              style={{
+                background: 'rgba(212, 175, 122, 0.05)',
+                border: '2px solid rgba(212, 175, 122, 0.2)',
+                borderRadius: '16px',
+                padding: '24px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'inline-block',
+                  background: 'rgba(212, 175, 122, 0.2)',
+                  color: '#d4af7a',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  marginBottom: '16px',
+                }}
+              >
+                குறள் #{result.kural.Number}
+              </div>
+
+              <div style={{ fontSize: 'clamp(18px, 4vw, 24px)', lineHeight: '1.8', marginBottom: '8px', color: '#f9fafb' }}>
+                {result.kural.Line1}
+              </div>
+              <div style={{ fontSize: 'clamp(18px, 4vw, 24px)', lineHeight: '1.8', marginBottom: '16px', color: '#f9fafb' }}>
+                {result.kural.Line2}
+              </div>
+
+              <div style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '4px', fontStyle: 'italic' }}>
+                {result.kural.transliteration1}
+              </div>
+              <div style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px', fontStyle: 'italic' }}>
+                {result.kural.transliteration2}
+              </div>
+
+              <div
+                style={{
+                  fontSize: '15px',
+                  color: '#d4af7a',
+                  fontStyle: 'italic',
+                  borderLeft: '3px solid rgba(212, 175, 122, 0.5)',
+                  paddingLeft: '12px',
+                }}
+              >
+                "{result.kural.Translation}"
+              </div>
+            </div>
+
+            {/* Commentaries - 2x2 Grid on Desktop, Stack on Mobile */}
+            <div>
+              <h2
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#d4af7a',
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                }}
+              >
+                உரைகாரர்கள் · COMMENTARIES
+              </h2>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+                  gap: '12px',
+                }}
+              >
+                {/* Mu. Varadharasanar */}
+                <div
+                  style={{
+                    background: 'rgba(30, 30, 30, 0.5)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: 'rgba(212, 175, 122, 0.2)',
+                        color: '#d4af7a',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        flexShrink: 0,
+                      }}
+                    >
+                      மு.வ
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
+                        Mu. Varadharasanar
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        முனைவர் மு.வரதராசனார்
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
+                    {result.kural.mv}
+                  </p>
+                </div>
+
+                {/* Solomon Pappaiah */}
+                <div
+                  style={{
+                    background: 'rgba(30, 30, 30, 0.5)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: 'rgba(212, 175, 122, 0.2)',
+                        color: '#d4af7a',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        flexShrink: 0,
+                      }}
+                    >
+                      சொ.பா
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
+                        Solomon Pappaiah
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        சாலமன் பாப்பையா
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
+                    {result.kural.sp}
+                  </p>
+                </div>
+
+                {/* Kalaignar Karunanidhi */}
+                <div
+                  style={{
+                    background: 'rgba(30, 30, 30, 0.5)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: 'rgba(212, 175, 122, 0.2)',
+                        color: '#d4af7a',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        flexShrink: 0,
+                      }}
+                    >
+                      க.கா
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
+                        Kalaignar Karunanidhi
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        கலைஞர் கருணாநிதி
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
+                    {result.kural.mk}
+                  </p>
+                </div>
+
+                {/* English Explanation */}
+                <div
+                  style={{
+                    background: 'rgba(30, 30, 30, 0.5)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: 'rgba(212, 175, 122, 0.2)',
+                        color: '#d4af7a',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        flexShrink: 0,
+                      }}
+                    >
+                      EN
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
+                        English Explanation
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        ஆங்கில விளக்கம்
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
+                    {result.kural.explanation}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ask Again Button */}
+          <button
+            onClick={handleReset}
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              display: 'block',
+              margin: '0 auto',
+              background: 'rgba(212, 175, 122, 0.2)',
+              border: '2px solid rgba(212, 175, 122, 0.5)',
+              borderRadius: '12px',
+              padding: '14px',
+              color: '#d4af7a',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 122, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 122, 0.2)';
+            }}
+          >
+            🔄 Ask Valluvar Again
           </button>
         </div>
       )}
+
+      {/* Bottom Search Bar - Fixed at bottom */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(10, 10, 10, 0.95)',
+          borderTop: '1px solid rgba(212, 175, 122, 0.2)',
+          padding: '16px 20px',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px', maxWidth: '1200px', margin: '0 auto' }}>
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') handleSearch(question);
+            }}
+            placeholder="Ask Valluvar anything..."
+            style={{
+              flex: 1,
+              background: 'rgba(30, 30, 30, 0.8)',
+              border: '1px solid rgba(212, 175, 122, 0.3)',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              color: '#e5e7eb',
+              fontSize: '14px',
+              outline: 'none',
+            }}
+          />
+          <button
+            onClick={() => handleSearch(question)}
+            disabled={loading || !question.trim()}
+            style={{
+              background: loading || !question.trim()
+                ? 'rgba(212, 175, 122, 0.2)'
+                : 'linear-gradient(135deg, #d4af7a, #c4975a)',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '12px 20px',
+              color: loading || !question.trim() ? '#6b7280' : '#0a0a0a',
+              fontWeight: '600',
+              cursor: loading || !question.trim() ? 'not-allowed' : 'pointer',
+              fontSize: '24px',
+            }}
+          >
+            🔍
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1410 100%)',
-    padding: '32px 20px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '40px',
-  },
-  titleTamil: {
-    fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
-    fontSize: '32px',
-    fontWeight: 500,
-    color: '#d4af7a',
-    margin: '0 0 8px 0',
-    letterSpacing: '1px',
-    textShadow: '0 2px 8px rgba(212, 175, 122, 0.3)',
-  },
-  titleEnglish: {
-    fontSize: '16px',
-    fontWeight: 300,
-    color: '#d4af7a',
-    letterSpacing: '4px',
-    margin: 0,
-    opacity: 0.8,
-  },
-  quoteSection: {
-    textAlign: 'center',
-    marginBottom: '32px',
-    padding: '0 20px',
-  },
-  quoteTamil: {
-    fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
-    fontSize: '20px',
-    fontWeight: 400,
-    color: '#f5e6d3',
-    margin: '0 0 8px 0',
-    letterSpacing: '0.5px',
-    lineHeight: 1.6,
-  },
-  quoteEnglish: {
-    fontSize: '14px',
-    fontWeight: 300,
-    color: '#c4c4c4',
-    margin: 0,
-    fontStyle: 'italic',
-    opacity: 0.9,
-  },
-  promptsGrid: {
-    display: 'flex',
-    overflowX: 'auto',
-    gap: '12px',
-    marginBottom: '32px',
-    paddingBottom: '8px',
-    scrollbarWidth: 'none',
-    msOverflowStyle: 'none',
-  },
-  promptCard: {
-    background: 'rgba(25, 25, 25, 0.6)',
-    border: '1px solid rgba(212, 175, 122, 0.15)',
-    borderRadius: '16px',
-    padding: '20px 16px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    textAlign: 'left',
-    minWidth: '200px',
-    flexShrink: 0,
-  },
-  promptTamil: {
-    fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
-    fontSize: '15px',
-    color: '#e8e8e8',
-    marginBottom: '6px',
-    lineHeight: 1.4,
-  },
-  promptEnglish: {
-    fontSize: '13px',
-    color: '#d4af7a',
-    fontWeight: 300,
-    opacity: 0.9,
-  },
-  searchContainer: {
-    position: 'relative',
-  },
-  searchInput: {
-    width: '100%',
-    background: 'rgba(20, 20, 20, 0.6)',
-    border: '1.5px solid rgba(212, 175, 122, 0.2)',
-    borderRadius: '16px',
-    padding: '18px 60px 18px 20px',
-    fontSize: '15px',
-    color: '#e8e8e8',
-    outline: 'none',
-    transition: 'all 0.3s ease',
-    boxSizing: 'border-box',
-  },
-  searchBtn: {
-    position: 'absolute',
-    right: '8px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: 'linear-gradient(135deg, #d4af7a, #c99d64)',
-    border: 'none',
-    width: '44px',
-    height: '44px',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    color: '#1a1410',
-  },
-  searchBtnDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-  },
-  resultHeader: {
-    marginBottom: '24px',
-  },
-  titleSimple: {
-    color: '#d4af7a',
-    fontSize: '28px',
-    fontWeight: 300,
-    margin: '0 0 16px 0',
-    letterSpacing: '0.5px',
-  },
-  questionBubble: {
-    background: 'rgba(212, 175, 122, 0.08)',
-    border: '1px solid rgba(212, 175, 122, 0.2)',
-    borderRadius: '16px',
-    padding: '16px',
-    marginBottom: '8px',
-  },
-  questionLabel: {
-    color: '#d4af7a',
-    fontSize: '12px',
-    textTransform: 'uppercase',
-    letterSpacing: '1.5px',
-    fontWeight: 500,
-    display: 'block',
-    marginBottom: '8px',
-  },
-  questionText: {
-    color: '#e8e8e8',
-    fontSize: '15px',
-    margin: 0,
-    lineHeight: 1.5,
-  },
-  themeTags: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    marginBottom: '16px',
-  },
-  themeTag: {
-    background: 'rgba(212, 175, 122, 0.15)',
-    border: '1px solid rgba(212, 175, 122, 0.3)',
-    borderRadius: '20px',
-    padding: '6px 14px',
-    fontSize: '12px',
-    color: '#d4af7a',
-    fontWeight: 400,
-    letterSpacing: '0.3px',
-  },
-  confidenceMessage: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-    padding: '16px 18px',
-    borderRadius: '14px',
-    marginBottom: '16px',
-    lineHeight: 1.5,
-    transition: 'all 0.3s ease',
-  },
-  confidenceIconWrapper: {
-    marginTop: '2px',
-  },
-  confidenceTextWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    flex: 1,
-  },
-  confidenceMainText: {
-    fontSize: '14px',
-    fontWeight: 400,
-  },
-  keywordMatchIndicator: {
-    fontSize: '12px',
-    opacity: 0.7,
-    fontWeight: 300,
-  },
-  confidenceHigh: {
-    background: 'rgba(100, 200, 100, 0.12)',
-    border: '1px solid rgba(100, 200, 100, 0.3)',
-    color: '#a8e6a8',
-  },
-  confidenceMedium: {
-    background: 'rgba(212, 175, 122, 0.12)',
-    border: '1px solid rgba(212, 175, 122, 0.3)',
-    color: '#d4af7a',
-  },
-  confidenceLow: {
-    background: 'rgba(212, 175, 122, 0.08)',
-    border: '1px solid rgba(212, 175, 122, 0.2)',
-    color: '#c4c4c4',
-  },
-  kuralCard: {
-    background: 'rgba(20, 20, 20, 0.6)',
-    border: '1.5px solid rgba(212, 175, 122, 0.3)',
-    borderRadius: '20px',
-    padding: '24px',
-    marginBottom: '20px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-  },
-  kuralNumber: {
-    color: '#d4af7a',
-    fontSize: '14px',
-    fontWeight: 500,
-    marginBottom: '16px',
-    paddingBottom: '12px',
-    borderBottom: '1px solid rgba(212, 175, 122, 0.15)',
-    letterSpacing: '0.5px',
-  },
-  kuralTamil: {
-    fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
-    fontSize: '22px',
-    lineHeight: 1.7,
-    color: '#f5e6d3',
-    marginBottom: '16px',
-    fontWeight: 400,
-    letterSpacing: '0.3px',
-    whiteSpace: 'pre-line',
-  },
-  kuralTranslit: {
-    fontSize: '15px',
-    lineHeight: 1.7,
-    color: '#c4c4c4',
-    marginBottom: '16px',
-    fontWeight: 300,
-    fontStyle: 'italic',
-    opacity: 0.8,
-    whiteSpace: 'pre-line',
-  },
-  kuralEnglish: {
-    color: '#c4c4c4',
-    fontSize: '15px',
-    lineHeight: 1.7,
-    fontWeight: 300,
-    paddingTop: '16px',
-    borderTop: '1px solid rgba(212, 175, 122, 0.15)',
-  },
-  commentaries: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    marginBottom: '24px',
-  },
-  commentaryItem: {
-    background: 'rgba(20, 20, 20, 0.5)',
-    border: '1px solid rgba(212, 175, 122, 0.2)',
-    borderRadius: '14px',
-    overflow: 'hidden',
-    transition: 'all 0.3s ease',
-    cursor: 'pointer',
-  },
-  commentaryItemExpanded: {
-    borderColor: 'rgba(212, 175, 122, 0.4)',
-    background: 'rgba(20, 20, 20, 0.7)',
-  },
-  commentaryHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '18px 20px',
-  },
-  commentaryAuthor: {
-    color: '#e8e8e8',
-    fontSize: '15px',
-    fontWeight: 400,
-  },
-  chevron: {
-    color: '#d4af7a',
-    transition: 'transform 0.3s ease',
-  },
-  commentaryContent: {
-    padding: '0 20px 20px 20px',
-    color: '#c4c4c4',
-    fontFamily: '"Noto Sans Tamil", "Mukta Malar", sans-serif',
-    fontSize: '14px',
-    lineHeight: 1.8,
-  },
-  askAgainBtn: {
-    width: '100%',
-    background: 'linear-gradient(135deg, rgba(212, 175, 122, 0.15), rgba(212, 175, 122, 0.08))',
-    border: '1.5px solid rgba(212, 175, 122, 0.3)',
-    borderRadius: '16px',
-    padding: '18px',
-    color: '#d4af7a',
-    fontSize: '16px',
-    fontWeight: 500,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    transition: 'all 0.3s ease',
-    marginBottom: '20px',
-  },
-  center: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '300px',
-    gap: '20px',
-  },
-  spinner: {
-    width: '40px',
-    height: '40px',
-    border: '3px solid rgba(212, 175, 122, 0.2)',
-    borderTopColor: '#d4af7a',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
-  loadingText: {
-    color: '#c4c4c4',
-    fontSize: '15px',
-  },
-  errorText: {
-    color: '#ff6b6b',
-    fontSize: '15px',
-    textAlign: 'center',
-  },
-};
-
-export default AskKuralMobile;
+}
