@@ -24,6 +24,7 @@ interface ApiResponse {
   confidenceMessage?: string;
   matchedSituation?: string;
   similarity?: number;
+  keywordCount?: number;
 }
 
 const AskKuralMobile = () => {
@@ -32,6 +33,7 @@ const AskKuralMobile = () => {
   const [kural, setKural] = useState<Kural | null>(null);
   const [confidenceMessage, setConfidenceMessage] = useState<string>('');
   const [confidence, setConfidence] = useState<'high' | 'medium' | 'low'>('medium');
+  const [keywordCount, setKeywordCount] = useState<number>(0);
   const [expandedCommentary, setExpandedCommentary] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -71,6 +73,7 @@ const AskKuralMobile = () => {
         setKural(data.kural);
         setConfidenceMessage(data.confidenceMessage || '');
         setConfidence(data.confidence);
+        setKeywordCount(data.keywordCount || 0);
         setShowResult(true);
       }
     } catch (err) {
@@ -90,6 +93,7 @@ const AskKuralMobile = () => {
     setKural(null);
     setConfidenceMessage('');
     setConfidence('medium');
+    setKeywordCount(0);
     setExpandedCommentary(null);
     setError('');
   };
@@ -99,6 +103,7 @@ const AskKuralMobile = () => {
       kural.mv ? { author: 'Mu. Varadharasanar', authorTamil: 'முனைவர் மு. வரதராசனார்', text: kural.mv, avatar: 'மு.வ' } : null,
       kural.sp ? { author: 'Solomon Pappaiah', authorTamil: 'சாலமன் பாப்பையா', text: kural.sp, avatar: 'ச.பா' } : null,
       kural.mk ? { author: 'Kalaignar Karunanidhi', authorTamil: 'கலைஞர் கருணாநிதி', text: kural.mk, avatar: 'க.க' } : null,
+      kural.explanation ? { author: 'English Explanation', authorTamil: 'விளக்கம்', text: kural.explanation, avatar: 'EN' } : null,
     ].filter(Boolean) as { author: string; authorTamil: string; text: string; avatar: string }[];
 
     return (
@@ -112,7 +117,7 @@ const AskKuralMobile = () => {
           </div>
         </div>
 
-        {/* Confidence Message - NEW */}
+        {/* Confidence Message with Keyword Match Indicator */}
         {confidenceMessage && (
           <div style={{
             ...styles.confidenceMessage,
@@ -120,14 +125,45 @@ const AskKuralMobile = () => {
               confidence === 'medium' ? styles.confidenceMedium :
                 styles.confidenceLow)
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-              <path
-                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                fill="currentColor"
-                opacity="0.6"
-              />
-            </svg>
-            <span>{confidenceMessage}</span>
+            <div style={styles.confidenceIconWrapper}>
+              {confidence === 'high' ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                  <path
+                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : confidence === 'medium' ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                    fill="currentColor"
+                    opacity="0.7"
+                  />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                  <path
+                    d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </div>
+            <div style={styles.confidenceTextWrapper}>
+              <span style={styles.confidenceMainText}>{confidenceMessage}</span>
+              {keywordCount > 0 && (
+                <span style={styles.keywordMatchIndicator}>
+                  {keywordCount} keyword{keywordCount > 1 ? 's' : ''} matched
+                </span>
+              )}
+            </div>
           </div>
         )}
 
@@ -446,27 +482,43 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     lineHeight: 1.5,
   },
-  // NEW: Confidence message styles
+  // Enhanced confidence message with icon and keyword indicator
   confidenceMessage: {
     display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '14px 18px',
+    alignItems: 'flex-start',
+    gap: '12px',
+    padding: '16px 18px',
     borderRadius: '14px',
-    fontSize: '14px',
-    fontWeight: 400,
     marginBottom: '16px',
     lineHeight: 1.5,
     transition: 'all 0.3s ease',
   },
+  confidenceIconWrapper: {
+    marginTop: '2px',
+  },
+  confidenceTextWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    flex: 1,
+  },
+  confidenceMainText: {
+    fontSize: '14px',
+    fontWeight: 400,
+  },
+  keywordMatchIndicator: {
+    fontSize: '12px',
+    opacity: 0.7,
+    fontWeight: 300,
+  },
   confidenceHigh: {
-    background: 'rgba(100, 200, 100, 0.1)',
-    border: '1px solid rgba(100, 200, 100, 0.25)',
+    background: 'rgba(100, 200, 100, 0.12)',
+    border: '1px solid rgba(100, 200, 100, 0.3)',
     color: '#a8e6a8',
   },
   confidenceMedium: {
-    background: 'rgba(212, 175, 122, 0.1)',
-    border: '1px solid rgba(212, 175, 122, 0.25)',
+    background: 'rgba(212, 175, 122, 0.12)',
+    border: '1px solid rgba(212, 175, 122, 0.3)',
     color: '#d4af7a',
   },
   confidenceLow: {
