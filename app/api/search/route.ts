@@ -83,6 +83,7 @@ const THIRUKKURAL_THEMES: Record<string, string[]> = {
   'gossip_rumor': ['புகழ்', 'reputation', 'rumor', 'gossip', 'slander'],
   'public_shame': ['அவமானம்', 'shame', 'disgrace', 'public', 'humiliation'],
   'false_accusation': ['பொய்', 'false', 'lie', 'accusation', 'slander'],
+  'lying_truth': ['பொய்', 'lie', 'lying', 'false', 'falsehood', 'truth', 'உண்மை', 'honest', 'honesty', 'deceit', 'deceive'],
 };
 
 const SYNONYMS: Record<string, string[]> = {
@@ -139,6 +140,10 @@ const SYNONYMS: Record<string, string[]> = {
   pride: ['arrogance', 'ego', 'conceit', 'vanity', 'haughtiness', 'செருக்கு'],
   arrogance: ['pride', 'ego', 'conceit', 'haughtiness', 'hubris', 'செருக்கு'],
   prayer: ['god', 'virtue', 'faith', 'worship', 'devotion', 'பிரார்த்தனை'],
+  lie: ['lying', 'false', 'falsehood', 'dishonest', 'deceit', 'untruth', 'பொய்'],
+  lying: ['lie', 'false', 'falsehood', 'dishonest', 'பொய்', 'deceit'],
+  honest: ['honesty', 'truth', 'truthful', 'sincere', 'genuine', 'உண்மை'],
+  honesty: ['honest', 'truth', 'truthful', 'sincere', 'உண்மை'],
 };
 
 function extractDirectKuralNumber(message: string): number | null {
