@@ -19,13 +19,18 @@ interface Kural {
 interface SearchResponse {
   kural: Kural;
   keywords: string[];
-  source: 'direct' | 'chapter' | 'questionare' | 'keyword';
+  source: 'direct' | 'chapter' | 'questionare' | 'keyword' | 'theme-fallback';
   matchedSituation?: string;
   similarity?: number;
   confidence?: 'high' | 'medium' | 'low';
   confidenceMessage?: string;
   keywordCount?: number;
   detectedThemes?: string[];
+}
+
+interface ErrorResponse {
+  error: string;
+  suggestions?: string[];
 }
 
 const QUICK_PROMPTS = [
@@ -40,17 +45,17 @@ const QUICK_PROMPTS = [
 export default function AskKuralMobile() {
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState<SearchResponse | null>(null);
+  const [error, setError] = useState<ErrorResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
-      setError('Please enter a question');
+      setError({ error: 'Please enter a question' });
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError(null);
     setResult(null);
 
     try {
@@ -63,12 +68,16 @@ export default function AskKuralMobile() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Search failed');
+        setError(data as ErrorResponse);
+        return;
       }
 
-      setResult(data);
+      setResult(data as SearchResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError({
+        error: err instanceof Error ? err.message : 'An error occurred',
+        suggestions: ['Try: "show me kural 1"', 'Try: "advice for sadness"']
+      });
     } finally {
       setLoading(false);
     }
@@ -82,7 +91,7 @@ export default function AskKuralMobile() {
   const handleReset = () => {
     setQuestion('');
     setResult(null);
-    setError('');
+    setError(null);
   };
 
   const formatThemeName = (theme: string): string => {
@@ -92,18 +101,13 @@ export default function AskKuralMobile() {
       .join(' ');
   };
 
-  const getConfidenceIcon = (confidence?: 'high' | 'medium' | 'low') => {
-    if (confidence === 'high') return '✓';
-    if (confidence === 'medium') return '⭐';
-    return 'ℹ';
-  };
-
   const getSourceBadge = (source: string) => {
     const badges: Record<string, { text: string; emoji: string; color: string }> = {
       direct: { text: 'Direct Kural', emoji: '🎯', color: 'rgba(168, 85, 247, 0.2)' },
       chapter: { text: 'Chapter Query', emoji: '📖', color: 'rgba(99, 102, 241, 0.2)' },
       questionare: { text: 'Life Situation', emoji: '💭', color: 'rgba(244, 114, 182, 0.2)' },
       keyword: { text: 'Keyword Match', emoji: '🔍', color: 'rgba(34, 211, 238, 0.2)' },
+      'theme-fallback': { text: 'Theme Suggestion', emoji: '✨', color: 'rgba(139, 92, 246, 0.2)' },
     };
     return badges[source] || badges.keyword;
   };
@@ -123,7 +127,7 @@ export default function AskKuralMobile() {
         minHeight: '100vh',
         background: 'linear-gradient(to bottom, #0a0a0a, #1a1410)',
         color: '#e5e7eb',
-        fontFamily: '"Noto Sans Tamil", sans-serif',
+        fontFamily: '"Noto Sans Tamil", "Noto Sans", sans-serif',
         padding: '20px',
         paddingBottom: '100px',
       }}
@@ -147,8 +151,8 @@ export default function AskKuralMobile() {
         </p>
       </div>
 
-      {/* Quick Prompts - Only show when no result */}
-      {!result && !loading && (
+      {/* Quick Prompts - Only show when no result and no error */}
+      {!result && !error && !loading && (
         <div style={{ marginBottom: '30px' }}>
           <div
             style={{
@@ -211,7 +215,7 @@ export default function AskKuralMobile() {
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error State - IMPROVED with suggestions */}
       {error && (
         <div
           style={{
@@ -225,7 +229,31 @@ export default function AskKuralMobile() {
             margin: '0 auto 20px',
           }}
         >
-          {error}
+          <p style={{ margin: '0 0 12px 0', fontWeight: '500' }}>{error.error}</p>
+          {error.suggestions && error.suggestions.length > 0 && (
+            <div>
+              <p style={{ fontSize: '13px', color: '#fca5a5', marginBottom: '8px' }}>Try these:</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {error.suggestions.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSearch(suggestion.replace('Try: ', '').replace(/['"]/g, ''))}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.2)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      borderRadius: '20px',
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      color: '#fca5a5',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {suggestion.replace('Try: ', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -259,7 +287,7 @@ export default function AskKuralMobile() {
             })()}
 
             {/* Confidence Badge */}
-            {(() => {
+            {result.confidence && (() => {
               const confBadge = getConfidenceBadge(result.confidence);
               return confBadge ? (
                 <span
@@ -285,12 +313,7 @@ export default function AskKuralMobile() {
 
           {/* Confidence Message */}
           {result.confidenceMessage && (
-            <div
-              style={{
-                textAlign: 'center',
-                marginBottom: '16px',
-              }}
-            >
+            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               <p style={{ color: '#d4af7a', fontSize: '14px', fontStyle: 'italic', margin: 0 }}>
                 {result.confidenceMessage}
               </p>
@@ -348,12 +371,7 @@ export default function AskKuralMobile() {
 
           {/* Keyword Count Info - Only for keyword source */}
           {result.source === 'keyword' && result.keywordCount !== undefined && (
-            <div
-              style={{
-                textAlign: 'center',
-                marginBottom: '16px',
-              }}
-            >
+            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               <p style={{ color: '#9ca3af', fontSize: '12px', margin: 0 }}>
                 {result.keywordCount} keyword{result.keywordCount !== 1 ? 's' : ''} matched
               </p>
@@ -442,191 +460,59 @@ export default function AskKuralMobile() {
                 }}
               >
                 {/* Mu. Varadharasanar */}
-                <div
-                  style={{
-                    background: 'rgba(30, 30, 30, 0.5)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: 'rgba(212, 175, 122, 0.2)',
-                        color: '#d4af7a',
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        flexShrink: 0,
-                      }}
-                    >
+                <div style={{ background: 'rgba(30, 30, 30, 0.5)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: 'rgba(212, 175, 122, 0.2)', color: '#d4af7a', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>
                       மு.வ
                     </div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
-                        Mu. Varadharasanar
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
-                        முனைவர் மு.வரதராசனார்
-                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>Mu. Varadharasanar</div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>முனைவர் மு.வரதராசனார்</div>
                     </div>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
-                    {result.kural.mv}
-                  </p>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>{result.kural.mv}</p>
                 </div>
 
                 {/* Solomon Pappaiah */}
-                <div
-                  style={{
-                    background: 'rgba(30, 30, 30, 0.5)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: 'rgba(212, 175, 122, 0.2)',
-                        color: '#d4af7a',
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        flexShrink: 0,
-                      }}
-                    >
+                <div style={{ background: 'rgba(30, 30, 30, 0.5)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: 'rgba(212, 175, 122, 0.2)', color: '#d4af7a', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>
                       சொ.பா
                     </div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
-                        Solomon Pappaiah
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
-                        சாலமன் பாப்பையா
-                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>Solomon Pappaiah</div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>சாலமன் பாப்பையா</div>
                     </div>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
-                    {result.kural.sp}
-                  </p>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>{result.kural.sp}</p>
                 </div>
 
                 {/* Kalaignar Karunanidhi */}
-                <div
-                  style={{
-                    background: 'rgba(30, 30, 30, 0.5)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: 'rgba(212, 175, 122, 0.2)',
-                        color: '#d4af7a',
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        flexShrink: 0,
-                      }}
-                    >
+                <div style={{ background: 'rgba(30, 30, 30, 0.5)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: 'rgba(212, 175, 122, 0.2)', color: '#d4af7a', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>
                       க.கா
                     </div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
-                        Kalaignar Karunanidhi
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
-                        கலைஞர் கருணாநிதி
-                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>Kalaignar Karunanidhi</div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>கலைஞர் கருணாநிதி</div>
                     </div>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
-                    {result.kural.mk}
-                  </p>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>{result.kural.mk}</p>
                 </div>
 
                 {/* English Explanation */}
-                <div
-                  style={{
-                    background: 'rgba(30, 30, 30, 0.5)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: 'rgba(212, 175, 122, 0.2)',
-                        color: '#d4af7a',
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        flexShrink: 0,
-                      }}
-                    >
+                <div style={{ background: 'rgba(30, 30, 30, 0.5)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: 'rgba(212, 175, 122, 0.2)', color: '#d4af7a', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>
                       EN
                     </div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>
-                        English Explanation
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>
-                        ஆங்கில விளக்கம்
-                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#f9fafb' }}>English Explanation</div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af' }}>ஆங்கில விளக்கம்</div>
                     </div>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>
-                    {result.kural.explanation}
-                  </p>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>{result.kural.explanation}</p>
                 </div>
               </div>
             </div>
