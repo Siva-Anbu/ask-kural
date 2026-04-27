@@ -19,7 +19,7 @@ interface Kural {
 interface SearchResponse {
   kural: Kural;
   keywords: string[];
-  source: string;
+  source: 'direct' | 'chapter' | 'questionare' | 'keyword';
   matchedSituation?: string;
   similarity?: number;
   confidence?: 'high' | 'medium' | 'low';
@@ -96,6 +96,25 @@ export default function AskKuralMobile() {
     if (confidence === 'high') return '✓';
     if (confidence === 'medium') return '⭐';
     return 'ℹ';
+  };
+
+  const getSourceBadge = (source: string) => {
+    const badges: Record<string, { text: string; emoji: string; color: string }> = {
+      direct: { text: 'Direct Kural', emoji: '🎯', color: 'rgba(168, 85, 247, 0.2)' },
+      chapter: { text: 'Chapter Query', emoji: '📖', color: 'rgba(99, 102, 241, 0.2)' },
+      questionare: { text: 'Life Situation', emoji: '💭', color: 'rgba(244, 114, 182, 0.2)' },
+      keyword: { text: 'Keyword Match', emoji: '🔍', color: 'rgba(34, 211, 238, 0.2)' },
+    };
+    return badges[source] || badges.keyword;
+  };
+
+  const getConfidenceBadge = (confidence?: 'high' | 'medium' | 'low') => {
+    const badges = {
+      high: { text: 'High Match', color: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.4)' },
+      medium: { text: 'Good Match', color: 'rgba(251, 191, 36, 0.2)', border: 'rgba(251, 191, 36, 0.4)' },
+      low: { text: 'Possible Match', color: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)' },
+    };
+    return confidence ? badges[confidence] : null;
   };
 
   return (
@@ -213,6 +232,99 @@ export default function AskKuralMobile() {
       {/* Results */}
       {result && (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Source and Confidence Badges */}
+          <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+            {/* Source Badge */}
+            {(() => {
+              const sourceBadge = getSourceBadge(result.source);
+              return (
+                <span
+                  style={{
+                    background: sourceBadge.color,
+                    color: '#d4af7a',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    border: '1px solid rgba(212, 175, 122, 0.3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>{sourceBadge.emoji}</span>
+                  {sourceBadge.text}
+                </span>
+              );
+            })()}
+
+            {/* Confidence Badge */}
+            {(() => {
+              const confBadge = getConfidenceBadge(result.confidence);
+              return confBadge ? (
+                <span
+                  style={{
+                    background: confBadge.color,
+                    color: '#d4af7a',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    border: `1px solid ${confBadge.border}`,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>✨</span>
+                  {confBadge.text}
+                </span>
+              ) : null;
+            })()}
+          </div>
+
+          {/* Confidence Message */}
+          {result.confidenceMessage && (
+            <div
+              style={{
+                textAlign: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <p style={{ color: '#d4af7a', fontSize: '14px', fontStyle: 'italic', margin: 0 }}>
+                {result.confidenceMessage}
+              </p>
+            </div>
+          )}
+
+          {/* Matched Situation - Only for Questionare */}
+          {result.source === 'questionare' && result.matchedSituation && (
+            <div
+              style={{
+                background: 'rgba(244, 114, 182, 0.1)',
+                border: '1px solid rgba(244, 114, 182, 0.3)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '18px' }}>💭</span>
+                <p style={{ fontSize: '12px', fontWeight: '600', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
+                  Matched Situation
+                </p>
+              </div>
+              <p style={{ color: '#e5e7eb', fontSize: '14px', lineHeight: '1.6', margin: '0 0 8px 0' }}>
+                {result.matchedSituation}
+              </p>
+              {result.similarity !== undefined && (
+                <p style={{ color: '#f472b6', fontSize: '12px', margin: 0 }}>
+                  Similarity: {result.similarity.toFixed(0)}%
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Detected Themes */}
           {result.detectedThemes && result.detectedThemes.length > 0 && (
             <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
@@ -234,31 +346,17 @@ export default function AskKuralMobile() {
             </div>
           )}
 
-          {/* Confidence Message */}
-          {result.confidenceMessage && (
+          {/* Keyword Count Info - Only for keyword source */}
+          {result.source === 'keyword' && result.keywordCount !== undefined && (
             <div
               style={{
-                background: 'rgba(212, 175, 122, 0.1)',
-                border: '1px solid rgba(212, 175, 122, 0.3)',
-                borderRadius: '12px',
-                padding: '12px 16px',
+                textAlign: 'center',
                 marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
               }}
             >
-              <span style={{ fontSize: '18px' }}>{getConfidenceIcon(result.confidence)}</span>
-              <div style={{ flex: 1 }}>
-                <p style={{ color: '#d4af7a', fontSize: '14px', margin: 0 }}>
-                  {result.confidenceMessage}
-                </p>
-                {result.keywordCount !== undefined && (
-                  <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>
-                    {result.keywordCount} keyword{result.keywordCount !== 1 ? 's' : ''} matched
-                  </p>
-                )}
-              </div>
+              <p style={{ color: '#9ca3af', fontSize: '12px', margin: 0 }}>
+                {result.keywordCount} keyword{result.keywordCount !== 1 ? 's' : ''} matched
+              </p>
             </div>
           )}
 
