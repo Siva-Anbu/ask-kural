@@ -6,7 +6,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const STOP_WORDS = new Set([
+// Minimal stop words - only removing Kural-specific and command words
+const MINIMAL_STOP_WORDS = new Set([
+  'kural', 'kuṟaḷ', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்',
+]);
+
+// Keep original stop words for keyword search fallback only
+const KEYWORD_SEARCH_STOP_WORDS = new Set([
   'i', 'me', 'my', 'myself', 'we', 'our', 'you', 'your', 'he', 'him', 'his', 'she', 'her',
   'they', 'them', 'their', 'it', 'its', 'a', 'an', 'the', 'and', 'or', 'but', 'if', 'in',
   'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
@@ -100,6 +106,9 @@ const SYNONYMS: Record<string, string[]> = {
   loving: ['love', 'affection', 'care', 'devotion', 'காதல்', 'அன்பு'],
   lonely: ['alone', 'solitude', 'isolation', 'loneliness', 'isolated', 'தனிமை'],
   alone: ['lonely', 'solitude', 'isolation', 'solitary', 'தனிமை'],
+  losing: ['loss', 'lost', 'lose', 'missing', 'gone'],
+  loss: ['losing', 'lost', 'lose', 'missing', 'gone'],
+  people: ['person', 'individuals', 'folks', 'humans', 'மக்கள்'],
   money: ['wealth', 'rich', 'riches', 'prosperity', 'finance', 'fortune', 'செல்வம்', 'பொருள்'],
   wealth: ['money', 'rich', 'riches', 'prosperity', 'fortune', 'செல்வம்'],
   rich: ['wealth', 'money', 'riches', 'prosperity', 'wealthy', 'செல்வம்'],
@@ -227,8 +236,10 @@ function calculateSimilarity(str1: string, str2: string): number {
   const text2 = normalize(str2);
   if (text1 === text2) return 100;
   if (text1.includes(text2) || text2.includes(text1)) return 85;
-  const words1 = text1.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
-  const words2 = text2.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+
+  // Use MINIMAL_STOP_WORDS for similarity calculation
+  const words1 = text1.split(/\s+/).filter(w => w.length > 2 && !MINIMAL_STOP_WORDS.has(w));
+  const words2 = text2.split(/\s+/).filter(w => w.length > 2 && !MINIMAL_STOP_WORDS.has(w));
   if (words1.length === 0 || words2.length === 0) return 0;
   let score = 0;
   for (const word of words1) {
@@ -255,19 +266,41 @@ function calculateSimilarity(str1: string, str2: string): number {
   return Math.min(100, (score / maxPossibleScore) * 100);
 }
 
+// NEW: Separate keyword extraction for Questionare with minimal stop words
+function extractQuestionareKeywords(text: string): string[] {
+  const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
+  const words = lower.split(/\s+/).filter(w => w.length > 2 && !MINIMAL_STOP_WORDS.has(w));
+
+  const expanded = new Set<string>();
+  for (const word of words) {
+    expanded.add(word);
+    if (SYNONYMS[word]) SYNONYMS[word].forEach(s => expanded.add(s));
+  }
+
+  return Array.from(expanded);
+}
+
+// UPDATED: searchQuestionare with better keyword search
 async function searchQuestionare(message: string) {
-  const keywords = extractKeywords(message);
+  const keywords = extractQuestionareKeywords(message);
   if (keywords.length === 0) return null;
+
+  // Use top 8 keywords for broader matching
+  const searchKeywords = keywords.slice(0, 8);
+
   const { data: situations, error } = await supabase
     .from('Questionare')
     .select('*')
-    .ilike('Situation', `%${keywords[0]}%`)
-    .limit(30);
+    .or(searchKeywords.map(kw => `Situation.ilike.%${kw}%`).join(','))
+    .limit(50);
+
   if (error || !situations || situations.length === 0) {
     return null;
   }
+
   let bestMatch = null;
   let bestSimilarity = 0;
+
   for (const situation of situations) {
     const situationText = (situation.Situation as string) || '';
     const similarity = calculateSimilarity(message, situationText);
@@ -276,9 +309,12 @@ async function searchQuestionare(message: string) {
       bestMatch = situation;
     }
   }
-  if (!bestMatch || bestSimilarity < 50) {
+
+  // Lower threshold for better recall
+  if (!bestMatch || bestSimilarity < 40) {
     return null;
   }
+
   const kurals = [];
   if (bestMatch.Kural_1) {
     kurals.push({
@@ -304,12 +340,15 @@ async function searchQuestionare(message: string) {
       meaning: bestMatch.Meaning_3
     });
   }
+
   if (kurals.length === 0) {
     return null;
   }
+
   const keywordsLower = keywords.map(k => k.toLowerCase());
   let bestKural = null;
   let bestKuralScore = 0;
+
   for (const k of kurals) {
     let score = 0;
     const meaningLower = (k.meaning || '').toLowerCase();
@@ -326,13 +365,16 @@ async function searchQuestionare(message: string) {
       bestKural = k;
     }
   }
+
   if (!bestKural || bestKuralScore === 0) {
     bestKural = kurals[0];
   }
+
   const fullKural = await getKuralByNumber(bestKural.num);
   if (!fullKural) {
     return null;
   }
+
   return {
     kural: fullKural,
     matchedSituation: bestMatch.Situation,
@@ -375,9 +417,10 @@ function enrichKeywordsWithThemes(baseKeywords: string[], themes: string[]): str
   return [...Array.from(themeSpecific), ...Array.from(baseSet)];
 }
 
+// For keyword search fallback - uses more aggressive stop word filtering
 function extractKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
-  const words = lower.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  const words = lower.split(/\s+/).filter(w => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w));
   const expanded = new Set<string>();
   for (const word of words) {
     expanded.add(word);
@@ -467,7 +510,7 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   const questionWords = questionLower
     .replace(/[.,!?;:'"()\-]/g, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 3 && !STOP_WORDS.has(w));
+    .filter(w => w.length > 3 && !KEYWORD_SEARCH_STOP_WORDS.has(w));
   for (const word of questionWords) {
     if (allText.includes(word)) {
       score += 1;
@@ -640,7 +683,7 @@ export async function POST(req: NextRequest) {
       .toLowerCase()
       .replace(/[.,!?;:'"()\-]/g, ' ')
       .split(/\s+/)
-      .filter((w: string) => w.length > 2 && !STOP_WORDS.has(w))
+      .filter((w: string) => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w))
       .slice(0, 5);
     source = 'keyword';
     const confidenceMessage = getConfidenceMessage(source, undefined, keywordCount);
