@@ -224,7 +224,7 @@ export default function Home() {
           </div>
         )}
         <p className={styles.inputHint}>Tamil அல்லது English-ல் தட்டச்சு செய்யுங்கள்</p>
-        <p className={styles.credit}>a humble tribute to thirukkural · anbuselvan sivaraju</p>
+        <p className={styles.credit}>a small tribute to kural · குறளுக்கு ஒரு சிறு காணிக்கை<br />ANBUSELVAN SIVARAJU</p>
       </div>
 
     </div>
