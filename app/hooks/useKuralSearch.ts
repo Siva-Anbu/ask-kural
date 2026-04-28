@@ -19,7 +19,7 @@ export interface Kural {
 export interface SearchResponse {
   kurals: Kural[];
   keywords: string[];
-  source: 'direct' | 'chapter' | 'questionare' | 'keyword' | 'semantic' | 'theme-fallback';
+  source: 'direct' | 'chapter' | 'predefined' | 'questionare' | 'keyword' | 'semantic' | 'theme-fallback';
   matchedSituation?: string;
   similarity?: number;
   confidence?: 'high' | 'medium' | 'low';

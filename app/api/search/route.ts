@@ -346,6 +346,47 @@ async function getKuralByNumber(num: number) {
   return data;
 }
 
+// ---------------------------------------------------------------------------
+// Predefined answers lookup
+// ---------------------------------------------------------------------------
+
+const QUESTION_PREFIXES = [
+  'what is ', 'what are ', "what's ", 'whats ', 'define ', 'meaning of ',
+  'explain ', 'tell me about ', 'about ', 'importance of ', 'describe ',
+  'what do you mean by ', 'what does ', 'how is ', 'what exactly is ',
+];
+const QUESTION_SUFFIXES = [' mean', ' means', ' meaning'];
+
+function stripQuestionWords(s: string): string {
+  let stripped = s.replace(/[?!.]+$/, '').trim();
+  for (const prefix of QUESTION_PREFIXES) {
+    if (stripped.startsWith(prefix)) { stripped = stripped.slice(prefix.length).trim(); break; }
+  }
+  for (const suffix of QUESTION_SUFFIXES) {
+    if (stripped.endsWith(suffix)) stripped = stripped.slice(0, -suffix.length).trim();
+  }
+  return stripped;
+}
+
+async function checkPredefinedAnswer(message: string): Promise<Record<string, unknown>[] | null> {
+  const normalized = message.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').replace(/\s+/g, ' ').trim();
+  const stripped = stripQuestionWords(normalized);
+
+  const { data, error } = await supabase.from('predefined_answers').select('*');
+  if (error || !data?.length) return null;
+
+  for (const entry of data) {
+    for (const phrase of entry.trigger_phrases as string[]) {
+      const p = phrase.toLowerCase().trim();
+      if (normalized === p || stripped === p) {
+        const kurals = await Promise.all((entry.kural_numbers as number[]).map((n: number) => getKuralByNumber(n)));
+        return kurals.filter(Boolean) as Record<string, unknown>[];
+      }
+    }
+  }
+  return null;
+}
+
 function extractQuestionareKeywords(text: string): string[] {
   const lower = text.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ');
   const words = lower.split(/\s+/).filter(w => w.length > 2 && !MINIMAL_STOP_WORDS.has(w));
@@ -655,6 +696,12 @@ export async function POST(req: NextRequest) {
     if (chapterKuralNum) {
       const kural = await getKuralByNumber(chapterKuralNum);
       if (kural) return NextResponse.json({ kurals: [kural], keywords: ['chapter-query'], source: 'chapter', confidence: 'high', confidenceMessage: '' });
+    }
+
+    // 3. Predefined curated answers ("what is love", "what is friendship", etc.)
+    const predefinedKurals = await checkPredefinedAnswer(message);
+    if (predefinedKurals?.length) {
+      return NextResponse.json({ kurals: predefinedKurals, keywords: [], source: 'predefined', confidence: 'high', confidenceMessage: '' });
     }
 
     // Generate embedding + extract keywords once — reused by steps 3, 4, 5

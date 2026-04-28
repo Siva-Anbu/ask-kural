@@ -29,6 +29,7 @@ export default function AskKuralMobile() {
     const badges: Record<string, { text: string; emoji: string; color: string }> = {
       direct: { text: 'Direct Kural', emoji: '🎯', color: 'rgba(168, 85, 247, 0.2)' },
       chapter: { text: 'Chapter Query', emoji: '📖', color: 'rgba(99, 102, 241, 0.2)' },
+      predefined: { text: 'Curated Answer', emoji: '📜', color: 'rgba(212, 175, 122, 0.2)' },
       questionare: { text: 'Life Situation', emoji: '💭', color: 'rgba(244, 114, 182, 0.2)' },
       keyword: { text: 'Keyword Match', emoji: '🔍', color: 'rgba(34, 211, 238, 0.2)' },
       semantic: { text: 'Semantic Match', emoji: '🧠', color: 'rgba(16, 185, 129, 0.2)' },
