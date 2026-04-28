@@ -130,7 +130,7 @@ export default function AskKuralMobile() {
       <div style={{ minHeight: '100dvh', background: 'linear-gradient(to bottom, #0a0a0a, #1a1410)', color: '#e5e7eb', fontFamily: '"Noto Sans Tamil", "Noto Sans", sans-serif', padding: '20px', paddingBottom: '100px', overflowX: 'hidden', WebkitTextSizeAdjust: '100%', touchAction: 'manipulation' }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 'bold', background: 'linear-gradient(to right, #d4af7a, #f4e4c1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>
-            திருக்குறள் அறுளரை
+            திருக்குறள் அருளுரை
           </h1>
           <p style={{ fontSize: 'clamp(12px, 2.5vw, 16px)', color: '#9ca3af' }}>
             ASK KURAL · குறளிடம் கேளுங்கள்
