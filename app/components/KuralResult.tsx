@@ -201,7 +201,7 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
         </div>
       ) : (
         // Desktop: side by side
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '24px', alignItems: 'start' }}>
           {kuralCard}
           {commentaries}
         </div>
