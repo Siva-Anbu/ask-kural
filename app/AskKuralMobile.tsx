@@ -132,7 +132,7 @@ export default function AskKuralMobile() {
             திருக்குறள் அறுளரை
           </h1>
           <p style={{ fontSize: 'clamp(12px, 2.5vw, 16px)', color: '#9ca3af' }}>
-            ASK KURAL · வள்ளுவரிடம் கேட்டுங்கள் · ASK VALLUVAR ANYTHING
+            ASK KURAL · குறளிடம் கேளுங்கள்
           </p>
         </div>
 
@@ -263,7 +263,7 @@ export default function AskKuralMobile() {
               </div>
             </div>
 
-            <button onClick={handleReset} style={{ width: '100%', maxWidth: '400px', display: 'block', margin: '0 auto', background: 'rgba(212, 175, 122, 0.2)', border: '2px solid rgba(212, 175, 122, 0.5)', borderRadius: '12px', padding: '14px', color: '#d4af7a', fontSize: '16px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 122, 0.3)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 122, 0.2)'; }}>🔄 Ask Valluvar Again</button>
+            <button onClick={handleReset} style={{ width: '100%', maxWidth: '400px', display: 'block', margin: '0 auto', background: 'rgba(212, 175, 122, 0.2)', border: '2px solid rgba(212, 175, 122, 0.5)', borderRadius: '12px', padding: '14px', color: '#d4af7a', fontSize: '16px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 122, 0.3)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 122, 0.2)'; }}>🔄 Ask Kural Again</button>
           </div>
         )}
 
@@ -275,7 +275,7 @@ export default function AskKuralMobile() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(question); }}
-              placeholder="Ask Valluvar anything..."
+              placeholder="Ask Kural anything..."
               style={{
                 flex: 1,
                 background: 'rgba(30, 30, 30, 0.8)',
