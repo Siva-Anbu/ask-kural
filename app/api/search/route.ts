@@ -6,6 +6,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// ---------------------------------------------------------------------------
+// Constants (unchanged)
+// ---------------------------------------------------------------------------
+
 const MINIMAL_STOP_WORDS = new Set([
   'kural', 'kuṟa', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்',
 ]);
@@ -155,6 +159,32 @@ const SYNONYMS: Record<string, string[]> = {
   honesty: ['honest', 'truth', 'truthful', 'sincere', 'உண்மை'],
 };
 
+// ---------------------------------------------------------------------------
+// Embedding pipeline (cached across warm Node.js invocations)
+// ---------------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _pipeline: any | null = null;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getEmbeddingPipeline(): Promise<any> {
+  if (!_pipeline) {
+    const { pipeline } = await import('@xenova/transformers');
+    _pipeline = await pipeline('feature-extraction', 'Supabase/gte-small');
+  }
+  return _pipeline;
+}
+
+async function getEmbedding(text: string): Promise<number[]> {
+  const pipe = await getEmbeddingPipeline();
+  const output = await pipe(text, { pooling: 'mean', normalize: true });
+  return Array.from(output.data as Float32Array);
+}
+
+// ---------------------------------------------------------------------------
+// Existing helper functions (unchanged)
+// ---------------------------------------------------------------------------
+
 function detectQueryContext(message: string): 'emotional' | 'political' | 'general' {
   const lower = message.toLowerCase();
   const emotionalWords = ['love', 'losing', 'lose', 'afraid', 'scared', 'worried', 'anxious', 'sad', 'depressed', 'lonely', 'grief', 'missing', 'family', 'friends', 'relationship', 'people I', 'loved ones', 'close to me', 'heart', 'pain'];
@@ -170,31 +200,24 @@ function detectQueryContext(message: string): 'emotional' | 'political' | 'gener
 
 function extractDirectKuralNumber(message: string): number | null {
   const lower = message.toLowerCase().trim();
-  const justNumber = /^(\d{1,4})$/;
-  const match1 = lower.match(justNumber);
+  const match1 = lower.match(/^(\d{1,4})$/);
   if (match1) { const num = parseInt(match1[1]); if (num >= 1 && num <= 1330) return num; }
-  const kuralPattern = /(?:kural|குறள்|kuṟa)\s*[#:]?\s*(\d{1,4})/i;
-  const match2 = lower.match(kuralPattern);
+  const match2 = lower.match(/(?:kural|குறள்|kuṟa)\s*[#:]?\s*(\d{1,4})/i);
   if (match2) { const num = parseInt(match2[1]); if (num >= 1 && num <= 1330) return num; }
-  const giveShowPattern = /(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/i;
-  const match3 = lower.match(giveShowPattern);
+  const match3 = lower.match(/(?:give|show|tell|get|fetch|find|number|no\.?)\s+(?:me\s+)?(?:kural\s+)?[#:]?\s*(\d{1,4})/i);
   if (match3) { const num = parseInt(match3[1]); if (num >= 1 && num <= 1330) return num; }
   return null;
 }
 
 function extractChapterKuralQuery(message: string): number | null {
   const lower = message.toLowerCase().trim();
-  const enPattern1 = /(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i;
-  const match1 = lower.match(enPattern1);
+  const match1 = lower.match(/(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|\d+(?:st|nd|rd|th)?)\s+(?:kural|குறள்)\s+(?:of|in)\s+(?:chapter|அதிகாரம்)\s+(\d{1,3})/i);
   if (match1) { const pos = ORDINALS_EN[match1[1]] || parseInt(match1[1]); const chap = parseInt(match1[2]); if (chap >= 1 && chap <= 133 && pos >= 1 && pos <= 10) return (chap - 1) * 10 + pos; }
-  const enPattern2 = /(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i;
-  const match2 = lower.match(enPattern2);
+  const match2 = lower.match(/(?:chapter|அதிகாரம்)\s+(\d{1,3})(?:'s)?\s+(?:kural|குறள்)?\s*(\d{1,2}|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last)/i);
   if (match2) { const chap = parseInt(match2[1]); const pos = ORDINALS_EN[match2[2]] || parseInt(match2[2]); if (chap >= 1 && chap <= 133 && pos >= 1 && pos <= 10) return (chap - 1) * 10 + pos; }
-  const taPattern = /(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/;
-  const match3 = message.match(taPattern);
+  const match3 = message.match(/(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s+(?:குறள்|kural)?\s*(?:அதிகாரத்தின்|அதிகாரம்)?\s+(\d{1,3})/);
   if (match3) { const pos = ORDINALS_TA[match3[1]]; const chap = parseInt(match3[2]); if (chap >= 1 && chap <= 133 && pos >= 1 && pos <= 10) return (chap - 1) * 10 + pos; }
-  const taPattern2 = /(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/;
-  const match4 = message.match(taPattern2);
+  const match4 = message.match(/(?:அதிகாரம்|chapter)\s+(\d{1,3})\s*(?:இன்|ன்|of)?\s*(முதல்|முதலாவது|இரண்டாம்|இரண்டாவது|மூன்றாம்|மூன்றாவது|நான்காம்|நான்காவது|ஐந்தாம்|ஐந்தாவது|ஆறாம்|ஆறாவது|ஏழாம்|ஏழாவது|எட்டாம்|எட்டாவது|ஒன்பதாம்|ஒன்பதாவது|பத்தாம்|பத்தாவது|கடைசி)\s*(?:குறள்)?/);
   if (match4) { const chap = parseInt(match4[1]); const pos = ORDINALS_TA[match4[2]]; if (chap >= 1 && chap <= 133 && pos >= 1 && pos <= 10) return (chap - 1) * 10 + pos; }
   return null;
 }
@@ -203,40 +226,6 @@ async function getKuralByNumber(num: number) {
   const { data, error } = await supabase.from('Kurals-new').select('*').eq('Number', num).single();
   if (error || !data) return null;
   return data;
-}
-
-function calculateSimilarity(str1: string, str2: string): number {
-  const normalize = (s: string) => s.toLowerCase().trim().replace(/[.,!?;:'"()\-]/g, ' ').replace(/\s+/g, ' ');
-  const text1 = normalize(str1);
-  const text2 = normalize(str2);
-  if (text1 === text2) return 100;
-  if (text1.includes(text2) || text2.includes(text1)) return 85;
-  const words1 = text1.split(/\s+/).filter(w => w.length > 2 && !MINIMAL_STOP_WORDS.has(w));
-  const words2 = text2.split(/\s+/).filter(w => w.length > 2 && !MINIMAL_STOP_WORDS.has(w));
-  if (words1.length === 0 || words2.length === 0) return 0;
-  let score = 0;
-  for (const word of words1) {
-    if (words2.includes(word)) score += 12;
-    else for (const w2 of words2) { if (w2.includes(word) || word.includes(w2)) { score += 6; break; } }
-  }
-  const text1Words = text1.split(/\s+/);
-  for (let i = 0; i < text1Words.length - 1; i++) {
-    const bigram = `${text1Words[i]} ${text1Words[i + 1]}`;
-    if (text2.includes(bigram)) score += 18;
-  }
-  return Math.min(100, (score / (words1.length * 12 + text1Words.length * 18)) * 100);
-}
-
-function calculateMultiFieldSimilarity(query: string, situation: any): number {
-  const weights: Record<string, number> = { Situation: 1.0, Keywords: 0.7, Theme: 0.5 };
-  let totalScore = 0, totalWeight = 0;
-  for (const [field, weight] of Object.entries(weights)) {
-    if (situation[field] && typeof situation[field] === 'string') {
-      totalScore += calculateSimilarity(query, situation[field]) * weight;
-      totalWeight += weight;
-    }
-  }
-  return totalWeight > 0 ? totalScore / totalWeight : 0;
 }
 
 function extractQuestionareKeywords(text: string): string[] {
@@ -250,39 +239,6 @@ function extractQuestionareKeywords(text: string): string[] {
   return Array.from(expanded);
 }
 
-async function searchQuestionare(message: string) {
-  const keywords = extractQuestionareKeywords(message);
-  if (keywords.length === 0) return null;
-  const searchKeywords = keywords.slice(0, 15);
-  const { data: situations, error } = await supabase.from('Questionare').select('*').or(searchKeywords.map(kw => `Situation.ilike.%${kw}%`).join(',')).limit(100);
-  if (error || !situations || situations.length === 0) return null;
-  let bestMatch = null, bestScore = 0;
-  for (const situation of situations) {
-    const score = calculateMultiFieldSimilarity(message, situation);
-    if (score > bestScore) { bestScore = score; bestMatch = situation; }
-  }
-  if (!bestMatch || bestScore < 30) return null;
-  const kurals = [];
-  if (bestMatch.Kural_1) kurals.push({ num: bestMatch.Kural_1, tamil1: bestMatch.Tamil1_1, tamil2: bestMatch.Tamil2_1, meaning: bestMatch.Meaning_1 });
-  if (bestMatch.Kural_2) kurals.push({ num: bestMatch.Kural_2, tamil1: bestMatch.Tamil1_2, tamil2: bestMatch.Tamil2_2, meaning: bestMatch.Meaning_2 });
-  if (bestMatch.Kural_3) kurals.push({ num: bestMatch.Kural_3, tamil1: bestMatch.Tamil1_3, tamil2: bestMatch.Tamil2_3, meaning: bestMatch.Meaning_3 });
-  if (kurals.length === 0) return null;
-  const keywordsLower = keywords.map(k => k.toLowerCase());
-  let bestKural = null, bestKuralScore = 0;
-  for (const k of kurals) {
-    let score = 0;
-    const meaningLower = (k.meaning || '').toLowerCase();
-    for (const keyword of keywordsLower) { if (meaningLower.includes(keyword)) score += 10; }
-    if (k.num === bestMatch.Kural_1) score += 5;
-    if (score > bestKuralScore) { bestKuralScore = score; bestKural = k; }
-  }
-  if (!bestKural || bestKuralScore === 0) bestKural = kurals[0];
-  const fullKural = await getKuralByNumber(bestKural.num);
-  if (!fullKural) return null;
-  return { kural: fullKural, matchedSituation: bestMatch.Situation, similarity: bestScore };
-}
-
-// ✅ FIXED: Use Array.from instead of spread syntax for Set iteration
 function detectThemes(message: string): string[] {
   const messageLower = message.toLowerCase();
   const detectedThemes: string[] = [];
@@ -302,7 +258,6 @@ function detectThemes(message: string): string[] {
     const threshold = isEmotional ? 1 : Math.max(1, Math.floor(keywords.length * 0.3));
     if (matchCount >= threshold) detectedThemes.push(theme);
   }
-  // FIX: Use Array.from to avoid TypeScript downlevelIteration error
   return Array.from(new Set(detectedThemes));
 }
 
@@ -390,6 +345,7 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   return score;
 }
 
+// Keyword-based fallback — used only by the theme fallback path
 async function findBestKural(keywords: string[], fullQuestion: string, queryContext: string) {
   const expanded = expandQueryWithSynonyms(keywords);
   const searchResults: Record<string, unknown>[] = [];
@@ -440,64 +396,192 @@ function getSuggestions(message: string): string[] {
   return s.length ? s.slice(0, 3) : ["Try: 'show me kural 55'", "Try: 'advice for life challenges'"];
 }
 
+// ---------------------------------------------------------------------------
+// Semantic search helpers
+// ---------------------------------------------------------------------------
+
+const POLITICAL_INDICATORS = [
+  'king', 'ruler', 'state', 'army', 'war', 'enemy', 'foe', 'battle',
+  'minister', 'government', 'politics', 'kingdom', 'empire',
+];
+
+interface QuestionareMatch {
+  id: number;
+  Situation: string;
+  Kural_1: number | null;
+  Tamil1_1: string | null;
+  Tamil2_1: string | null;
+  Meaning_1: string | null;
+  Kural_2: number | null;
+  Tamil1_2: string | null;
+  Tamil2_2: string | null;
+  Meaning_2: string | null;
+  Kural_3: number | null;
+  Tamil1_3: string | null;
+  Tamil2_3: string | null;
+  Meaning_3: string | null;
+  similarity: number;
+}
+
+async function semanticSearchQuestionare(
+  embedding: number[],
+  originalMessage: string
+): Promise<{ kural: Record<string, unknown>; matchedSituation: string; similarity: number } | null> {
+  const { data, error } = await supabase.rpc('match_questionare', {
+    query_embedding: embedding,
+    match_threshold: 0.3,
+    match_count: 3,
+  });
+  if (error || !data?.length) return null;
+
+  const best = data[0] as QuestionareMatch;
+
+  const candidates: Array<{ num: number; meaning: string | null; isPrimary: boolean }> = [];
+  if (best.Kural_1) candidates.push({ num: best.Kural_1, meaning: best.Meaning_1, isPrimary: true });
+  if (best.Kural_2) candidates.push({ num: best.Kural_2, meaning: best.Meaning_2, isPrimary: false });
+  if (best.Kural_3) candidates.push({ num: best.Kural_3, meaning: best.Meaning_3, isPrimary: false });
+  if (!candidates.length) return null;
+
+  // Pick the candidate whose meaning best matches the original message keywords
+  const keywords = extractQuestionareKeywords(originalMessage).map(k => k.toLowerCase());
+  let bestCandidate = candidates[0];
+  let bestScore = candidates[0].isPrimary ? 5 : 0;
+  for (const c of candidates) {
+    const meaningLower = (c.meaning ?? '').toLowerCase();
+    let score = c.isPrimary ? 5 : 0;
+    for (const kw of keywords) { if (meaningLower.includes(kw)) score += 10; }
+    if (score > bestScore) { bestScore = score; bestCandidate = c; }
+  }
+
+  const fullKural = await getKuralByNumber(bestCandidate.num);
+  if (!fullKural) return null;
+
+  // Similarity is 0-1 from RPC; multiply by 100 to match existing confidence thresholds
+  return { kural: fullKural, matchedSituation: best.Situation, similarity: Math.round(best.similarity * 100) };
+}
+
+interface KuralMatch {
+  Number: number;
+  Line1: string | null;
+  Line2: string | null;
+  Translation: string | null;
+  mv: string | null;
+  sp: string | null;
+  mk: string | null;
+  explanation: string | null;
+  couplet: string | null;
+  transliteration1: string | null;
+  transliteration2: string | null;
+  similarity: number;
+}
+
+async function semanticSearchKurals(
+  embedding: number[],
+  queryContext: string
+): Promise<KuralMatch | null> {
+  const { data, error } = await supabase.rpc('match_kurals', {
+    query_embedding: embedding,
+    match_threshold: 0.3,
+    match_count: 10,
+  });
+  if (error || !data?.length) return null;
+
+  const results = data as KuralMatch[];
+
+  if (queryContext === 'emotional') {
+    const filtered = results.filter(k => {
+      const text = [k.Translation, k.explanation].filter(Boolean).join(' ').toLowerCase();
+      return POLITICAL_INDICATORS.filter(w => text.includes(w)).length < 2;
+    });
+    return filtered[0] ?? results[0];
+  }
+
+  return results[0];
+}
+
+// ---------------------------------------------------------------------------
+// POST handler
+// ---------------------------------------------------------------------------
+
 export async function POST(req: NextRequest) {
   try {
     const { message } = await req.json();
     if (!message?.trim()) return NextResponse.json({ error: 'Message is required' }, { status: 400 });
 
     const queryContext = detectQueryContext(message);
-    let source = 'keyword';
-    let similarity: number | undefined;
-    let keywordCount: number | undefined;
 
+    // 1. Direct kural number lookup
     const directNum = extractDirectKuralNumber(message);
     if (directNum) {
       const kural = await getKuralByNumber(directNum);
       if (kural) return NextResponse.json({ kural, keywords: [`kural-${directNum}`], source: 'direct', confidence: 'high', confidenceMessage: '' });
     }
 
+    // 2. Chapter-position lookup
     const chapterKuralNum = extractChapterKuralQuery(message);
     if (chapterKuralNum) {
       const kural = await getKuralByNumber(chapterKuralNum);
       if (kural) return NextResponse.json({ kural, keywords: ['chapter-query'], source: 'chapter', confidence: 'high', confidenceMessage: '' });
     }
 
-    const questionareResult = await searchQuestionare(message);
+    // Generate embedding once for steps 3 & 4
+    const embedding = await getEmbedding(message);
+
+    // 3. Semantic questionare search
+    const questionareResult = await semanticSearchQuestionare(embedding, message);
     if (questionareResult) {
       return NextResponse.json({
-        kural: questionareResult.kural, keywords: ['situation-match'], matchedSituation: questionareResult.matchedSituation,
-        source: 'questionare', similarity: questionareResult.similarity, confidence: getConfidenceLevel('questionare', questionareResult.similarity),
-        confidenceMessage: getConfidenceMessage('questionare', questionareResult.similarity)
+        kural: questionareResult.kural,
+        keywords: ['situation-match'],
+        matchedSituation: questionareResult.matchedSituation,
+        source: 'questionare',
+        similarity: questionareResult.similarity,
+        confidence: getConfidenceLevel('questionare', questionareResult.similarity),
+        confidenceMessage: getConfidenceMessage('questionare', questionareResult.similarity),
       });
     }
 
-    const baseKeywords = extractKeywords(message);
-    const detectedThemes = detectThemes(message);
-    const enrichedKeywords = enrichKeywordsWithThemes(baseKeywords, detectedThemes);
-    if (enrichedKeywords.length === 0) return NextResponse.json({ error: 'Could not understand query. Please try rephrasing.', suggestions: getSuggestions(message) }, { status: 400 });
-
-    const kural = await findBestKural(enrichedKeywords, message, queryContext);
-    if (!kural) {
-      if (detectedThemes.length > 0) {
-        const themeKw = detectedThemes.flatMap(t => THIRUKKURAL_THEMES[t] || []).slice(0, 10);
-        const themeKural = await findBestKural(themeKw, message, queryContext);
-        if (themeKural) {
-          return NextResponse.json({
-            kural: themeKural, keywords: themeKw.slice(0, 5), source: 'theme-fallback', confidence: 'low',
-            confidenceMessage: `While we couldn't find an exact match, here's a kural about ${detectedThemes[0].replace('_', ' ')} that might help:`, detectedThemes
-          });
-        }
-      }
-      return NextResponse.json({ error: "We're still learning! Try rephrasing with words like 'sad', 'anger', 'love', or a kural number.", suggestions: getSuggestions(message) }, { status: 400 });
+    // 4. Semantic kural search
+    const semanticKural = await semanticSearchKurals(embedding, queryContext);
+    if (semanticKural) {
+      const enrichedKeywords = enrichKeywordsWithThemes(extractKeywords(message), detectThemes(message));
+      const keywordCount = scoreKuralByKeywordCount(semanticKural as unknown as Record<string, unknown>, enrichedKeywords);
+      const displayKeywords = message.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').split(/\s+/).filter((w: string) => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w)).slice(0, 5);
+      return NextResponse.json({
+        kural: semanticKural,
+        keywords: displayKeywords,
+        source: 'semantic',
+        confidence: getConfidenceLevel('keyword', undefined, keywordCount),
+        confidenceMessage: getConfidenceMessage('keyword', undefined, keywordCount),
+        keywordCount,
+        detectedThemes: detectThemes(message),
+      });
     }
 
-    keywordCount = scoreKuralByKeywordCount(kural, enrichedKeywords);
-    const displayKeywords = message.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').split(/\s+/).filter((w: string) => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w)).slice(0, 5);
+    // 5. Theme keyword fallback (original keyword search on theme terms)
+    const detectedThemes = detectThemes(message);
+    if (detectedThemes.length > 0) {
+      const themeKw = detectedThemes.flatMap(t => THIRUKKURAL_THEMES[t] || []).slice(0, 10);
+      const themeKural = await findBestKural(themeKw, message, queryContext);
+      if (themeKural) {
+        return NextResponse.json({
+          kural: themeKural,
+          keywords: themeKw.slice(0, 5),
+          source: 'theme-fallback',
+          confidence: 'low',
+          confidenceMessage: `While we couldn't find an exact match, here's a kural about ${detectedThemes[0].replace('_', ' ')} that might help:`,
+          detectedThemes,
+        });
+      }
+    }
 
-    return NextResponse.json({
-      kural, keywords: displayKeywords, source: 'keyword', confidence: getConfidenceLevel('keyword', undefined, keywordCount),
-      confidenceMessage: getConfidenceMessage('keyword', undefined, keywordCount), keywordCount, detectedThemes
-    });
+    const baseKeywords = extractKeywords(message);
+    if (baseKeywords.length === 0) {
+      return NextResponse.json({ error: 'Could not understand query. Please try rephrasing.', suggestions: getSuggestions(message) }, { status: 400 });
+    }
+
+    return NextResponse.json({ error: "We're still learning! Try rephrasing with words like 'sad', 'anger', 'love', or a kural number.", suggestions: getSuggestions(message) }, { status: 400 });
+
   } catch (err) {
     console.error('Server error:', err);
     return NextResponse.json({ error: 'Server error. Please try again.', suggestions: ['Try: "show me kural 1"', 'Try: "advice for sadness"'] }, { status: 500 });

@@ -20,7 +20,7 @@ interface Kural {
 interface SearchResponse {
   kural: Kural;
   keywords: string[];
-  source: 'direct' | 'chapter' | 'questionare' | 'keyword' | 'theme-fallback';
+  source: 'direct' | 'chapter' | 'questionare' | 'keyword' | 'semantic' | 'theme-fallback';
   matchedSituation?: string;
   similarity?: number;
   confidence?: 'high' | 'medium' | 'low';
@@ -105,6 +105,7 @@ export default function AskKuralMobile() {
       chapter: { text: 'Chapter Query', emoji: '📖', color: 'rgba(99, 102, 241, 0.2)' },
       questionare: { text: 'Life Situation', emoji: '💭', color: 'rgba(244, 114, 182, 0.2)' },
       keyword: { text: 'Keyword Match', emoji: '🔍', color: 'rgba(34, 211, 238, 0.2)' },
+      semantic: { text: 'Semantic Match', emoji: '🧠', color: 'rgba(16, 185, 129, 0.2)' },
       'theme-fallback': { text: 'Theme Suggestion', emoji: '✨', color: 'rgba(139, 92, 246, 0.2)' },
     };
     return badges[source] || badges.keyword;
@@ -212,7 +213,7 @@ export default function AskKuralMobile() {
               </div>
             )}
 
-            {result.source === 'keyword' && result.keywordCount !== undefined && (
+            {(result.source === 'keyword' || result.source === 'semantic') && result.keywordCount !== undefined && (
               <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                 <p style={{ color: '#9ca3af', fontSize: '12px', margin: 0 }}>{result.keywordCount} keyword{result.keywordCount !== 1 ? 's' : ''} matched</p>
               </div>
