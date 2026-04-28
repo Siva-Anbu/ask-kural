@@ -49,51 +49,88 @@ const ORDINALS_TA: Record<string, number> = {
 };
 
 const THIRUKKURAL_THEMES: Record<string, string[]> = {
+  // ── LOVE & RELATIONSHIPS ────────────────────────────────────────────────
   'fear_of_loss': ['afraid', 'fear', 'losing', 'lose', 'loss', 'scared', 'worried', 'anxious', 'people I love', 'loved ones', 'attachment', 'பற்று'],
-  'heartbreak': ['பிரிவு', 'separation', 'pallor', 'பசலை', 'longing', 'pine', 'sorrow', 'grief', 'heartbreak', 'broken heart'],
-  'failed_love': ['பிரிவு', 'separation', 'lost', 'pain', 'துக்கம்', 'பசலை', 'sallow', 'failed love', 'love failed'],
-  'breakup': ['பிரிவு', 'separation', 'apart', 'left', 'gone', 'நோய்', 'anguish', 'breakup', 'broke up'],
-  'missing_lover': ['நினைவு', 'remember', 'absence', 'தனிமை', 'longing', 'yearn', 'embrace', 'miss', 'missing'],
-  'unrequited_love': ['காதல்', 'love', 'rejection', 'pain', 'sorrow', 'நோய்', 'unrequited', 'one-sided'],
-  'betrayed_love': ['நம்பிக்கை', 'trust', 'betrayal', 'broken', 'deceit', 'வஞ்சம்', 'cheated', 'betrayed'],
-  'lost_job': ['தொழில்', 'வேலை', 'unemployment', 'வறுமை', 'poverty', 'struggle', 'hardship', 'job loss', 'fired', 'laid off'],
-  'career_failure': ['தோல்வி', 'setback', 'failure', 'perseverance', 'பொறுமை', 'effort', 'career', 'professional'],
-  'work_stress': ['வேலை', 'pressure', 'burden', 'தொழில்', 'struggle', 'fatigue', 'stress', 'overwhelmed'],
-  'no_job': ['வேலை', 'தொழில்', 'unemployment', 'search', 'opportunity', 'வறுமை', 'jobless', 'unemployed'],
-  'business_loss': ['செல்வம்', 'wealth', 'loss', 'தோல்வி', 'bankruptcy', 'வறுமை', 'business', 'financial loss'],
-  'parent_conflict': ['பெற்றோர்', 'மரியாதை', 'respect', 'duty', 'கடமை', 'honor', 'அறம்', 'parents', 'family conflict'],
-  'father_fight': ['பெற்றோர்', 'அப்பா', 'father', 'மரியாதை', 'respect', 'அறம்', 'dad', 'father argument'],
-  'mother_issue': ['பெற்றோர்', 'அம்மா', 'mother', 'மரியாதை', 'care', 'அன்பு', 'mom', 'mother problem'],
-  'family_betrayal': ['நட்பு', 'trust', 'நம்பிக்கை', 'broken', 'குடும்பம்', 'relatives', 'family', 'betrayal'],
-  'sibling_rivalry': ['குடும்பம்', 'family', 'jealousy', 'பொறாமை', 'conflict', 'sibling', 'brother', 'sister'],
-  'anger_control': ['கோபம்', 'சினம்', 'patience', 'பொறுமை', 'calm', 'self-control', 'அடக்கம்', 'anger', 'rage', 'mad'],
-  'loneliness': ['தனிமை', 'solitude', 'அன்பு', 'companionship', 'alone', 'isolated', 'lonely'],
-  'depression': ['துக்கம்', 'sorrow', 'sadness', 'grief', 'despair', 'hopeless', 'depressed', 'low', 'down'],
-  'anxiety': ['அச்சம்', 'பயம்', 'fear', 'worry', 'nervous', 'dread', 'anxious', 'worried', 'panic'],
-  'grief': ['துக்கம்', 'sorrow', 'அழுகை', 'loss', 'mourning', 'pain', 'grief', 'bereavement'],
-  'jealousy': ['பொறாமை', 'envy', 'resentment', 'covet', 'jealous', 'envious'],
-  'pride_ego': ['செருக்கு', 'arrogance', 'ego', 'vanity', 'conceit', 'pride', 'arrogant'],
-  'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation', 'shame', 'ashamed'],
-  'faith_crisis': ['கடவுள்', 'இறை', 'virtue', 'அறம்', 'doubt', 'belief', 'faith', 'spiritual crisis'],
-  'life_purpose': ['அறம்', 'dharma', 'duty', 'கடமை', 'meaning', 'purpose', 'life goal', 'why live'],
-  'lost_direction': ['வழி', 'path', 'direction', 'purpose', 'கடமை', 'confused', 'lost', 'no direction', 'bored', 'boredom', 'idle', 'unmotivated'],
-  'moral_dilemma': ['அறம்', 'virtue', 'right', 'wrong', 'ethics', 'நீதி', 'moral', 'ethical', 'dilemma'],
-  'procrastination': ['சோம்பல்', 'lazy', 'delay', 'postpone', 'effort', 'முயற்சி', 'procrastinate', 'putting off', 'bored', 'boredom', 'idle', 'idleness', 'restless', 'nothing to do', 'unmotivated', 'uninspired'],
-  'failure_feeling': ['தோல்வி', 'failure', 'defeat', 'worthless', 'shame', 'failed', 'defeated'],
-  'betrayed_friend': ['நட்பு', 'friendship', 'நம்பிக்கை', 'trust', 'betrayal', 'வஞ்சம்', 'friend betrayed'],
-  'trust_broken': ['நம்பிக்கை', 'trust', 'betrayal', 'deceit', 'வஞ்சம்', 'broken', 'trust broken'],
-  'insult': ['அவமானம்', 'insult', 'disgrace', 'humiliation', 'shame', 'நாணம்', 'insulted', 'disrespected'],
-  'poverty': ['வறுமை', 'poor', 'poverty', 'struggle', 'hardship', 'செல்வம்', 'broke', 'no money'],
-  'greed': ['பேராசை', 'greedy', 'avarice', 'covet', 'desire', 'greed', 'greedy'],
-  'debt': ['கடன்', 'debt', 'owe', 'burden', 'வறுமை', 'debt', 'owing money'],
-  'illness': ['நோய்', 'sick', 'disease', 'pain', 'suffering', 'health', 'ill', 'sick', 'disease'],
-  'physical_pain': ['வலி', 'pain', 'ache', 'suffer', 'நோய்', 'hurt', 'ache', 'painful'],
-  'death_grief': ['இறப்பு', 'death', 'died', 'மரணம்', 'loss', 'துக்கம்', 'death', 'passed away', 'lost someone'],
-  'gossip_rumor': ['புகழ்', 'reputation', 'rumor', 'gossip', 'slander', 'gossip', 'rumor', 'talked about'],
-  'public_shame': ['அவமானம்', 'shame', 'disgrace', 'public', 'humiliation', 'public shame', 'embarrassed publicly'],
-  'false_accusation': ['பொய்', 'false', 'lie', 'accusation', 'slander', 'falsely accused', 'wrongly blamed'],
-  'lying_truth': ['பொய்', 'lie', 'lying', 'false', 'falsehood', 'truth', 'உண்மை', 'honest', 'honesty', 'deceit', 'deceive'],
-  'attachment': ['love', 'attachment', 'bond', 'close', 'dear', 'precious', 'cherish', 'holding on', 'let go', 'affection', 'அன்பு'],
+  'heartbreak': ['பிரிவு', 'separation', 'pallor', 'பசலை', 'longing', 'pine', 'sorrow', 'grief', 'heartbreak', 'broken heart', 'heart hurts', 'crying over someone', 'can\'t stop crying'],
+  'failed_love': ['பிரிவு', 'separation', 'lost', 'pain', 'துக்கம்', 'பசலை', 'sallow', 'failed love', 'love failed', 'relationship failed'],
+  'breakup': ['பிரிவு', 'separation', 'apart', 'left', 'gone', 'நோய்', 'anguish', 'breakup', 'broke up', 'left me', 'walked away', 'abandoned me'],
+  'missing_lover': ['நினைவு', 'remember', 'absence', 'தனிமை', 'longing', 'yearn', 'embrace', 'miss', 'missing', 'thinking about them', 'can\'t stop thinking about'],
+  'unrequited_love': ['காதல்', 'love', 'rejection', 'pain', 'sorrow', 'நோய்', 'unrequited', 'one-sided', 'they don\'t love me', 'love not returned'],
+  'betrayed_love': ['நம்பிக்கை', 'trust', 'betrayal', 'broken', 'deceit', 'வஞ்சம்', 'cheated', 'betrayed', 'cheating partner', 'unfaithful', 'infidelity'],
+  'toxic_relationship': ['toxic', 'manipulative', 'controlling', 'abusive', 'bad relationship', 'unhealthy relationship', 'can\'t leave', 'trapped in relationship', 'hurt by partner'],
+  'attachment': ['love', 'attachment', 'bond', 'close', 'dear', 'precious', 'cherish', 'holding on', 'let go', 'affection', 'அன்பு', 'can\'t let go', 'too attached'],
+
+  // ── WORK & CAREER ───────────────────────────────────────────────────────
+  'lost_job': ['தொழில்', 'வேலை', 'unemployment', 'வறுமை', 'poverty', 'struggle', 'hardship', 'job loss', 'fired', 'laid off', 'lost my job', 'no work'],
+  'career_failure': ['தோல்வி', 'setback', 'failure', 'perseverance', 'பொறுமை', 'effort', 'career', 'professional', 'career not going well', 'stuck in career'],
+  'work_stress': ['வேலை', 'pressure', 'burden', 'தொழில்', 'struggle', 'fatigue', 'stress', 'overwhelmed', 'burnout', 'burned out', 'drained', 'overworked', 'too much work', 'deadline', 'boss', 'can\'t cope with work', 'exhausted from work'],
+  'no_job': ['வேலை', 'தொழில்', 'unemployment', 'search', 'opportunity', 'வறுமை', 'jobless', 'unemployed', 'can\'t find work', 'job hunting'],
+  'business_loss': ['செல்வம்', 'wealth', 'loss', 'தோல்வி', 'bankruptcy', 'வறுமை', 'business', 'financial loss', 'business failed', 'company failed'],
+
+  // ── FAMILY ──────────────────────────────────────────────────────────────
+  'parent_conflict': ['பெற்றோர்', 'மரியாதை', 'respect', 'duty', 'கடமை', 'honor', 'அறம்', 'parents', 'family conflict', 'fight with parents', 'parents don\'t understand'],
+  'father_fight': ['பெற்றோர்', 'அப்பா', 'father', 'மரியாதை', 'respect', 'அறம்', 'dad', 'father argument', 'fight with dad', 'dad doesn\'t understand'],
+  'mother_issue': ['பெற்றோர்', 'அம்மா', 'mother', 'மரியாதை', 'care', 'அன்பு', 'mom', 'mother problem', 'fight with mom', 'mom doesn\'t understand'],
+  'family_betrayal': ['நட்பு', 'trust', 'நம்பிக்கை', 'broken', 'குடும்பம்', 'relatives', 'family', 'betrayal', 'family let me down', 'relatives hurt me'],
+  'sibling_rivalry': ['குடும்பம்', 'family', 'jealousy', 'பொறாமை', 'conflict', 'sibling', 'brother', 'sister', 'sibling fight', 'brother problem', 'sister problem'],
+  'homesick': ['homesick', 'miss home', 'miss my family', 'far from home', 'far from family', 'miss my country', 'away from home', 'தாய்நாடு', 'missing homeland', 'living abroad', 'feel like a stranger'],
+
+  // ── EMOTIONS ────────────────────────────────────────────────────────────
+  'anger_control': ['கோபம்', 'சினம்', 'patience', 'பொறுமை', 'calm', 'self-control', 'அடக்கம்', 'anger', 'rage', 'mad', 'frustrated', 'frustration', 'irritated', 'annoyed', 'fed up', 'fuming', 'burst out', 'can\'t control temper'],
+  'loneliness': ['தனிமை', 'solitude', 'அன்பு', 'companionship', 'alone', 'isolated', 'lonely', 'no one understands', 'no one cares', 'feel invisible', 'nobody listens', 'feel unwanted', 'no friends'],
+  'depression': ['துக்கம்', 'sorrow', 'sadness', 'grief', 'despair', 'hopeless', 'depressed', 'low', 'down', 'no hope', 'giving up', 'what\'s the point', 'meaningless', 'pointless', 'feel empty', 'feel nothing', 'numb inside', 'emotionally dead', 'don\'t want to live', 'no reason to go on'],
+  'anxiety': ['அச்சம்', 'பயம்', 'fear', 'worry', 'nervous', 'dread', 'anxious', 'worried', 'panic', 'overthinking', 'can\'t stop worrying', 'racing thoughts', 'what if', 'something bad will happen', 'constant worry', 'stressed out'],
+  'grief': ['துக்கம்', 'sorrow', 'அழுகை', 'loss', 'mourning', 'pain', 'grief', 'bereavement', 'can\'t stop crying', 'so much pain', 'broken inside'],
+  'jealousy': ['பொறாமை', 'envy', 'resentment', 'covet', 'jealous', 'envious', 'why do they have more', 'comparing myself', 'everyone is doing better', 'left behind'],
+  'pride_ego': ['செருக்கு', 'arrogance', 'ego', 'vanity', 'conceit', 'pride', 'arrogant', 'too proud', 'show off', 'boastful', 'think I\'m better'],
+  'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation', 'shame', 'ashamed', 'embarrassed', 'want to disappear', 'can\'t face anyone', 'so humiliated'],
+  'regret': ['regret', 'remorse', 'guilty', 'guilt', 'mistake', 'I made a mistake', 'if only', 'should have', 'shouldn\'t have', 'I wish I hadn\'t', 'past mistake', 'wrong decision', 'I regret', 'feel terrible about', 'மனம் வருந்துகிறேன்', 'பிழை'],
+  'frustration': ['frustrated', 'frustration', 'irritated', 'annoyed', 'fed up', 'sick of this', 'can\'t take it anymore', 'nothing works', 'why does this keep happening', 'so annoying', 'nothing goes right'],
+  'burnout': ['burnout', 'burned out', 'exhausted', 'mentally exhausted', 'emotionally drained', 'drained', 'can\'t cope', 'too much', 'worn out', 'running on empty', 'nothing left to give', 'tired of everything', 'can\'t do this anymore'],
+  'self_doubt': ['not good enough', 'self-doubt', 'insecure', 'low confidence', 'worthless', 'inadequate', 'imposter', 'feel like a failure', 'everyone is better than me', 'I\'m useless', 'I\'m not capable', 'don\'t believe in myself', 'no confidence'],
+  'disappointment': ['disappointed', 'disappointment', 'let down', 'expected more', 'not what I hoped', 'my expectations were wrong', 'people disappoint me', 'I feel let down', 'so disappointed'],
+  'hopelessness': ['no hope', 'hopeless', 'helpless', 'giving up', 'nothing will change', 'what\'s the point', 'no future', 'can\'t see a way out', 'it\'s all pointless', 'nothing matters', 'why bother'],
+  'feeling_empty': ['feel empty', 'feel nothing', 'numb', 'hollow inside', 'emotionally numb', 'emptiness', 'no feelings', 'going through the motions', 'don\'t feel anything'],
+  'overthinking': ['overthinking', 'can\'t stop thinking', 'mind won\'t stop', 'racing thoughts', 'stuck in my head', 'thinking too much', 'can\'t switch off', 'can\'t sleep because of thoughts', 'obsessing', 'ruminating'],
+  'cant_sleep': ['can\'t sleep', 'insomnia', 'sleepless', 'awake at night', 'worrying at night', 'lying awake', 'racing mind at night', 'restless mind', 'mind won\'t let me sleep'],
+
+  // ── SELF & PURPOSE ──────────────────────────────────────────────────────
+  'faith_crisis': ['கடவுள்', 'இறை', 'virtue', 'அறம்', 'doubt', 'belief', 'faith', 'spiritual crisis', 'lost faith', 'questioning god', 'why does god let this happen'],
+  'life_purpose': ['அறம்', 'dharma', 'duty', 'கடமை', 'meaning', 'purpose', 'life goal', 'why live', 'what am I doing with my life', 'no goals', 'where am I going', 'what\'s my purpose', 'meaning of life', 'why am I here', 'feel purposeless'],
+  'lost_direction': ['வழி', 'path', 'direction', 'purpose', 'கடமை', 'confused', 'lost', 'no direction', 'bored', 'boredom', 'idle', 'unmotivated', 'don\'t know what to do', 'confused about life', 'crossroads', 'which way to go', 'feel stuck', 'going nowhere'],
+  'moral_dilemma': ['அறம்', 'virtue', 'right', 'wrong', 'ethics', 'நீதி', 'moral', 'ethical', 'dilemma', 'is it right to', 'should I', 'not sure if it\'s right'],
+  'procrastination': ['சோம்பல்', 'lazy', 'delay', 'postpone', 'effort', 'முயற்சி', 'procrastinate', 'putting off', 'bored', 'boredom', 'idle', 'idleness', 'restless', 'nothing to do', 'unmotivated', 'uninspired', 'can\'t focus', 'distracted', 'can\'t start', 'keep delaying'],
+  'self_improvement': ['become better', 'self-improvement', 'improve myself', 'be a good person', 'want to change', 'better version of myself', 'how to be good', 'grow as a person', 'discipline', 'self-discipline', 'want to be wise'],
+  'need_motivation': ['need motivation', 'how to keep going', 'feel like giving up', 'stay strong', 'keep trying', 'how to persevere', 'don\'t want to give up', 'need strength', 'inspire me', 'how to push through'],
+
+  // ── FAILURE & SETBACKS ──────────────────────────────────────────────────
+  'failure_feeling': ['தோல்வி', 'failure', 'defeat', 'worthless', 'shame', 'failed', 'defeated', 'I keep failing', 'always fail', 'nothing I do works'],
+  'rejection': ['rejected', 'rejection', 'not chosen', 'nobody wants me', 'feel unwanted', 'turned down', 'they said no', 'excluded', 'left out', 'not good enough for them'],
+  'unappreciated': ['taken for granted', 'not appreciated', 'no one notices', 'unrecognized', 'my efforts go unnoticed', 'nobody thanks me', 'feel used', 'people use me', 'not valued'],
+
+  // ── RELATIONSHIPS & TRUST ───────────────────────────────────────────────
+  'betrayed_friend': ['நட்பு', 'friendship', 'நம்பிக்கை', 'trust', 'betrayal', 'வஞ்சம்', 'friend betrayed', 'friend stabbed me in the back', 'friend hurt me', 'friendship broken'],
+  'trust_broken': ['நம்பிக்கை', 'trust', 'betrayal', 'deceit', 'வஞ்சம்', 'broken', 'trust broken', 'can\'t trust anyone', 'everyone lies', 'trust issues'],
+  'forgiveness': ['forgive', 'forgiveness', 'can\'t forgive', 'how to forgive', 'letting go of hurt', 'bitterness', 'holding grudge', 'still angry at them', 'move past the hurt', 'மன்னிப்பு'],
+  'hatred_revenge': ['hatred', 'hate', 'revenge', 'bitter', 'bitterness', 'enemy', 'want to hurt them', 'vindictive', 'can\'t stand them', 'despise', 'resentment', 'வெறுப்பு'],
+  'moving_on': ['move on', 'moving on', 'can\'t move on', 'stuck in the past', 'how to let go', 'can\'t forget', 'fresh start', 'start over', 'leave the past behind', 'heal from the past'],
+
+  // ── SOCIAL & REPUTATION ─────────────────────────────────────────────────
+  'insult': ['அவமானம்', 'insult', 'disgrace', 'humiliation', 'shame', 'நாணம்', 'insulted', 'disrespected', 'humiliated', 'belittled', 'mocked', 'ridiculed'],
+  'gossip_rumor': ['புகழ்', 'reputation', 'rumor', 'gossip', 'slander', 'talked about', 'people spreading lies about me', 'rumors about me', 'people judging me', 'reputation damaged', 'character assassination'],
+  'public_shame': ['அவமானம்', 'shame', 'disgrace', 'public', 'humiliation', 'public shame', 'embarrassed publicly', 'shamed in front of others', 'exposed publicly'],
+  'false_accusation': ['பொய்', 'false', 'lie', 'accusation', 'slander', 'falsely accused', 'wrongly blamed', 'blamed for something I didn\'t do', 'wrongly accused'],
+  'lying_truth': ['பொய்', 'lie', 'lying', 'false', 'falsehood', 'truth', 'உண்மை', 'honest', 'honesty', 'deceit', 'deceive', 'should I tell the truth', 'is lying wrong'],
+
+  // ── FINANCIAL ───────────────────────────────────────────────────────────
+  'poverty': ['வறுமை', 'poor', 'poverty', 'struggle', 'hardship', 'செல்வம்', 'broke', 'no money', 'can\'t afford', 'financial difficulty', 'money problems'],
+  'greed': ['பேராசை', 'greedy', 'avarice', 'covet', 'desire', 'greed', 'greedy', 'want more', 'never satisfied', 'always wanting more'],
+  'debt': ['கடன்', 'debt', 'owe', 'burden', 'வறுமை', 'owing money', 'can\'t pay back', 'drowning in debt', 'financial burden'],
+
+  // ── HEALTH ──────────────────────────────────────────────────────────────
+  'illness': ['நோய்', 'sick', 'disease', 'pain', 'suffering', 'health', 'ill', 'chronic illness', 'health problems', 'dealing with sickness'],
+  'physical_pain': ['வலி', 'pain', 'ache', 'suffer', 'நோய்', 'hurt', 'painful', 'body pain', 'chronic pain', 'in pain'],
+  'death_grief': ['இறப்பு', 'death', 'died', 'மரணம்', 'loss', 'துக்கம்', 'passed away', 'lost someone', 'someone died', 'death of loved one', 'grieving a loss', 'they\'re gone forever'],
 };
 
 const SYNONYMS: Record<string, string[]> = {
@@ -159,9 +196,78 @@ const SYNONYMS: Record<string, string[]> = {
   lying: ['lie', 'false', 'falsehood', 'dishonest', 'பொய்', 'deceit'],
   honest: ['honesty', 'truth', 'truthful', 'sincere', 'genuine', 'உண்மை'],
   honesty: ['honest', 'truth', 'truthful', 'sincere', 'உண்மை'],
+  // boredom / idleness
   bored: ['boredom', 'idle', 'lazy', 'restless', 'unmotivated', 'uninspired', 'சோம்பல்', 'nothing to do'],
   boredom: ['bored', 'idle', 'lazy', 'restless', 'unmotivated', 'சோம்பல்'],
   idle: ['bored', 'lazy', 'சோம்பல்', 'inaction', 'effort', 'முயற்சி'],
+  // regret / guilt
+  regret: ['remorse', 'guilt', 'mistake', 'sorry', 'ashamed', 'if only', 'should have', 'wrong decision', 'பிழை'],
+  remorse: ['regret', 'guilt', 'sorry', 'ashamed', 'mistake', 'பிழை'],
+  guilty: ['guilt', 'regret', 'remorse', 'ashamed', 'sorry', 'wrongdoing'],
+  guilt: ['guilty', 'regret', 'remorse', 'ashamed', 'sorry'],
+  // frustration
+  frustrated: ['frustration', 'irritated', 'annoyed', 'fed up', 'anger', 'கோபம்', 'exasperated'],
+  frustration: ['frustrated', 'irritation', 'annoyance', 'anger', 'கோபம்', 'fed up'],
+  irritated: ['frustrated', 'annoyed', 'angry', 'fed up', 'கோபம்'],
+  annoyed: ['irritated', 'frustrated', 'fed up', 'anger', 'கோபம்'],
+  // burnout / exhaustion
+  burnout: ['exhausted', 'drained', 'tired', 'worn out', 'overworked', 'fatigue', 'சோர்வு'],
+  exhausted: ['burnout', 'drained', 'tired', 'fatigued', 'worn out', 'சோர்வு'],
+  drained: ['exhausted', 'burnout', 'tired', 'worn out', 'சோர்வு'],
+  overwhelmed: ['burnout', 'stressed', 'too much', 'pressure', 'can\'t cope', 'burden'],
+  // self-doubt / insecurity
+  insecure: ['self-doubt', 'low confidence', 'worthless', 'not good enough', 'inadequate', 'நம்பிக்கையின்மை'],
+  worthless: ['insecure', 'self-doubt', 'failure', 'inadequate', 'not good enough', 'தோல்வி'],
+  inadequate: ['insecure', 'worthless', 'not enough', 'self-doubt', 'failure'],
+  confidence: ['courage', 'self-belief', 'strength', 'brave', 'தைரியம்', 'willpower'],
+  // disappointment
+  disappointed: ['disappointment', 'let down', 'expectations', 'sad', 'hurt', 'துக்கம்'],
+  disappointment: ['disappointed', 'let down', 'betrayed', 'sadness', 'grief', 'துக்கம்'],
+  // hopelessness / helplessness
+  hopeless: ['despair', 'helpless', 'giving up', 'no hope', 'depression', 'defeated', 'துக்கம்'],
+  helpless: ['hopeless', 'powerless', 'stuck', 'can\'t do anything', 'no control'],
+  despair: ['hopeless', 'helpless', 'depression', 'grief', 'giving up', 'tukkam', 'துக்கம்'],
+  // emptiness / numbness
+  empty: ['numb', 'hollow', 'feel nothing', 'emotionally dead', 'depression', 'lonely', 'தனிமை'],
+  numb: ['empty', 'feel nothing', 'emotionally numb', 'hollow', 'depression'],
+  hollow: ['empty', 'numb', 'lonely', 'purposeless', 'depression'],
+  // overthinking
+  overthinking: ['anxiety', 'worry', 'racing thoughts', 'can\'t stop thinking', 'ruminating', 'அச்சம்'],
+  ruminating: ['overthinking', 'anxiety', 'worry', 'regret', 'stuck in head'],
+  // forgiveness
+  forgive: ['forgiveness', 'let go', 'move on', 'healing', 'release anger', 'மன்னிப்பு'],
+  forgiveness: ['forgive', 'healing', 'moving on', 'letting go', 'மன்னிப்பு'],
+  // hate / bitterness / revenge
+  hate: ['hatred', 'bitter', 'revenge', 'anger', 'enemy', 'resent', 'வெறுப்பு', 'கோபம்'],
+  hatred: ['hate', 'bitterness', 'revenge', 'resentment', 'enemy', 'வெறுப்பு'],
+  bitter: ['bitterness', 'hatred', 'resentment', 'grudge', 'anger', 'forgiveness'],
+  bitterness: ['bitter', 'hatred', 'resentment', 'grudge', 'can\'t forgive'],
+  revenge: ['hatred', 'anger', 'enemy', 'justice', 'bitterness', 'பகை'],
+  // moving on / healing
+  healing: ['moving on', 'recovery', 'getting better', 'letting go', 'forgiveness'],
+  // rejection
+  rejected: ['rejection', 'unwanted', 'excluded', 'not chosen', 'hurt', 'lonely', 'தனிமை'],
+  rejection: ['rejected', 'unwanted', 'excluded', 'disappointment', 'pain', 'heartbreak'],
+  // unappreciated
+  unappreciated: ['taken for granted', 'not noticed', 'ignored', 'lonely', 'feel used'],
+  // motivation
+  motivation: ['effort', 'perseverance', 'determination', 'strength', 'முயற்சி', 'willpower'],
+  motivated: ['inspired', 'determined', 'effort', 'perseverance', 'முயற்சி'],
+  inspired: ['motivation', 'purpose', 'meaning', 'goal', 'direction', 'effort'],
+  // confusion
+  confused: ['lost', 'uncertain', 'no direction', 'don\'t know', 'crossroads', 'வழி'],
+  uncertainty: ['confused', 'doubt', 'unsure', 'lost', 'no direction', 'anxiety'],
+  // stress
+  stressed: ['stress', 'pressure', 'overwhelmed', 'anxiety', 'worry', 'burden', 'அச்சம்'],
+  stress: ['stressed', 'pressure', 'anxiety', 'overwhelmed', 'tension', 'worry'],
+  // homesick
+  homesick: ['miss home', 'miss family', 'far from home', 'lonely', 'தனிமை', 'longing'],
+  // toxic / abusive
+  toxic: ['manipulative', 'controlling', 'abusive', 'bad relationship', 'harmful'],
+  manipulative: ['toxic', 'controlling', 'deceit', 'betrayal', 'வஞ்சம்'],
+  // self-improvement
+  discipline: ['self-control', 'effort', 'perseverance', 'willpower', 'முயற்சி', 'அடக்கம்'],
+  willpower: ['discipline', 'effort', 'strength', 'perseverance', 'முயற்சி'],
 };
 
 // ---------------------------------------------------------------------------
@@ -393,11 +499,16 @@ function getConfidenceLevel(source: string, similarity?: number, keywordCount?: 
 function getSuggestions(message: string): string[] {
   const lower = message.toLowerCase();
   const s: string[] = [];
-  if (lower.match(/sad|depress|lonely|alone|grief|sorrow/i)) s.push("Try: 'advice for sadness'", "Try: 'kural about loneliness'");
-  if (lower.match(/anger|mad|rage|frustrat/i)) s.push("Try: 'how to control anger'", "Try: 'kural about patience'");
-  if (lower.match(/love|heart|breakup|relationship|losing|afraid/i)) s.push("Try: 'kural about love & attachment'", "Try: 'dealing with fear of loss'");
-  if (lower.match(/job|work|career|unemploy/i)) s.push("Try: 'kural about perseverance'", "Try: 'advice for job loss'");
-  if (lower.match(/family|parent|mother|father/i)) s.push("Try: 'kural about respecting parents'", "Try: 'family harmony advice'");
+  if (lower.match(/sad|depress|lonely|alone|grief|sorrow|empty|numb|hopeless/i)) s.push("Try: 'advice for sadness'", "Try: 'kural about loneliness'");
+  if (lower.match(/anger|mad|rage|frustrat|irritat|annoyed|fed up/i)) s.push("Try: 'how to control anger'", "Try: 'kural about patience'");
+  if (lower.match(/love|heart|breakup|relationship|losing|afraid|miss|missing/i)) s.push("Try: 'kural about love & attachment'", "Try: 'dealing with fear of loss'");
+  if (lower.match(/job|work|career|unemploy|burnout|exhausted/i)) s.push("Try: 'kural about perseverance'", "Try: 'advice for job loss'");
+  if (lower.match(/family|parent|mother|father|homesick/i)) s.push("Try: 'kural about respecting parents'", "Try: 'family harmony advice'");
+  if (lower.match(/regret|guilty|guilt|mistake|should have/i)) s.push("Try: 'kural about past mistakes'", "Try: 'how to move forward from regret'");
+  if (lower.match(/bored|idle|lazy|unmotivated|no motivation/i)) s.push("Try: 'kural about laziness and effort'", "Try: 'advice for lack of motivation'");
+  if (lower.match(/confus|lost|direction|purpose|meaning/i)) s.push("Try: 'kural about finding purpose'", "Try: 'advice for life direction'");
+  if (lower.match(/forgiv|hate|bitter|revenge|enemy/i)) s.push("Try: 'kural about forgiving enemies'", "Try: 'how to let go of hatred'");
+  if (lower.match(/trust|betray|cheat|deceiv/i)) s.push("Try: 'kural about betrayal'", "Try: 'kural about trust'");
   return s.length ? s.slice(0, 3) : ["Try: 'show me kural 55'", "Try: 'advice for life challenges'"];
 }
 
