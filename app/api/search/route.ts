@@ -25,7 +25,7 @@ const KEYWORD_SEARCH_STOP_WORDS = new Set([
   'way', 'thing', 'things', 'something', 'anything', 'everything', 'nothing', 'tell',
   'let', 'see', 'look', 'try', 'use', 'give', 'take', 'put', 'keep', 'start', 'end',
   'find', 'ask', 'show', 'call', 'turn', 'move', 'live', 'leave', 'help', 'work',
-  'kural', 'kuṟaḷ', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்', 'give', 'show', 'tell',
+  'kural', 'kuṟa', 'குறள்', 'chapter', 'adhikaram', 'அதிகாரம்', 'give', 'show', 'tell',
 ]);
 
 const ORDINALS_EN: Record<string, number> = {
@@ -282,6 +282,7 @@ async function searchQuestionare(message: string) {
   return { kural: fullKural, matchedSituation: bestMatch.Situation, similarity: bestScore };
 }
 
+// ✅ FIXED: Use Array.from instead of spread syntax for Set iteration
 function detectThemes(message: string): string[] {
   const messageLower = message.toLowerCase();
   const detectedThemes: string[] = [];
@@ -301,7 +302,8 @@ function detectThemes(message: string): string[] {
     const threshold = isEmotional ? 1 : Math.max(1, Math.floor(keywords.length * 0.3));
     if (matchCount >= threshold) detectedThemes.push(theme);
   }
-  return [...new Set(detectedThemes)];
+  // FIX: Use Array.from to avoid TypeScript downlevelIteration error
+  return Array.from(new Set(detectedThemes));
 }
 
 function enrichKeywordsWithThemes(baseKeywords: string[], themes: string[]): string[] {
