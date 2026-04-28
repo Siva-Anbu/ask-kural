@@ -9,7 +9,12 @@
  *   NEXT_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
  */
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env.local from the project root (one level up from scripts/)
+config({ path: resolve(__dirname, '..', '.env.local') });
+config({ path: resolve(__dirname, '..', '.env') }); // fallback
 import { createClient } from '@supabase/supabase-js';
 import { pipeline, env } from '@xenova/transformers';
 
@@ -77,20 +82,30 @@ function kuralToText(row: KuralRow): string {
     .trim();
 }
 
+async function fetchAllKurals(): Promise<KuralRow[]> {
+  const PAGE = 500;
+  const all: KuralRow[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('Kurals-new')
+      .select('Number, Line1, Line2, Translation, mv, sp, mk, explanation, couplet, embedding')
+      .order('Number')
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`Fetch failed at range ${from}: ${error.message}`);
+    if (!data || data.length === 0) break;
+    all.push(...(data as KuralRow[]));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+
 async function generateKuralEmbeddings(batchSize = 50): Promise<void> {
   console.log('=== Kural embeddings ===');
 
-  const { data, error } = await supabase
-    .from('Kurals-new')
-    .select('Number, Line1, Line2, Translation, mv, sp, mk, explanation, couplet, embedding')
-    .order('Number');
-
-  if (error || !data) {
-    console.error('Failed to fetch Kurals-new:', error?.message);
-    return;
-  }
-
-  const pending = (data as KuralRow[]).filter(r => !r.embedding);
+  const data = await fetchAllKurals();
+  const pending = data.filter(r => !r.embedding);
   console.log(`Rows: ${data.length} total, ${pending.length} need embedding.\n`);
 
   for (let i = 0; i < pending.length; i += batchSize) {

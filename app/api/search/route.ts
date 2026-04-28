@@ -152,6 +152,8 @@ const SYNONYMS: Record<string, string[]> = {
   greedy: ['greed', 'avarice', 'covetousness', 'selfish', 'பேராசை'],
   pride: ['arrogance', 'ego', 'conceit', 'vanity', 'haughtiness', 'செருக்கு'],
   arrogance: ['pride', 'ego', 'conceit', 'haughtiness', 'hubris', 'செருக்கு'],
+  ego: ['pride', 'arrogance', 'conceit', 'vanity', 'haughtiness', 'self', 'செருக்கு', 'யான்', 'எனது'],
+  humble: ['humility', 'modesty', 'meekness', 'simplicity', 'பணிவு'],
   prayer: ['god', 'virtue', 'faith', 'worship', 'devotion', 'பிரார்த்தனை'],
   lie: ['lying', 'false', 'falsehood', 'dishonest', 'deceit', 'untruth', 'பொய்'],
   lying: ['lie', 'false', 'falsehood', 'dishonest', 'பொய்', 'deceit'],
@@ -477,26 +479,45 @@ interface KuralMatch {
 
 async function semanticSearchKurals(
   embedding: number[],
-  queryContext: string
+  queryContext: string,
+  queryKeywords: string[]
 ): Promise<KuralMatch | null> {
   const { data, error } = await supabase.rpc('match_kurals', {
     query_embedding: embedding,
     match_threshold: 0.3,
-    match_count: 10,
+    match_count: 15,
   });
   if (error || !data?.length) return null;
 
   const results = data as KuralMatch[];
+  const expanded = expandQueryWithSynonyms(queryKeywords);
+
+  // Hybrid re-rank: semantic similarity (70%) + keyword presence (30%).
+  // Prevents kurals about the *opposite* concept from winning on pure semantic
+  // similarity alone (e.g. "ego" → modesty kural instead of pride kural).
+  type Rescored = KuralMatch & { hybridScore: number };
+  const rescored: Rescored[] = results.map(k => {
+    const allText = [k.Translation, k.explanation, k.mv, k.sp, k.mk]
+      .filter(Boolean).join(' ').toLowerCase();
+    let hits = 0;
+    for (const kw of expanded) {
+      if (kw.length >= 3 && allText.includes(kw.toLowerCase())) hits++;
+    }
+    const kwBonus = Math.min(hits / Math.max(expanded.length * 0.25, 2), 1) * 0.3;
+    return { ...k, hybridScore: k.similarity * 0.7 + kwBonus };
+  });
+
+  const sorted = (ctx: Rescored[]) => ctx.sort((a, b) => b.hybridScore - a.hybridScore);
 
   if (queryContext === 'emotional') {
-    const filtered = results.filter(k => {
+    const filtered = rescored.filter(k => {
       const text = [k.Translation, k.explanation].filter(Boolean).join(' ').toLowerCase();
       return POLITICAL_INDICATORS.filter(w => text.includes(w)).length < 2;
     });
-    return filtered[0] ?? results[0];
+    return sorted(filtered.length ? filtered : rescored)[0];
   }
 
-  return results[0];
+  return sorted(rescored)[0];
 }
 
 // ---------------------------------------------------------------------------
@@ -524,8 +545,12 @@ export async function POST(req: NextRequest) {
       if (kural) return NextResponse.json({ kural, keywords: ['chapter-query'], source: 'chapter', confidence: 'high', confidenceMessage: '' });
     }
 
-    // Generate embedding once for steps 3 & 4
+    // Generate embedding + extract keywords once — reused by steps 3, 4, 5
     const embedding = await getEmbedding(message);
+    const baseKeywords = extractKeywords(message);
+    const detectedThemes = detectThemes(message);
+    const enrichedKeywords = enrichKeywordsWithThemes(baseKeywords, detectedThemes);
+    const displayKeywords = message.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').split(/\s+/).filter((w: string) => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w)).slice(0, 5);
 
     // 3. Semantic questionare search
     const questionareResult = await semanticSearchQuestionare(embedding, message);
@@ -541,12 +566,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 4. Semantic kural search
-    const semanticKural = await semanticSearchKurals(embedding, queryContext);
+    // 4. Semantic kural search with hybrid re-ranking
+    const semanticKural = await semanticSearchKurals(embedding, queryContext, enrichedKeywords);
     if (semanticKural) {
-      const enrichedKeywords = enrichKeywordsWithThemes(extractKeywords(message), detectThemes(message));
       const keywordCount = scoreKuralByKeywordCount(semanticKural as unknown as Record<string, unknown>, enrichedKeywords);
-      const displayKeywords = message.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').split(/\s+/).filter((w: string) => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w)).slice(0, 5);
       return NextResponse.json({
         kural: semanticKural,
         keywords: displayKeywords,
@@ -554,12 +577,11 @@ export async function POST(req: NextRequest) {
         confidence: getConfidenceLevel('keyword', undefined, keywordCount),
         confidenceMessage: getConfidenceMessage('keyword', undefined, keywordCount),
         keywordCount,
-        detectedThemes: detectThemes(message),
+        detectedThemes,
       });
     }
 
     // 5. Theme keyword fallback (original keyword search on theme terms)
-    const detectedThemes = detectThemes(message);
     if (detectedThemes.length > 0) {
       const themeKw = detectedThemes.flatMap(t => THIRUKKURAL_THEMES[t] || []).slice(0, 10);
       const themeKural = await findBestKural(themeKw, message, queryContext);
@@ -576,7 +598,7 @@ export async function POST(req: NextRequest) {
     }
 
     const baseKeywords = extractKeywords(message);
-    if (baseKeywords.length === 0) {
+    if (enrichedKeywords.length === 0) {
       return NextResponse.json({ error: 'Could not understand query. Please try rephrasing.', suggestions: getSuggestions(message) }, { status: 400 });
     }
 
