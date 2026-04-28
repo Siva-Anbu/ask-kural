@@ -45,7 +45,7 @@ export default function Home() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -85,7 +85,7 @@ export default function Home() {
       <header className={styles.topBar}>
         <div className={styles.titleBlock}>
           <div className={styles.titleTamil}>திருக்குறள் அருளுரை</div>
-          <div className={styles.titleSub}>ASK KURAL · வள்ளுவரிடம் கேளுங்கள் · ASK VALLUVAR ANYTHING</div>
+          <div className={styles.titleSub}>ASK KURAL · குறளிடம் கேளுங்கள்</div>
         </div>
 
         {result && (
@@ -247,7 +247,7 @@ export default function Home() {
             <textarea
               ref={inputRef}
               className={styles.inputBox}
-              placeholder="வள்ளுவரிடம் கேளுங்கள்… · Ask Valluvar anything…"
+              placeholder="குறளிடம் கேளுங்கள்… · Ask Kural anything…"
               value={input}
               rows={1}
               onChange={e => setInput(e.target.value)}
