@@ -153,7 +153,7 @@ export default function AskKuralMobile() {
         {loading && (
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <div style={{ width: '48px', height: '48px', border: '4px solid rgba(212, 175, 122, 0.2)', borderTop: '4px solid #d4af7a', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 1s linear infinite' }} />
-            <p style={{ color: '#9ca3af' }}>வள்ளுவர் சிந்திக்கிறார்...</p>
+            <p style={{ color: '#9ca3af' }}>பனை ஓலையில் தேடுகிறேன்...</p>
           </div>
         )}
 
