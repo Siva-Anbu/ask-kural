@@ -3,49 +3,17 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './page.module.css';
 import AskKuralMobile from './AskKuralMobile';
-
-interface Kural {
-  Number: number;
-  Line1: string;
-  Line2: string;
-  Translation: string;
-  transliteration1: string;
-  transliteration2: string;
-  mv?: string;
-  sp?: string;
-  mk?: string;
-  couplet?: string;
-  explanation?: string;
-}
-
-interface Result {
-  question: string;
-  kural: Kural;
-  keywords: string[];
-}
-
-const SUGGESTIONS = [
-  { tamil: 'மகிழ்ச்சியாக வாழ', english: 'How to live happily' },
-  { tamil: 'காதலில் மகிழ்ச்சி', english: 'I am in love' },
-  { tamil: 'நன்றியுடன் வாழ', english: 'How to be grateful' },
-  { tamil: 'நட்பின் மதிப்பு', english: 'Value of true friendship' },
-  { tamil: 'அன்பானவரை இழந்தேன்', english: 'I lost someone I love' },
-  { tamil: 'மனம் வருந்துகிறேன்', english: 'I feel deeply sad' },
-];
+import { useKuralSearch, PROMPTS } from './hooks/useKuralSearch';
 
 export default function Home() {
   const [input, setInput] = useState('');
-  const [result, setResult] = useState<Result | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [question, setQuestion] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { result, error, loading, search, reset } = useKuralSearch();
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -53,22 +21,14 @@ export default function Home() {
 
   async function handleSend(text: string) {
     if (!text.trim() || loading) return;
-    setError(''); setResult(null); setLoading(true);
-    try {
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
-      const data = await res.json();
-      if (data.error) setError(data.error);
-      else setResult({ question: text, kural: data.kural, keywords: data.keywords });
-    } catch { setError('Something went wrong. Please try again.'); }
-    setLoading(false);
+    setQuestion(text);
+    search(text);
   }
 
   function handleReset() {
-    setResult(null); setError(''); setInput('');
+    reset();
+    setQuestion('');
+    setInput('');
     setTimeout(() => inputRef.current?.focus(), 100);
   }
 
@@ -84,14 +44,14 @@ export default function Home() {
       {/* ── TOP BAR: title left, question bubble right ── */}
       <header className={styles.topBar}>
         <div className={styles.titleBlock}>
-          <div className={styles.titleTamil}>திருக்குறள் அருளுரை</div>
+          <div className={styles.titleTamil}>திருக்குறள் உரை</div>
           <div className={styles.titleSub}>ASK KURAL · குறளிடம் கேளுங்கள்</div>
         </div>
 
         {result && (
           <div className={styles.qBubble}>
             <div className={styles.qLabel}>YOUR QUESTION</div>
-            <div className={styles.qText}>&ldquo;{result.question}&rdquo;</div>
+            <div className={styles.qText}>&ldquo;{question}&rdquo;</div>
             {result.keywords?.length > 0 && (
               <div className={styles.tags}>
                 {result.keywords.slice(0, 3).map((k, i) => <span key={i} className={styles.tag}>{k}</span>)}
@@ -110,7 +70,7 @@ export default function Home() {
             <p className={styles.welcomeQuote}>&ldquo;எண்ணிய எண்ணியாங்கு எய்துப&rdquo;</p>
             <p className={styles.welcomeSub}>What you seek with clear intent, you shall find.</p>
             <div className={styles.chips}>
-              {SUGGESTIONS.map((s, i) => (
+              {PROMPTS.map((s, i) => (
                 <button key={i} className={styles.chip} onClick={() => handleSend(s.english)}>
                   <span className={styles.chipTamil}>{s.tamil}</span>
                   <span className={styles.chipEn}>{s.english}</span>
@@ -131,7 +91,7 @@ export default function Home() {
         {/* ERROR */}
         {error && !loading && (
           <div className={styles.center}>
-            <p className={styles.errorText}>{error}</p>
+            <p className={styles.errorText}>{error.error}</p>
             <button className={styles.askAgainBtn} onClick={handleReset}>Try Again</button>
           </div>
         )}
@@ -264,6 +224,7 @@ export default function Home() {
           </div>
         )}
         <p className={styles.inputHint}>Tamil அல்லது English-ல் தட்டச்சு செய்யுங்கள்</p>
+        <p className={styles.credit}>concept &amp; created by anbuselvan sivaraju</p>
       </div>
 
     </div>

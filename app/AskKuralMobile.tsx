@@ -2,97 +2,22 @@
 
 import React, { useState } from 'react';
 import Head from 'next/head';
-
-interface Kural {
-  Number: number;
-  Line1: string;
-  Line2: string;
-  Translation: string;
-  transliteration1: string;
-  transliteration2: string;
-  mv: string;
-  sp: string;
-  mk: string;
-  couplet: string;
-  explanation: string;
-}
-
-interface SearchResponse {
-  kural: Kural;
-  keywords: string[];
-  source: 'direct' | 'chapter' | 'questionare' | 'keyword' | 'semantic' | 'theme-fallback';
-  matchedSituation?: string;
-  similarity?: number;
-  confidence?: 'high' | 'medium' | 'low';
-  confidenceMessage?: string;
-  keywordCount?: number;
-  detectedThemes?: string[];
-}
-
-interface ErrorResponse {
-  error: string;
-  suggestions?: string[];
-}
-
-const QUICK_PROMPTS = [
-  { tamil: 'மகிழ்ச்சியாக வாழ', english: 'How to live happily' },
-  { tamil: 'காதலில் மகிழ்ச்சி', english: 'I am in love' },
-  { tamil: 'நன்றியுடன் வாழ', english: 'How to be grateful' },
-  { tamil: 'நட்பின் மதிப்பு', english: 'Value of true friendship' },
-  { tamil: 'அன்பானவரை இழந்தேன்', english: 'I lost someone I love' },
-  { tamil: 'மனம் வருந்துகிறேன்', english: 'I feel deeply sad' },
-];
+import { useKuralSearch, PROMPTS } from './hooks/useKuralSearch';
 
 export default function AskKuralMobile() {
   const [question, setQuestion] = useState('');
-  const [result, setResult] = useState<SearchResponse | null>(null);
-  const [error, setError] = useState<ErrorResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { result, error, loading, search, reset } = useKuralSearch();
 
-  const handleSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setError({ error: 'Please enter a question' });
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      const response = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: searchQuery }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data as ErrorResponse);
-        return;
-      }
-
-      setResult(data as SearchResponse);
-    } catch (err) {
-      setError({
-        error: err instanceof Error ? err.message : 'An error occurred',
-        suggestions: ['Try: "show me kural 1"', 'Try: "advice for sadness"']
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSearch = (searchQuery: string) => search(searchQuery);
 
   const handleQuickPrompt = (prompt: string) => {
     setQuestion(prompt);
-    handleSearch(prompt);
+    search(prompt);
   };
 
   const handleReset = () => {
     setQuestion('');
-    setResult(null);
-    setError(null);
+    reset();
   };
 
   const formatThemeName = (theme: string): string => {
@@ -130,7 +55,7 @@ export default function AskKuralMobile() {
       <div style={{ minHeight: '100dvh', background: 'linear-gradient(to bottom, #0a0a0a, #1a1410)', color: '#e5e7eb', fontFamily: '"Noto Sans Tamil", "Noto Sans", sans-serif', padding: '20px', paddingBottom: '100px', overflowX: 'hidden', WebkitTextSizeAdjust: '100%', touchAction: 'manipulation' }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 'bold', background: 'linear-gradient(to right, #d4af7a, #f4e4c1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>
-            திருக்குறள் அருளுரை
+            திருக்குறள் உரை
           </h1>
           <p style={{ fontSize: 'clamp(12px, 2.5vw, 16px)', color: '#9ca3af' }}>
             ASK KURAL · குறளிடம் கேளுங்கள்
@@ -140,7 +65,7 @@ export default function AskKuralMobile() {
         {!result && !error && !loading && (
           <div style={{ marginBottom: '30px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', maxWidth: '900px', margin: '0 auto' }}>
-              {QUICK_PROMPTS.map((prompt, idx) => (
+              {PROMPTS.map((prompt, idx) => (
                 <button key={idx} onClick={() => handleQuickPrompt(prompt.english)} style={{ background: 'rgba(212, 175, 122, 0.1)', border: '1px solid rgba(212, 175, 122, 0.3)', borderRadius: '12px', padding: '16px', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 122, 0.2)'; e.currentTarget.style.borderColor = 'rgba(212, 175, 122, 0.5)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 122, 0.1)'; e.currentTarget.style.borderColor = 'rgba(212, 175, 122, 0.3)'; }}>
                   <div style={{ fontSize: '16px', fontWeight: '600', color: '#d4af7a', marginBottom: '4px' }}>{prompt.tamil}</div>
                   <div style={{ fontSize: '12px', color: '#9ca3af' }}>{prompt.english}</div>
@@ -308,6 +233,10 @@ export default function AskKuralMobile() {
             </button>
           </div>
         </div>
+
+        <p style={{ textAlign: 'center', fontSize: '11px', color: '#4b5563', marginTop: '40px', letterSpacing: '0.5px' }}>
+          concept &amp; created by anbuselvan sivaraju
+        </p>
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>

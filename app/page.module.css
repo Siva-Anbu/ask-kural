@@ -277,6 +277,7 @@
 .sendBtn:disabled { opacity: .3; cursor: not-allowed; }
 
 .inputHint { font-size: 9px; color: rgba(255,255,255,.16); letter-spacing: .03em; }
+.credit { font-size: 9px; color: rgba(255,255,255,.18); letter-spacing: .04em; margin-top: 6px; text-align: center; }
 
 /* ANIMATIONS */
 @keyframes fadeIn {
