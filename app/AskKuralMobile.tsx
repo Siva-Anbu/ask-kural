@@ -235,7 +235,7 @@ export default function AskKuralMobile() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#4b5563', marginTop: '40px', letterSpacing: '0.5px' }}>
-          concept &amp; created by anbuselvan sivaraju
+          a humble tribute to thirukkural · anbuselvan sivaraju
         </p>
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

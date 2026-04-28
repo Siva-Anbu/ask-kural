@@ -82,7 +82,8 @@ const THIRUKKURAL_THEMES: Record<string, string[]> = {
   'anxiety': ['அச்சம்', 'பயம்', 'fear', 'worry', 'nervous', 'dread', 'anxious', 'worried', 'panic', 'overthinking', 'can\'t stop worrying', 'racing thoughts', 'what if', 'something bad will happen', 'constant worry', 'stressed out'],
   'grief': ['துக்கம்', 'sorrow', 'அழுகை', 'loss', 'mourning', 'pain', 'grief', 'bereavement', 'can\'t stop crying', 'so much pain', 'broken inside'],
   'jealousy': ['பொறாமை', 'envy', 'resentment', 'covet', 'jealous', 'envious', 'why do they have more', 'comparing myself', 'everyone is doing better', 'left behind'],
-  'pride_ego': ['செருக்கு', 'arrogance', 'ego', 'vanity', 'conceit', 'pride', 'arrogant', 'too proud', 'show off', 'boastful', 'think I\'m better'],
+  'pride_ego': ['செருக்கு', 'arrogance', 'ego', 'vanity', 'conceit', 'pride', 'arrogant', 'too proud', 'show off', 'boastful', 'think I\'m better', 'my ego', 'I am arrogant', 'I have pride'],
+  'dealing_with_arrogance': ['செருக்கு', 'பொறுமை', 'arrogant person', 'someone has ego', 'their ego', 'his ego', 'her ego', 'neighbour has ego', 'colleague has ego', 'friend has ego', 'boss has ego', 'dealing with arrogance', 'how to handle arrogance', 'someone is arrogant', 'they are arrogant', 'too much attitude', 'full of themselves', 'so arrogant', 'what to do with arrogant', 'how to deal with proud person', 'neighbour', 'coworker attitude', 'difficult person', 'someone difficult', 'hard to deal with', 'impossible person', 'patience with others', 'tolerance'],
   'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation', 'shame', 'ashamed', 'embarrassed', 'want to disappear', 'can\'t face anyone', 'so humiliated'],
   'regret': ['regret', 'remorse', 'guilty', 'guilt', 'mistake', 'I made a mistake', 'if only', 'should have', 'shouldn\'t have', 'I wish I hadn\'t', 'past mistake', 'wrong decision', 'I regret', 'feel terrible about', 'மனம் வருந்துகிறேன்', 'பிழை'],
   'frustration': ['frustrated', 'frustration', 'irritated', 'annoyed', 'fed up', 'sick of this', 'can\'t take it anymore', 'nothing works', 'why does this keep happening', 'so annoying', 'nothing goes right'],
@@ -268,6 +269,12 @@ const SYNONYMS: Record<string, string[]> = {
   // self-improvement
   discipline: ['self-control', 'effort', 'perseverance', 'willpower', 'முயற்சி', 'அடக்கம்'],
   willpower: ['discipline', 'effort', 'strength', 'perseverance', 'முயற்சி'],
+  // dealing with others
+  neighbour: ['difficult person', 'arrogance', 'patience', 'tolerance', 'பொறுமை', 'அடக்கம்'],
+  arrogant: ['ego', 'pride', 'செருக்கு', 'difficult person', 'patience', 'பொறுமை'],
+  attitude: ['arrogance', 'ego', 'pride', 'செருக்கு', 'difficult person', 'patience'],
+  colleague: ['work', 'coworker', 'difficult person', 'patience', 'பொறுமை'],
+  coworker: ['colleague', 'work', 'difficult person', 'patience', 'பொறுமை'],
 };
 
 // ---------------------------------------------------------------------------
