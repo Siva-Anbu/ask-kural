@@ -1,0 +1,213 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { Kural } from '../hooks/useKuralSearch';
+
+interface Props {
+  kurals: Kural[];
+  isMobile?: boolean;
+}
+
+const COMMENTATORS = [
+  { key: 'mv' as keyof Kural, short: 'மு.வ', name: 'Mu. Varadharasanar', tamil: 'முனைவர் மு. வரதராசனார்' },
+  { key: 'sp' as keyof Kural, short: 'சொ.பா', name: 'Solomon Pappaiah', tamil: 'சாலமன் பாப்பையா' },
+  { key: 'mk' as keyof Kural, short: 'க.கா', name: 'Kalaignar Karunanidhi', tamil: 'கலைஞர் கருணாநிதி' },
+  { key: 'explanation' as keyof Kural, short: 'EN', name: 'English Explanation', tamil: 'ஆங்கில விளக்கம்' },
+];
+
+export default function KuralResult({ kurals, isMobile = false }: Props) {
+  const [activeTab, setActiveTab] = useState(0);
+  const [sharing, setSharing] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
+
+  const kural = kurals[Math.min(activeTab, kurals.length - 1)];
+
+  const handleShare = async () => {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(shareCardRef.current, {
+        backgroundColor: '#0a0a0a',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement('a');
+      link.download = `thirukkural-${kural.Number}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (e) {
+      console.error('Share failed', e);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  // ── TAB BAR ───────────────────────────────────────────────────────────────
+  const tabBar = kurals.length > 1 && (
+    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+      {kurals.map((k, i) => (
+        <button
+          key={i}
+          onClick={() => setActiveTab(i)}
+          style={{
+            background: activeTab === i ? 'linear-gradient(135deg, #d4af7a, #c4975a)' : 'rgba(212,175,122,0.1)',
+            border: `1px solid ${activeTab === i ? 'transparent' : 'rgba(212,175,122,0.3)'}`,
+            borderRadius: '20px',
+            padding: '8px 18px',
+            color: activeTab === i ? '#0a0a0a' : '#d4af7a',
+            fontWeight: '600',
+            fontSize: '13px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontFamily: '"Noto Sans Tamil", sans-serif',
+          }}
+        >
+          குறள் #{k.Number}
+        </button>
+      ))}
+    </div>
+  );
+
+  // ── SHARE BUTTON ─────────────────────────────────────────────────────────
+  const shareBtn = (
+    <button
+      onClick={handleShare}
+      disabled={sharing}
+      style={{
+        background: sharing ? 'rgba(212,175,122,0.1)' : 'rgba(212,175,122,0.15)',
+        border: '1px solid rgba(212,175,122,0.4)',
+        borderRadius: '10px',
+        padding: '8px 16px',
+        color: '#d4af7a',
+        fontSize: '13px',
+        fontWeight: '600',
+        cursor: sharing ? 'wait' : 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        transition: 'all 0.2s',
+      }}
+    >
+      {sharing ? '⏳' : '🖼️'} {sharing ? 'Generating…' : 'Save as Image'}
+    </button>
+  );
+
+  // ── KURAL CARD ────────────────────────────────────────────────────────────
+  const kuralCard = (
+    <div style={{ background: 'rgba(212,175,122,0.05)', border: '2px solid rgba(212,175,122,0.2)', borderRadius: '16px', padding: '24px' }}>
+      <div style={{ display: 'inline-block', background: 'rgba(212,175,122,0.2)', color: '#d4af7a', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', marginBottom: '16px' }}>
+        குறள் #{kural.Number}
+      </div>
+      <div style={{ fontSize: isMobile ? 'clamp(18px,4vw,24px)' : '22px', lineHeight: '1.8', color: '#f9fafb', marginBottom: '4px' }}>{kural.Line1}</div>
+      <div style={{ fontSize: isMobile ? 'clamp(18px,4vw,24px)' : '22px', lineHeight: '1.8', color: '#f9fafb', marginBottom: '16px' }}>{kural.Line2}</div>
+      <div style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '2px' }}>{kural.transliteration1}</div>
+      <div style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '16px' }}>{kural.transliteration2}</div>
+      <div style={{ fontSize: '15px', color: '#d4af7a', fontStyle: 'italic', borderLeft: '3px solid rgba(212,175,122,0.5)', paddingLeft: '12px' }}>
+        &ldquo;{kural.Translation}&rdquo;
+      </div>
+      <div style={{ marginTop: '16px' }}>{shareBtn}</div>
+    </div>
+  );
+
+  // ── COMMENTARIES GRID ─────────────────────────────────────────────────────
+  const commentaries = (
+    <div>
+      <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#d4af7a', marginBottom: '14px', textAlign: 'center', letterSpacing: '0.05em' }}>
+        உரையாசிரியர்கள் · COMMENTARIES
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+        {COMMENTATORS.map(({ key, short, name, tamil }) => {
+          const text = kural[key] as string | undefined;
+          if (!text) return null;
+          return (
+            <div key={key} style={{ background: 'rgba(30,30,30,0.5)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <div style={{ background: 'rgba(212,175,122,0.2)', color: '#d4af7a', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', flexShrink: 0 }}>
+                  {short}
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#f9fafb' }}>{name}</div>
+                  <div style={{ fontSize: '11px', color: '#9ca3af' }}>{tamil}</div>
+                </div>
+              </div>
+              <p style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', margin: 0 }}>{text}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // ── HIDDEN SHARE CARD (captured by html2canvas) ───────────────────────────
+  const shareCard = (
+    <div
+      ref={shareCardRef}
+      style={{
+        position: 'fixed', top: '-9999px', left: '-9999px',
+        width: '600px', padding: '48px',
+        background: 'linear-gradient(145deg, #0a0a0a 0%, #1a1410 100%)',
+        fontFamily: '"Noto Sans Tamil", "Noto Sans", Georgia, serif',
+        color: '#e5e7eb',
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(212,175,122,0.6)', letterSpacing: '0.15em' }}>திருக்குறள் உரை</div>
+        <div style={{ background: 'rgba(212,175,122,0.2)', color: '#d4af7a', padding: '4px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+          குறள் #{kural.Number}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ borderTop: '1px solid rgba(212,175,122,0.15)', marginBottom: '32px' }} />
+
+      {/* Tamil lines */}
+      <div style={{ fontSize: '26px', lineHeight: '1.9', color: '#f9fafb', marginBottom: '6px' }}>{kural.Line1}</div>
+      <div style={{ fontSize: '26px', lineHeight: '1.9', color: '#f9fafb', marginBottom: '20px' }}>{kural.Line2}</div>
+
+      {/* Transliteration */}
+      <div style={{ fontSize: '13px', color: '#6b7280', fontStyle: 'italic', marginBottom: '2px' }}>{kural.transliteration1}</div>
+      <div style={{ fontSize: '13px', color: '#6b7280', fontStyle: 'italic', marginBottom: '28px' }}>{kural.transliteration2}</div>
+
+      {/* Translation */}
+      <div style={{ borderLeft: '3px solid rgba(212,175,122,0.6)', paddingLeft: '18px', marginBottom: '40px' }}>
+        <div style={{ fontSize: '17px', color: '#d4af7a', fontStyle: 'italic', lineHeight: '1.6' }}>
+          &ldquo;{kural.Translation}&rdquo;
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ borderTop: '1px solid rgba(212,175,122,0.1)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '11px', color: 'rgba(212,175,122,0.4)', letterSpacing: '0.08em' }}>
+          a small tribute to kural · குறளுக்கு ஒரு சிறு காணிக்கை
+        </div>
+        <div style={{ fontSize: '11px', color: 'rgba(212,175,122,0.5)', letterSpacing: '0.06em' }}>ask-kural.vercel.app</div>
+      </div>
+    </div>
+  );
+
+  // ── LAYOUT ────────────────────────────────────────────────────────────────
+  return (
+    <div>
+      {tabBar}
+
+      {isMobile ? (
+        // Mobile: stacked
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {kuralCard}
+          {commentaries}
+        </div>
+      ) : (
+        // Desktop: side by side
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '24px' }}>
+          {kuralCard}
+          {commentaries}
+        </div>
+      )}
+
+      {shareCard}
+    </div>
+  );
+}

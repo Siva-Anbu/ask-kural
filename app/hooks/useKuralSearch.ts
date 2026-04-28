@@ -17,7 +17,7 @@ export interface Kural {
 }
 
 export interface SearchResponse {
-  kural: Kural;
+  kurals: Kural[];
   keywords: string[];
   source: 'direct' | 'chapter' | 'questionare' | 'keyword' | 'semantic' | 'theme-fallback';
   matchedSituation?: string;

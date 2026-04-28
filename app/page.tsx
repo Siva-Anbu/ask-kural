@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import styles from './page.module.css';
 import AskKuralMobile from './AskKuralMobile';
 import { useKuralSearch, PROMPTS } from './hooks/useKuralSearch';
+import KuralResult from './components/KuralResult';
 
 export default function Home() {
   const [input, setInput] = useState('');
@@ -99,95 +100,7 @@ export default function Home() {
         {/* RESULT */}
         {result && !loading && (
           <div className={styles.resultGrid}>
-
-            {/* LEFT — kural */}
-            <div className={styles.leftCol}>
-              <div className={styles.kuralCard}>
-                <div className={styles.kuralMeta}>
-                  <span className={styles.kuralNum}>குறள் #{result.kural.Number}</span>
-                  {/* Chapter info removed since new table doesn't have it */}
-                </div>
-                <p className={styles.kuralTamil}>
-                  {result.kural.Line1}
-                  {'\n'}
-                  {result.kural.Line2}
-                </p>
-                <p className={styles.kuralTranslit}>
-                  {result.kural.transliteration1}
-                  {'\n'}
-                  {result.kural.transliteration2}
-                </p>
-                <div className={styles.kuralEnBox}>
-                  <p className={styles.kuralEn}>&ldquo;{result.kural.Translation}&rdquo;</p>
-                </div>
-                {/* Chapter footer removed since new table doesn't have it */}
-              </div>
-            </div>
-
-            {/* RIGHT — 2×2 commentary grid */}
-            <div className={styles.rightCol}>
-              <div className={styles.comHeader}>
-                <span className={styles.comHeaderLeft}>உரையாசிரியர்கள்</span>
-                <span className={styles.comHeaderRight}>COMMENTARIES</span>
-              </div>
-
-              <div className={styles.comGrid}>
-
-                {result.kural.mv && (
-                  <div className={styles.comCard}>
-                    <div className={styles.comCardHead}>
-                      <span className={styles.avatar}>மு.வ</span>
-                      <div className={styles.comAuthor}>
-                        <div className={styles.comName}>Mu. Varadharasanar</div>
-                        <div className={styles.comNameTamil}>முனைவர் மு. வரதராசனார்</div>
-                      </div>
-                    </div>
-                    <p className={styles.comText}>{result.kural.mv}</p>
-                  </div>
-                )}
-
-                {result.kural.sp && (
-                  <div className={styles.comCard}>
-                    <div className={styles.comCardHead}>
-                      <span className={styles.avatar}>ச.பா</span>
-                      <div className={styles.comAuthor}>
-                        <div className={styles.comName}>Solomon Pappaiah</div>
-                        <div className={styles.comNameTamil}>சாலமன் பாப்பையா</div>
-                      </div>
-                    </div>
-                    <p className={styles.comText}>{result.kural.sp}</p>
-                  </div>
-                )}
-
-                {result.kural.mk && (
-                  <div className={styles.comCard}>
-                    <div className={styles.comCardHead}>
-                      <span className={styles.avatar}>க.க</span>
-                      <div className={styles.comAuthor}>
-                        <div className={styles.comName}>Kalaignar Karunanidhi</div>
-                        <div className={styles.comNameTamil}>கலைஞர் கருணாநிதி</div>
-                      </div>
-                    </div>
-                    <p className={styles.comText}>{result.kural.mk}</p>
-                  </div>
-                )}
-
-                {result.kural.explanation && (
-                  <div className={styles.comCard}>
-                    <div className={styles.comCardHead}>
-                      <span className={styles.avatarEn}>EN</span>
-                      <div className={styles.comAuthor}>
-                        <div className={styles.comName}>English Explanation</div>
-                        <div className={styles.comNameTamil}>ஆங்கில விளக்கம்</div>
-                      </div>
-                    </div>
-                    <p className={styles.comText}>{result.kural.explanation}</p>
-                  </div>
-                )}
-
-              </div>
-            </div>
-
+            <KuralResult kurals={result.kurals} isMobile={false} />
           </div>
         )}
       </div>

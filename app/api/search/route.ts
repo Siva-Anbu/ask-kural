@@ -463,8 +463,8 @@ function semanticScore(kural: Record<string, unknown>, fullQuestion: string): nu
   return score;
 }
 
-// Keyword-based fallback — used only by the theme fallback path
-async function findBestKural(keywords: string[], fullQuestion: string, queryContext: string) {
+// Keyword-based fallback — returns top 3
+async function findBestKurals(keywords: string[], fullQuestion: string, queryContext: string): Promise<Record<string, unknown>[]> {
   const expanded = expandQueryWithSynonyms(keywords);
   const searchResults: Record<string, unknown>[] = [];
   for (const kw of expanded.slice(0, 20)) {
@@ -473,22 +473,14 @@ async function findBestKural(keywords: string[], fullQuestion: string, queryCont
   }
   const unique = Array.from(new Map(searchResults.map(k => [k.Number, k])).values());
   if (unique.length > 0) {
-    const scored = unique.map(k => ({ kural: k, kwCount: scoreKuralByKeywordCount(k, expanded), weighted: scoreKural(k, expanded, queryContext), sem: 0 }))
+    const scored = unique
+      .map(k => ({ kural: k, kwCount: scoreKuralByKeywordCount(k, expanded), weighted: scoreKural(k, expanded, queryContext), sem: semanticScore(k, fullQuestion) }))
       .filter(k => k.weighted > 0)
-      .sort((a, b) => b.weighted - a.weighted || b.kwCount - a.kwCount);
-    if (scored.length > 0) {
-      if (scored[0].weighted > 0) {
-        const top = scored.filter(k => k.weighted === scored[0].weighted);
-        if (top.length > 1) {
-          const tie = top.map(k => ({ ...k, sem: semanticScore(k.kural, fullQuestion) })).sort((a, b) => b.sem - a.sem);
-          return tie[0].kural;
-        }
-        return scored[0].kural;
-      }
-    }
+      .sort((a, b) => b.weighted - a.weighted || b.sem - a.sem || b.kwCount - a.kwCount);
+    if (scored.length > 0) return scored.slice(0, 3).map(s => s.kural);
   }
   const { data: fallback } = await supabase.from('Kurals-new').select('*').limit(100);
-  return fallback?.length ? fallback[Math.floor(Math.random() * fallback.length)] : null;
+  return fallback?.length ? [fallback[Math.floor(Math.random() * fallback.length)]] : [];
 }
 
 function getConfidenceMessage(source: string, similarity?: number, keywordCount?: number): string {
@@ -549,7 +541,7 @@ interface QuestionareMatch {
 async function semanticSearchQuestionare(
   embedding: number[],
   originalMessage: string
-): Promise<{ kural: Record<string, unknown>; matchedSituation: string; similarity: number } | null> {
+): Promise<{ kurals: Record<string, unknown>[]; matchedSituation: string; similarity: number } | null> {
   const { data, error } = await supabase.rpc('match_questionare', {
     query_embedding: embedding,
     match_threshold: 0.3,
@@ -565,22 +557,21 @@ async function semanticSearchQuestionare(
   if (best.Kural_3) candidates.push({ num: best.Kural_3, meaning: best.Meaning_3, isPrimary: false });
   if (!candidates.length) return null;
 
-  // Pick the candidate whose meaning best matches the original message keywords
+  // Sort candidates: primary first, then by keyword match score
   const keywords = extractQuestionareKeywords(originalMessage).map(k => k.toLowerCase());
-  let bestCandidate = candidates[0];
-  let bestScore = candidates[0].isPrimary ? 5 : 0;
-  for (const c of candidates) {
+  const scored = candidates.map(c => {
     const meaningLower = (c.meaning ?? '').toLowerCase();
     let score = c.isPrimary ? 5 : 0;
     for (const kw of keywords) { if (meaningLower.includes(kw)) score += 10; }
-    if (score > bestScore) { bestScore = score; bestCandidate = c; }
-  }
+    return { ...c, score };
+  }).sort((a, b) => b.score - a.score);
 
-  const fullKural = await getKuralByNumber(bestCandidate.num);
-  if (!fullKural) return null;
+  // Fetch all 3 full kurals in parallel
+  const fetched = await Promise.all(scored.map(c => getKuralByNumber(c.num)));
+  const kurals = fetched.filter(Boolean) as Record<string, unknown>[];
+  if (!kurals.length) return null;
 
-  // Similarity is 0-1 from RPC; multiply by 100 to match existing confidence thresholds
-  return { kural: fullKural, matchedSituation: best.Situation, similarity: Math.round(best.similarity * 100) };
+  return { kurals, matchedSituation: best.Situation, similarity: Math.round(best.similarity * 100) };
 }
 
 interface KuralMatch {
@@ -602,7 +593,7 @@ async function semanticSearchKurals(
   embedding: number[],
   queryContext: string,
   queryKeywords: string[]
-): Promise<KuralMatch | null> {
+): Promise<KuralMatch[] | null> {
   const { data, error } = await supabase.rpc('match_kurals', {
     query_embedding: embedding,
     match_threshold: 0.3,
@@ -635,10 +626,10 @@ async function semanticSearchKurals(
       const text = [k.Translation, k.explanation].filter(Boolean).join(' ').toLowerCase();
       return POLITICAL_INDICATORS.filter(w => text.includes(w)).length < 2;
     });
-    return sorted(filtered.length ? filtered : rescored)[0];
+    return sorted(filtered.length ? filtered : rescored).slice(0, 3);
   }
 
-  return sorted(rescored)[0];
+  return sorted(rescored).slice(0, 3);
 }
 
 // ---------------------------------------------------------------------------
@@ -656,14 +647,14 @@ export async function POST(req: NextRequest) {
     const directNum = extractDirectKuralNumber(message);
     if (directNum) {
       const kural = await getKuralByNumber(directNum);
-      if (kural) return NextResponse.json({ kural, keywords: [`kural-${directNum}`], source: 'direct', confidence: 'high', confidenceMessage: '' });
+      if (kural) return NextResponse.json({ kurals: [kural], keywords: [`kural-${directNum}`], source: 'direct', confidence: 'high', confidenceMessage: '' });
     }
 
     // 2. Chapter-position lookup
     const chapterKuralNum = extractChapterKuralQuery(message);
     if (chapterKuralNum) {
       const kural = await getKuralByNumber(chapterKuralNum);
-      if (kural) return NextResponse.json({ kural, keywords: ['chapter-query'], source: 'chapter', confidence: 'high', confidenceMessage: '' });
+      if (kural) return NextResponse.json({ kurals: [kural], keywords: ['chapter-query'], source: 'chapter', confidence: 'high', confidenceMessage: '' });
     }
 
     // Generate embedding + extract keywords once — reused by steps 3, 4, 5
@@ -677,7 +668,7 @@ export async function POST(req: NextRequest) {
     const questionareResult = await semanticSearchQuestionare(embedding, message);
     if (questionareResult) {
       return NextResponse.json({
-        kural: questionareResult.kural,
+        kurals: questionareResult.kurals,
         keywords: ['situation-match'],
         matchedSituation: questionareResult.matchedSituation,
         source: 'questionare',
@@ -688,11 +679,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Semantic kural search with hybrid re-ranking
-    const semanticKural = await semanticSearchKurals(embedding, queryContext, enrichedKeywords);
-    if (semanticKural) {
-      const keywordCount = scoreKuralByKeywordCount(semanticKural as unknown as Record<string, unknown>, enrichedKeywords);
+    const semanticKurals = await semanticSearchKurals(embedding, queryContext, enrichedKeywords);
+    if (semanticKurals?.length) {
+      const keywordCount = scoreKuralByKeywordCount(semanticKurals[0] as unknown as Record<string, unknown>, enrichedKeywords);
       return NextResponse.json({
-        kural: semanticKural,
+        kurals: semanticKurals,
         keywords: displayKeywords,
         source: 'semantic',
         confidence: getConfidenceLevel('keyword', undefined, keywordCount),
@@ -702,13 +693,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 5. Theme keyword fallback (original keyword search on theme terms)
+    // 5. Theme keyword fallback
     if (detectedThemes.length > 0) {
       const themeKw = detectedThemes.flatMap(t => THIRUKKURAL_THEMES[t] || []).slice(0, 10);
-      const themeKural = await findBestKural(themeKw, message, queryContext);
-      if (themeKural) {
+      const themeKurals = await findBestKurals(themeKw, message, queryContext);
+      if (themeKurals.length) {
         return NextResponse.json({
-          kural: themeKural,
+          kurals: themeKurals,
           keywords: themeKw.slice(0, 5),
           source: 'theme-fallback',
           confidence: 'low',
