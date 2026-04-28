@@ -25,12 +25,12 @@ interface Result {
 }
 
 const SUGGESTIONS = [
+  { tamil: 'மகிழ்ச்சியாக வாழ', english: 'How to live happily' },
   { tamil: 'காதலில் மகிழ்ச்சி', english: 'I am in love' },
-  { tamil: 'தனிமையாக இருக்கிறேன்', english: 'I feel lonely' },
+  { tamil: 'நன்றியுடன் வாழ', english: 'How to be grateful' },
+  { tamil: 'நட்பின் மதிப்பு', english: 'Value of true friendship' },
   { tamil: 'அன்பானவரை இழந்தேன்', english: 'I lost someone I love' },
-  { tamil: 'வாழ்க்கையில் மகிழ்வு', english: 'How to find happiness' },
-  { tamil: 'காதலில் ஏமாற்றம்', english: 'My heart is broken' },
-  { tamil: 'எல்லாம் இழந்த உணர்வு', english: 'I feel lost in life' },
+  { tamil: 'மனம் வருந்துகிறேன்', english: 'I feel deeply sad' },
 ];
 
 export default function Home() {

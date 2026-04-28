@@ -35,12 +35,12 @@ interface ErrorResponse {
 }
 
 const QUICK_PROMPTS = [
+  { tamil: 'மகிழ்ச்சியாக வாழ', english: 'How to live happily' },
   { tamil: 'காதலில் மகிழ்ச்சி', english: 'I am in love' },
+  { tamil: 'நன்றியுடன் வாழ', english: 'How to be grateful' },
+  { tamil: 'நட்பின் மதிப்பு', english: 'Value of true friendship' },
   { tamil: 'அன்பானவரை இழந்தேன்', english: 'I lost someone I love' },
   { tamil: 'மனம் வருந்துகிறேன்', english: 'I feel deeply sad' },
-  { tamil: 'மகிழ்வாக வாழ', english: 'How to live happily' },
-  { tamil: 'காதலில் ஏமாற்றம்', english: 'My heart is broken' },
-  { tamil: 'எல்லாம் இழந்த உணர்வு', english: 'I feel lost in life' },
 ];
 
 export default function AskKuralMobile() {
