@@ -597,7 +597,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const baseKeywords = extractKeywords(message);
     if (enrichedKeywords.length === 0) {
       return NextResponse.json({ error: 'Could not understand query. Please try rephrasing.', suggestions: getSuggestions(message) }, { status: 400 });
     }
