@@ -76,9 +76,9 @@ const THIRUKKURAL_THEMES: Record<string, string[]> = {
   'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation', 'shame', 'ashamed'],
   'faith_crisis': ['கடவுள்', 'இறை', 'virtue', 'அறம்', 'doubt', 'belief', 'faith', 'spiritual crisis'],
   'life_purpose': ['அறம்', 'dharma', 'duty', 'கடமை', 'meaning', 'purpose', 'life goal', 'why live'],
-  'lost_direction': ['வழி', 'path', 'direction', 'purpose', 'கடமை', 'confused', 'lost', 'no direction'],
+  'lost_direction': ['வழி', 'path', 'direction', 'purpose', 'கடமை', 'confused', 'lost', 'no direction', 'bored', 'boredom', 'idle', 'unmotivated'],
   'moral_dilemma': ['அறம்', 'virtue', 'right', 'wrong', 'ethics', 'நீதி', 'moral', 'ethical', 'dilemma'],
-  'procrastination': ['சோம்பல்', 'lazy', 'delay', 'postpone', 'effort', 'முயற்சி', 'procrastinate', 'putting off'],
+  'procrastination': ['சோம்பல்', 'lazy', 'delay', 'postpone', 'effort', 'முயற்சி', 'procrastinate', 'putting off', 'bored', 'boredom', 'idle', 'idleness', 'restless', 'nothing to do', 'unmotivated', 'uninspired'],
   'failure_feeling': ['தோல்வி', 'failure', 'defeat', 'worthless', 'shame', 'failed', 'defeated'],
   'betrayed_friend': ['நட்பு', 'friendship', 'நம்பிக்கை', 'trust', 'betrayal', 'வஞ்சம்', 'friend betrayed'],
   'trust_broken': ['நம்பிக்கை', 'trust', 'betrayal', 'deceit', 'வஞ்சம்', 'broken', 'trust broken'],
@@ -159,6 +159,9 @@ const SYNONYMS: Record<string, string[]> = {
   lying: ['lie', 'false', 'falsehood', 'dishonest', 'பொய்', 'deceit'],
   honest: ['honesty', 'truth', 'truthful', 'sincere', 'genuine', 'உண்மை'],
   honesty: ['honest', 'truth', 'truthful', 'sincere', 'உண்மை'],
+  bored: ['boredom', 'idle', 'lazy', 'restless', 'unmotivated', 'uninspired', 'சோம்பல்', 'nothing to do'],
+  boredom: ['bored', 'idle', 'lazy', 'restless', 'unmotivated', 'சோம்பல்'],
+  idle: ['bored', 'lazy', 'சோம்பல்', 'inaction', 'effort', 'முயற்சி'],
 };
 
 // ---------------------------------------------------------------------------
