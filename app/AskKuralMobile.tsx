@@ -35,7 +35,7 @@ export default function AskKuralMobile() {
         {/* Valluvar background watermark */}
         <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '360px', height: '480px', backgroundImage: "url('/valluvar.jpg')", backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center top', opacity: 0.11, pointerEvents: 'none', zIndex: 0, maskImage: 'radial-gradient(ellipse 55% 60% at center, black 20%, rgba(0,0,0,0.6) 45%, transparent 72%)', WebkitMaskImage: 'radial-gradient(ellipse 55% 60% at center, black 20%, rgba(0,0,0,0.6) 45%, transparent 72%)' }} />
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 'bold', background: 'linear-gradient(to right, #d4af7a, #f4e4c1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>
+          <h1 onClick={handleReset} style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 'bold', background: 'linear-gradient(to right, #d4af7a, #f4e4c1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px', cursor: 'pointer' }}>
             திருக்குறள் உரை
           </h1>
           <p style={{ fontSize: 'clamp(12px, 2.5vw, 16px)', color: '#9ca3af' }}>

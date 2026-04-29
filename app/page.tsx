@@ -47,7 +47,7 @@ export default function Home() {
       {/* ── TOP BAR: title left, question bubble right ── */}
       <header className={styles.topBar}>
         <div className={styles.titleBlock}>
-          <div className={styles.titleTamil}>திருக்குறள் உரை</div>
+          <div className={styles.titleTamil} onClick={handleReset} style={{ cursor: 'pointer' }}>திருக்குறள் உரை</div>
           <div className={styles.titleSub}>ASK KURAL · குறளிடம் கேளுங்கள்</div>
         </div>
 
