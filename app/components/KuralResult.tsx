@@ -43,43 +43,28 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
         logging: false,
       });
 
-      // Try Web Share API first (mobile — opens WhatsApp, Instagram, etc.)
-      if (typeof navigator.share === 'function') {
-        canvas.toBlob(async (blob) => {
-          if (!blob) return;
+      const canShare = typeof navigator.share === 'function';
+
+      if (canShare) {
+        // Promisify toBlob so the await chain stays intact (keeps user-gesture context)
+        const blob = await new Promise<Blob | null>(resolve =>
+          canvas.toBlob(resolve, 'image/png')
+        );
+        if (blob) {
           const file = new File([blob], `thirukkural-${kural.Number}.png`, { type: 'image/png' });
-          const shareData = {
-            files: [file],
-            title: `திருக்குறள் #${kural.Number}`,
-            text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"\n\nask-kural.vercel.app`,
-          };
-          try {
-            if (navigator.canShare && navigator.canShare(shareData)) {
-              await navigator.share(shareData);
-            } else {
-              // Device supports share but not files — share text + URL only
-              await navigator.share({
-                title: `திருக்குறள் #${kural.Number}`,
-                text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"`,
-                url: 'https://ask-kural.vercel.app',
-              });
-            }
-          } catch (shareErr: unknown) {
-            // User cancelled — not an error worth logging
-            if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
-              console.error('Share failed', shareErr);
-            }
-          }
-        });
+          const withFile = { files: [file], title: `திருக்குறள் #${kural.Number}`, text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"\n\nask-kural.vercel.app` };
+          const textOnly  = { title: `திருக்குறள் #${kural.Number}`, text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"`, url: 'https://ask-kural.vercel.app' };
+          await navigator.share(navigator.canShare?.(withFile) ? withFile : textOnly);
+        }
       } else {
-        // Desktop fallback — download the image
+        // Desktop — download
         const link = document.createElement('a');
         link.download = `thirukkural-${kural.Number}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       }
-    } catch (e) {
-      console.error('Share failed', e);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== 'AbortError') console.error('Share failed', e);
     } finally {
       setSharing(false);
     }
@@ -111,7 +96,7 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
     </div>
   );
 
-  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const canNativeShare = typeof window !== 'undefined' && typeof navigator.share === 'function';
 
   // ── SHARE BUTTON ─────────────────────────────────────────────────────────
   const shareBtn = (
