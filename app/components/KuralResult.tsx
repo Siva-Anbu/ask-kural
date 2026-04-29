@@ -3,6 +3,15 @@
 import { useState, useRef } from 'react';
 import { Kural } from '../hooks/useKuralSearch';
 
+function ShareIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+  );
+}
+
 interface Props {
   kurals: Kural[];
   isMobile?: boolean;
@@ -33,10 +42,42 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
         useCORS: true,
         logging: false,
       });
-      const link = document.createElement('a');
-      link.download = `thirukkural-${kural.Number}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+
+      // Try Web Share API first (mobile — opens WhatsApp, Instagram, etc.)
+      if (typeof navigator.share === 'function') {
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          const file = new File([blob], `thirukkural-${kural.Number}.png`, { type: 'image/png' });
+          const shareData = {
+            files: [file],
+            title: `திருக்குறள் #${kural.Number}`,
+            text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"\n\nask-kural.vercel.app`,
+          };
+          try {
+            if (navigator.canShare && navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+            } else {
+              // Device supports share but not files — share text + URL only
+              await navigator.share({
+                title: `திருக்குறள் #${kural.Number}`,
+                text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"`,
+                url: 'https://ask-kural.vercel.app',
+              });
+            }
+          } catch (shareErr: unknown) {
+            // User cancelled — not an error worth logging
+            if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
+              console.error('Share failed', shareErr);
+            }
+          }
+        });
+      } else {
+        // Desktop fallback — download the image
+        const link = document.createElement('a');
+        link.download = `thirukkural-${kural.Number}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
     } catch (e) {
       console.error('Share failed', e);
     } finally {
@@ -70,6 +111,8 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
     </div>
   );
 
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
   // ── SHARE BUTTON ─────────────────────────────────────────────────────────
   const shareBtn = (
     <button
@@ -90,7 +133,11 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
         transition: 'all 0.2s',
       }}
     >
-      {sharing ? '⏳' : '🖼️'} {sharing ? 'Generating…' : 'Save as Image'}
+      {sharing
+        ? <>⏳ Generating…</>
+        : canNativeShare
+          ? <><ShareIcon /> Share</>
+          : <>🖼️ Save as Image</>}
     </button>
   );
 
