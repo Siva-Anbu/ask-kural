@@ -378,7 +378,8 @@ async function checkPredefinedAnswer(message: string): Promise<Record<string, un
   for (const entry of data) {
     for (const phrase of entry.trigger_phrases as string[]) {
       const p = phrase.toLowerCase().trim();
-      if (normalized === p || stripped === p) {
+      // Exact match OR stripped exact match OR the query contains the phrase as a whole word
+      if (normalized === p || stripped === p || normalized.includes(p) || stripped.includes(p)) {
         const kurals = await Promise.all((entry.kural_numbers as number[]).map((n: number) => getKuralByNumber(n)));
         return kurals.filter(Boolean) as Record<string, unknown>[];
       }
@@ -585,7 +586,7 @@ async function semanticSearchQuestionare(
 ): Promise<{ kurals: Record<string, unknown>[]; matchedSituation: string; similarity: number } | null> {
   const { data, error } = await supabase.rpc('match_questionare', {
     query_embedding: embedding,
-    match_threshold: 0.3,
+    match_threshold: 0.45,  // raised from 0.3 — only accept genuine situational matches
     match_count: 3,
   });
   if (error || !data?.length) return null;
@@ -637,27 +638,31 @@ async function semanticSearchKurals(
 ): Promise<KuralMatch[] | null> {
   const { data, error } = await supabase.rpc('match_kurals', {
     query_embedding: embedding,
-    match_threshold: 0.3,
-    match_count: 15,
+    match_threshold: 0.38,  // raised from 0.3 — reduces noise from distant results
+    match_count: 20,        // fetch more candidates so re-ranking has better pool
   });
   if (error || !data?.length) return null;
 
   const results = data as KuralMatch[];
   const expanded = expandQueryWithSynonyms(queryKeywords);
 
-  // Hybrid re-rank: semantic similarity (70%) + keyword presence (30%).
-  // Prevents kurals about the *opposite* concept from winning on pure semantic
-  // similarity alone (e.g. "ego" → modesty kural instead of pride kural).
+  // Hybrid re-rank: semantic similarity (60%) + keyword presence (40%).
+  // Higher keyword weight gives more pull toward topic-specific kurals.
   type Rescored = KuralMatch & { hybridScore: number };
   const rescored: Rescored[] = results.map(k => {
-    const allText = [k.Translation, k.explanation, k.mv, k.sp, k.mk]
-      .filter(Boolean).join(' ').toLowerCase();
+    // Weight Translation and explanation higher — they're in English and match query keywords better
+    const translationText = [k.Translation, k.explanation].filter(Boolean).join(' ').toLowerCase();
+    const commentaryText = [k.mv, k.sp, k.mk].filter(Boolean).join(' ').toLowerCase();
     let hits = 0;
+    let strongHits = 0;
     for (const kw of expanded) {
-      if (kw.length >= 3 && allText.includes(kw.toLowerCase())) hits++;
+      if (kw.length < 3) continue;
+      const kwl = kw.toLowerCase();
+      if (translationText.includes(kwl)) { hits++; strongHits++; } // translation hit = stronger signal
+      else if (commentaryText.includes(kwl)) hits++;
     }
-    const kwBonus = Math.min(hits / Math.max(expanded.length * 0.25, 2), 1) * 0.3;
-    return { ...k, hybridScore: k.similarity * 0.7 + kwBonus };
+    const kwBonus = Math.min((strongHits * 1.5 + hits) / Math.max(expanded.length * 0.3, 3), 1) * 0.4;
+    return { ...k, hybridScore: k.similarity * 0.6 + kwBonus };
   });
 
   const sorted = (ctx: Rescored[]) => ctx.sort((a, b) => b.hybridScore - a.hybridScore);
@@ -704,16 +709,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ kurals: predefinedKurals, keywords: [], source: 'predefined', confidence: 'high', confidenceMessage: '' });
     }
 
-    // Generate embedding + extract keywords once — reused by steps 3, 4, 5
-    const embedding = await getEmbedding(message);
+    // Generate embedding + extract keywords once — reused by steps 4, 5, 6
     const baseKeywords = extractKeywords(message);
     const detectedThemes = detectThemes(message);
     const enrichedKeywords = enrichKeywordsWithThemes(baseKeywords, detectedThemes);
     const displayKeywords = message.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').split(/\s+/).filter((w: string) => w.length > 2 && !KEYWORD_SEARCH_STOP_WORDS.has(w)).slice(0, 5);
 
-    // 3. Semantic questionare search
-    const questionareResult = await semanticSearchQuestionare(embedding, message);
-    if (questionareResult) {
+    // Enrich query before embedding: append top theme keywords so the vector
+    // lands closer to the right concept cluster in embedding space.
+    const themeBoost = detectedThemes.flatMap(t => (THIRUKKURAL_THEMES[t] || []).slice(0, 3)).join(' ');
+    const enrichedQuery = themeBoost ? `${message} ${themeBoost}` : message;
+    const embedding = await getEmbedding(enrichedQuery);
+
+    // 4. Run questionare + semantic search in parallel — pick the winner
+    const [questionareResult, semanticKurals] = await Promise.all([
+      semanticSearchQuestionare(embedding, message),
+      semanticSearchKurals(embedding, queryContext, enrichedKeywords),
+    ]);
+
+    // Questionare wins only when its similarity is genuinely high (≥0.60).
+    // Below that, semantic search with hybrid re-ranking tends to be more precise.
+    const QUESTIONARE_WIN_THRESHOLD = 0.60;
+    if (questionareResult && questionareResult.similarity >= QUESTIONARE_WIN_THRESHOLD) {
       return NextResponse.json({
         kurals: questionareResult.kurals,
         keywords: ['situation-match'],
@@ -725,8 +742,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 4. Semantic kural search with hybrid re-ranking
-    const semanticKurals = await semanticSearchKurals(embedding, queryContext, enrichedKeywords);
+    // Semantic search result
     if (semanticKurals?.length) {
       const keywordCount = scoreKuralByKeywordCount(semanticKurals[0] as unknown as Record<string, unknown>, enrichedKeywords);
       return NextResponse.json({
@@ -737,6 +753,19 @@ export async function POST(req: NextRequest) {
         confidenceMessage: getConfidenceMessage('keyword', undefined, keywordCount),
         keywordCount,
         detectedThemes,
+      });
+    }
+
+    // Questionare as fallback if semantic found nothing (even below win threshold)
+    if (questionareResult) {
+      return NextResponse.json({
+        kurals: questionareResult.kurals,
+        keywords: ['situation-match'],
+        matchedSituation: questionareResult.matchedSituation,
+        source: 'questionare',
+        similarity: questionareResult.similarity,
+        confidence: getConfidenceLevel('questionare', questionareResult.similarity),
+        confidenceMessage: getConfidenceMessage('questionare', questionareResult.similarity),
       });
     }
 
