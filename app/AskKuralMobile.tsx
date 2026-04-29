@@ -33,7 +33,7 @@ export default function AskKuralMobile() {
 
       <div style={{ minHeight: '100dvh', background: 'linear-gradient(to bottom, #0a0a0a, #1a1410)', color: '#e5e7eb', fontFamily: '"Noto Sans Tamil", "Noto Sans", sans-serif', padding: '20px', paddingBottom: '100px', overflowX: 'hidden', WebkitTextSizeAdjust: '100%', touchAction: 'manipulation', position: 'relative' }}>
         {/* Valluvar background watermark */}
-        <div style={{ position: 'fixed', right: '-10px', bottom: '80px', width: '200px', height: '300px', backgroundImage: "url('/valluvar.jpg')", backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'bottom right', opacity: 0.06, pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '360px', height: '480px', backgroundImage: "url('/valluvar.jpg')", backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center top', opacity: 0.11, pointerEvents: 'none', zIndex: 0, maskImage: 'radial-gradient(ellipse 55% 60% at center, black 20%, rgba(0,0,0,0.6) 45%, transparent 72%)', WebkitMaskImage: 'radial-gradient(ellipse 55% 60% at center, black 20%, rgba(0,0,0,0.6) 45%, transparent 72%)' }} />
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h1 style={{ fontSize: 'clamp(28px, 6vw, 48px)', fontWeight: 'bold', background: 'linear-gradient(to right, #d4af7a, #f4e4c1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>
             திருக்குறள் உரை

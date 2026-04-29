@@ -14,17 +14,20 @@
 .shell::before {
   content: '';
   position: fixed;
-  right: 0;
-  bottom: 0;
-  width: 320px;
-  height: 480px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  height: 680px;
   background-image: url('/valluvar.jpg');
-  background-size: contain;
+  background-size: cover;
   background-repeat: no-repeat;
-  background-position: bottom right;
-  opacity: 0.08;
+  background-position: center top;
+  opacity: 0.13;
   pointer-events: none;
   z-index: 0;
+  mask-image: radial-gradient(ellipse 55% 60% at center, black 20%, rgba(0,0,0,0.6) 45%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 55% 60% at center, black 20%, rgba(0,0,0,0.6) 45%, transparent 72%);
 }
 
 /* TOP BAR */
