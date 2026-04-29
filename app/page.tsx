@@ -5,11 +5,13 @@ import styles from './page.module.css';
 import AskKuralMobile from './AskKuralMobile';
 import { useKuralSearch, PROMPTS } from './hooks/useKuralSearch';
 import KuralResult from './components/KuralResult';
+import FeedbackModal from './components/FeedbackModal';
 
 export default function Home() {
   const [input, setInput] = useState('');
   const [question, setQuestion] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { result, error, loading, search, reset } = useKuralSearch();
 
@@ -138,8 +140,12 @@ export default function Home() {
         )}
         <p className={styles.inputHint}>Tamil அல்லது English-ல் தட்டச்சு செய்யுங்கள்</p>
         <p className={styles.credit}>a small tribute to kural · குறளுக்கு ஒரு சிறு காணிக்கை<br />ANBUSELVAN SIVARAJU</p>
+        <button onClick={() => setShowFeedback(true)} className={styles.feedbackLink}>
+          Share Feedback
+        </button>
       </div>
 
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </div>
   );
 }

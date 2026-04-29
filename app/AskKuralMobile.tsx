@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import { useKuralSearch, PROMPTS } from './hooks/useKuralSearch';
 import KuralResult from './components/KuralResult';
+import FeedbackModal from './components/FeedbackModal';
 
 export default function AskKuralMobile() {
   const [question, setQuestion] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
   const { result, error, loading, search, reset } = useKuralSearch();
 
   const handleSearch = (searchQuery: string) => search(searchQuery);
@@ -179,6 +181,15 @@ export default function AskKuralMobile() {
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#4b5563', marginTop: '40px', letterSpacing: '0.5px' }}>
           a small tribute to kural · குறளுக்கு ஒரு சிறு காணிக்கை<br />ANBUSELVAN SIVARAJU
         </p>
+        <div style={{ textAlign: 'center', marginTop: '8px' }}>
+          <button
+            onClick={() => setShowFeedback(true)}
+            style={{ background: 'none', border: 'none', fontSize: '11px', color: 'rgba(212,175,122,.35)', letterSpacing: '.06em', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', fontStyle: 'italic' }}
+          >
+            Share Feedback
+          </button>
+        </div>
+        {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
