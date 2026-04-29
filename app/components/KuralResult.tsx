@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Kural } from '../hooks/useKuralSearch';
 
 function ShareIcon() {
@@ -26,42 +26,55 @@ const COMMENTATORS = [
 
 export default function KuralResult({ kurals, isMobile = false }: Props) {
   const [activeTab, setActiveTab] = useState(0);
+  const [saving,  setSaving]  = useState(false);
   const [sharing, setSharing] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   const kural = kurals[Math.min(activeTab, kurals.length - 1)];
 
+  async function renderCard() {
+    const html2canvas = (await import('html2canvas')).default;
+    return html2canvas(shareCardRef.current!, {
+      backgroundColor: '#0a0a0a', scale: 2, useCORS: true, logging: false,
+    });
+  }
+
+  const handleSave = async () => {
+    if (saving || !shareCardRef.current) return;
+    setSaving(true);
+    try {
+      const canvas = await renderCard();
+      const link = document.createElement('a');
+      link.download = `thirukkural-${kural.Number}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (e) {
+      console.error('Save failed', e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleShare = async () => {
-    if (!shareCardRef.current || sharing) return;
+    if (sharing || !shareCardRef.current) return;
     setSharing(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(shareCardRef.current, {
-        backgroundColor: '#0a0a0a',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
+      const shareText = `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"\n\nask-kural.vercel.app`;
 
-      const canShare = typeof navigator.share === 'function';
+      if (typeof navigator.share === 'function') {
+        // Use fetch(dataURL) → blob — most reliable cross-browser approach
+        const canvas = await renderCard();
+        const dataUrl = canvas.toDataURL('image/png');
+        const res     = await fetch(dataUrl);
+        const blob    = await res.blob();
+        const file    = new File([blob], `thirukkural-${kural.Number}.png`, { type: 'image/png' });
 
-      if (canShare) {
-        // Promisify toBlob so the await chain stays intact (keeps user-gesture context)
-        const blob = await new Promise<Blob | null>(resolve =>
-          canvas.toBlob(resolve, 'image/png')
-        );
-        if (blob) {
-          const file = new File([blob], `thirukkural-${kural.Number}.png`, { type: 'image/png' });
-          const withFile = { files: [file], title: `திருக்குறள் #${kural.Number}`, text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"\n\nask-kural.vercel.app` };
-          const textOnly  = { title: `திருக்குறள் #${kural.Number}`, text: `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"`, url: 'https://ask-kural.vercel.app' };
-          await navigator.share(navigator.canShare?.(withFile) ? withFile : textOnly);
-        }
+        const withFile = { files: [file], title: `திருக்குறள் #${kural.Number}`, text: shareText };
+        const textOnly = { title: `திருக்குறள் #${kural.Number}`, text: shareText, url: 'https://ask-kural.vercel.app' };
+        await navigator.share(navigator.canShare?.(withFile) ? withFile : textOnly);
       } else {
-        // Desktop — download
-        const link = document.createElement('a');
-        link.download = `thirukkural-${kural.Number}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        // Desktop — open WhatsApp web with text
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
       }
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== 'AbortError') console.error('Share failed', e);
@@ -96,34 +109,26 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
     </div>
   );
 
-  const canNativeShare = typeof window !== 'undefined' && typeof navigator.share === 'function';
+  const btnBase: React.CSSProperties = {
+    border: '1px solid rgba(212,175,122,0.4)', borderRadius: '10px',
+    padding: '8px 16px', color: '#d4af7a', fontSize: '13px', fontWeight: '600',
+    display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s',
+  };
 
-  // ── SHARE BUTTON ─────────────────────────────────────────────────────────
+  // ── SAVE + SHARE BUTTONS ──────────────────────────────────────────────────
   const shareBtn = (
-    <button
-      onClick={handleShare}
-      disabled={sharing}
-      style={{
-        background: sharing ? 'rgba(212,175,122,0.1)' : 'rgba(212,175,122,0.15)',
-        border: '1px solid rgba(212,175,122,0.4)',
-        borderRadius: '10px',
-        padding: '8px 16px',
-        color: '#d4af7a',
-        fontSize: '13px',
-        fontWeight: '600',
-        cursor: sharing ? 'wait' : 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        transition: 'all 0.2s',
-      }}
-    >
-      {sharing
-        ? <>⏳ Generating…</>
-        : canNativeShare
-          ? <><ShareIcon /> Share</>
-          : <>🖼️ Save as Image</>}
-    </button>
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {/* Save */}
+      <button onClick={handleSave} disabled={saving}
+        style={{ ...btnBase, background: saving ? 'rgba(212,175,122,0.05)' : 'rgba(212,175,122,0.1)', cursor: saving ? 'wait' : 'pointer' }}>
+        {saving ? '⏳ Saving…' : '🖼️ Save'}
+      </button>
+      {/* Share */}
+      <button onClick={handleShare} disabled={sharing}
+        style={{ ...btnBase, background: sharing ? 'rgba(212,175,122,0.05)' : 'rgba(212,175,122,0.15)', cursor: sharing ? 'wait' : 'pointer' }}>
+        {sharing ? '⏳ Sharing…' : <><ShareIcon /> Share</>}
+      </button>
+    </div>
   );
 
   // ── KURAL CARD ────────────────────────────────────────────────────────────
