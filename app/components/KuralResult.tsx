@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Kural } from '../hooks/useKuralSearch';
+import { getChapter } from '../data/chapters';
 
 
 interface Props {
@@ -88,10 +89,16 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
   );
 
   // ── KURAL CARD ────────────────────────────────────────────────────────────
+  const chapterInfo = getChapter(kural.Number);
   const kuralCard = (
     <div style={{ background: 'rgba(212,175,122,0.05)', border: '2px solid rgba(212,175,122,0.2)', borderRadius: '16px', padding: '24px' }}>
-      <div style={{ display: 'inline-block', background: 'rgba(212,175,122,0.2)', color: '#d4af7a', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', marginBottom: '16px' }}>
-        குறள் #{kural.Number}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(212,175,122,0.2)', color: '#d4af7a', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+          குறள் #{kural.Number}
+        </div>
+        <div style={{ fontSize: '12px', color: 'rgba(212,175,122,0.6)', fontStyle: 'italic' }}>
+          {chapterInfo.ta} · {chapterInfo.en}
+        </div>
       </div>
       <div style={{ fontSize: isMobile ? 'clamp(18px,4vw,24px)' : '22px', lineHeight: '1.8', color: '#f9fafb', marginBottom: '4px' }}>{kural.Line1}</div>
       <div style={{ fontSize: isMobile ? 'clamp(18px,4vw,24px)' : '22px', lineHeight: '1.8', color: '#f9fafb', marginBottom: '16px' }}>{kural.Line2}</div>

@@ -23,31 +23,6 @@ export default function AskKuralMobile() {
     reset();
   };
 
-  const formatThemeName = (theme: string): string => {
-    return theme.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  };
-
-  const getSourceBadge = (source: string) => {
-    const badges: Record<string, { text: string; emoji: string; color: string }> = {
-      direct: { text: 'Direct Kural', emoji: '🎯', color: 'rgba(168, 85, 247, 0.2)' },
-      chapter: { text: 'Chapter Query', emoji: '📖', color: 'rgba(99, 102, 241, 0.2)' },
-      predefined: { text: 'Curated Answer', emoji: '📜', color: 'rgba(212, 175, 122, 0.2)' },
-      questionare: { text: 'Life Situation', emoji: '💭', color: 'rgba(244, 114, 182, 0.2)' },
-      keyword: { text: 'Keyword Match', emoji: '🔍', color: 'rgba(34, 211, 238, 0.2)' },
-      semantic: { text: 'Semantic Match', emoji: '🧠', color: 'rgba(16, 185, 129, 0.2)' },
-      'theme-fallback': { text: 'Theme Suggestion', emoji: '✨', color: 'rgba(139, 92, 246, 0.2)' },
-    };
-    return badges[source] || badges.keyword;
-  };
-
-  const getConfidenceBadge = (confidence?: 'high' | 'medium' | 'low') => {
-    const badges = {
-      high: { text: 'High Match', color: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.4)' },
-      medium: { text: 'Good Match', color: 'rgba(251, 191, 36, 0.2)', border: 'rgba(251, 191, 36, 0.4)' },
-      low: { text: 'Possible Match', color: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)' },
-    };
-    return confidence ? badges[confidence] : null;
-  };
 
   return (
     <>
@@ -106,29 +81,7 @@ export default function AskKuralMobile() {
 
         {result && (
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            {/* Source + confidence badges */}
-            <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-              {(() => { const b = getSourceBadge(result.source); return <span style={{ background: b.color, color: '#d4af7a', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', border: '1px solid rgba(212,175,122,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span>{b.emoji}</span>{b.text}</span>; })()}
-              {result.confidence && (() => { const b = getConfidenceBadge(result.confidence); return b ? <span style={{ background: b.color, color: '#d4af7a', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', border: `1px solid ${b.border}`, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>✨ {b.text}</span> : null; })()}
-            </div>
-
-            {result.confidenceMessage && <p style={{ color: '#d4af7a', fontSize: '14px', fontStyle: 'italic', textAlign: 'center', marginBottom: '16px' }}>{result.confidenceMessage}</p>}
-
-            {result.source === 'questionare' && result.matchedSituation && (
-              <div style={{ background: 'rgba(244,114,182,0.1)', border: '1px solid rgba(244,114,182,0.3)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 6px' }}>💭 Matched Situation</p>
-                <p style={{ color: '#e5e7eb', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>{result.matchedSituation}</p>
-                {result.similarity !== undefined && <p style={{ color: '#f472b6', fontSize: '12px', margin: '6px 0 0' }}>Similarity: {result.similarity.toFixed(0)}%</p>}
-              </div>
-            )}
-
-            {result.detectedThemes && result.detectedThemes.length > 0 && (
-              <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-                {result.detectedThemes.map((t, i) => <span key={i} style={{ background: 'rgba(212,175,122,0.15)', color: '#d4af7a', padding: '4px 12px', borderRadius: '16px', fontSize: '12px', border: '1px solid rgba(212,175,122,0.3)' }}>{formatThemeName(t)}</span>)}
-              </div>
-            )}
-
-            {/* 3 kurals with tabs + share */}
+            {/* 3 kurals with tabs + save */}
             <KuralResult kurals={result.kurals} isMobile={true} />
 
             <button onClick={handleReset} style={{ width: '100%', maxWidth: '400px', display: 'block', margin: '20px auto 0', background: 'rgba(212,175,122,0.2)', border: '2px solid rgba(212,175,122,0.5)', borderRadius: '12px', padding: '14px', color: '#d4af7a', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>

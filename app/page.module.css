@@ -22,7 +22,7 @@
 
 .titleBlock { display: flex; flex-direction: column; gap: 4px; }
 .titleTamil { font-size: 38px; color: #e8c97a; letter-spacing: .01em; line-height: 1; }
-.titleSub   { font-size: 10px; color: rgba(212,163,80,.4); letter-spacing: .12em; margin-top: 4px; }
+.titleSub   { font-size: 10px; color: rgba(212,163,80,.7); letter-spacing: .12em; margin-top: 4px; }
 
 /* question bubble — top right */
 .qBubble {
