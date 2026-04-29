@@ -3,14 +3,6 @@
 import React, { useState, useRef } from 'react';
 import { Kural } from '../hooks/useKuralSearch';
 
-function ShareIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-    </svg>
-  );
-}
 
 interface Props {
   kurals: Kural[];
@@ -26,8 +18,7 @@ const COMMENTATORS = [
 
 export default function KuralResult({ kurals, isMobile = false }: Props) {
   const [activeTab, setActiveTab] = useState(0);
-  const [saving,  setSaving]  = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   const kural = kurals[Math.min(activeTab, kurals.length - 1)];
@@ -55,33 +46,6 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
     }
   };
 
-  const handleShare = async () => {
-    if (sharing || !shareCardRef.current) return;
-    setSharing(true);
-    try {
-      const shareText = `${kural.Line1}\n${kural.Line2}\n\n"${kural.Translation}"\n\nask-kural.vercel.app`;
-
-      if (typeof navigator.share === 'function') {
-        // Use fetch(dataURL) → blob — most reliable cross-browser approach
-        const canvas = await renderCard();
-        const dataUrl = canvas.toDataURL('image/png');
-        const res     = await fetch(dataUrl);
-        const blob    = await res.blob();
-        const file    = new File([blob], `thirukkural-${kural.Number}.png`, { type: 'image/png' });
-
-        const withFile = { files: [file], title: `திருக்குறள் #${kural.Number}`, text: shareText };
-        const textOnly = { title: `திருக்குறள் #${kural.Number}`, text: shareText, url: 'https://ask-kural.vercel.app' };
-        await navigator.share(navigator.canShare?.(withFile) ? withFile : textOnly);
-      } else {
-        // Desktop — open WhatsApp web with text
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
-      }
-    } catch (e: unknown) {
-      if (e instanceof Error && e.name !== 'AbortError') console.error('Share failed', e);
-    } finally {
-      setSharing(false);
-    }
-  };
 
   // ── TAB BAR ───────────────────────────────────────────────────────────────
   const tabBar = kurals.length > 1 && (
@@ -109,26 +73,18 @@ export default function KuralResult({ kurals, isMobile = false }: Props) {
     </div>
   );
 
-  const btnBase: React.CSSProperties = {
-    border: '1px solid rgba(212,175,122,0.4)', borderRadius: '10px',
-    padding: '8px 16px', color: '#d4af7a', fontSize: '13px', fontWeight: '600',
-    display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s',
-  };
-
-  // ── SAVE + SHARE BUTTONS ──────────────────────────────────────────────────
+  // ── SAVE BUTTON ───────────────────────────────────────────────────────────
   const shareBtn = (
-    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-      {/* Save */}
-      <button onClick={handleSave} disabled={saving}
-        style={{ ...btnBase, background: saving ? 'rgba(212,175,122,0.05)' : 'rgba(212,175,122,0.1)', cursor: saving ? 'wait' : 'pointer' }}>
-        {saving ? '⏳ Saving…' : '🖼️ Save'}
-      </button>
-      {/* Share */}
-      <button onClick={handleShare} disabled={sharing}
-        style={{ ...btnBase, background: sharing ? 'rgba(212,175,122,0.05)' : 'rgba(212,175,122,0.15)', cursor: sharing ? 'wait' : 'pointer' }}>
-        {sharing ? '⏳ Sharing…' : <><ShareIcon /> Share</>}
-      </button>
-    </div>
+    <button onClick={handleSave} disabled={saving}
+      style={{
+        background: saving ? 'rgba(212,175,122,0.05)' : 'rgba(212,175,122,0.15)',
+        border: '1px solid rgba(212,175,122,0.4)', borderRadius: '10px',
+        padding: '8px 16px', color: '#d4af7a', fontSize: '13px', fontWeight: '600',
+        display: 'flex', alignItems: 'center', gap: '6px',
+        cursor: saving ? 'wait' : 'pointer', transition: 'all 0.2s',
+      }}>
+      {saving ? '⏳ Saving…' : '🖼️ Save as Image'}
+    </button>
   );
 
   // ── KURAL CARD ────────────────────────────────────────────────────────────
