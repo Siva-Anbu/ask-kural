@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#d4af7a" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#d4af7a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figureGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8c97a"/>
+      <stop offset="100%" stop-color="#a0793a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Soft radial glow behind the figure -->
+  <ellipse cx="200" cy="240" rx="160" ry="200" fill="url(#glow)"/>
+
+  <!-- ── CROWN / HEADDRESS ── -->
+  <!-- Base of crown band -->
+  <rect x="158" y="98" width="84" height="12" rx="4" fill="url(#figureGrad)" opacity="0.9"/>
+  <!-- Crown spikes (5 points) -->
+  <polygon points="165,98 170,68 175,98" fill="url(#figureGrad)" opacity="0.9"/>
+  <polygon points="181,98 186,58 191,98" fill="url(#figureGrad)" opacity="0.95"/>
+  <polygon points="197,98 202,52 207,98" fill="url(#figureGrad)" opacity="1"/>
+  <polygon points="213,98 218,58 223,98" fill="url(#figureGrad)" opacity="0.95"/>
+  <polygon points="229,98 234,68 239,98" fill="url(#figureGrad)" opacity="0.9"/>
+  <!-- Crown jewels -->
+  <circle cx="202" cy="60" r="4" fill="#f4e4c1" opacity="0.8"/>
+  <circle cx="186" cy="66" r="2.5" fill="#f4e4c1" opacity="0.7"/>
+  <circle cx="218" cy="66" r="2.5" fill="#f4e4c1" opacity="0.7"/>
+
+  <!-- ── HEAD ── -->
+  <ellipse cx="200" cy="128" rx="34" ry="36" fill="url(#figureGrad)" opacity="0.85"/>
+  <!-- Facial features — subtle -->
+  <ellipse cx="192" cy="124" rx="4" ry="5" fill="#0a0a0a" opacity="0.3"/>
+  <ellipse cx="208" cy="124" rx="4" ry="5" fill="#0a0a0a" opacity="0.3"/>
+  <path d="M192 138 Q200 144 208 138" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" opacity="0.25" fill="none"/>
+  <!-- Earrings -->
+  <circle cx="166" cy="132" r="5" fill="none" stroke="#e8c97a" stroke-width="2" opacity="0.8"/>
+  <circle cx="234" cy="132" r="5" fill="none" stroke="#e8c97a" stroke-width="2" opacity="0.8"/>
+
+  <!-- ── NECK & SHOULDERS ── -->
+  <rect x="190" y="160" width="20" height="20" rx="4" fill="url(#figureGrad)" opacity="0.8"/>
+  <!-- Shoulder line -->
+  <path d="M130 185 Q160 175 200 178 Q240 175 270 185" fill="url(#figureGrad)" opacity="0.85"/>
+
+  <!-- ── UPPER BODY / SHAWL ── -->
+  <!-- Main torso -->
+  <path d="M140 185 Q135 230 138 290 L262 290 Q265 230 260 185 Q230 175 200 178 Q170 175 140 185Z"
+        fill="url(#figureGrad)" opacity="0.75"/>
+  <!-- Shawl drape over left shoulder -->
+  <path d="M140 185 Q120 200 110 240 Q108 265 120 280 Q130 285 138 270 Q138 230 140 185Z"
+        fill="url(#figureGrad)" opacity="0.6"/>
+  <!-- Shawl drape over right shoulder -->
+  <path d="M260 185 Q280 200 285 235 Q282 255 270 265 Q262 268 260 255 Q262 225 260 185Z"
+        fill="url(#figureGrad)" opacity="0.55"/>
+  <!-- Chest necklace ornament -->
+  <path d="M180 195 Q200 210 220 195" stroke="#f4e4c1" stroke-width="2" fill="none" opacity="0.5"/>
+  <circle cx="200" cy="212" r="5" fill="#f4e4c1" opacity="0.4"/>
+
+  <!-- ── SEATED POSTURE — LOWER BODY ── -->
+  <!-- Dhoti / lower garment -->
+  <path d="M138 290 Q130 330 125 380 Q130 400 200 402 Q270 400 275 380 Q270 330 262 290Z"
+        fill="url(#figureGrad)" opacity="0.7"/>
+  <!-- Leg fold lines -->
+  <path d="M155 350 Q180 340 200 345 Q220 340 245 350" stroke="#0a0a0a" stroke-width="1.5" fill="none" opacity="0.2"/>
+  <!-- Seated crossed legs suggestion -->
+  <ellipse cx="200" cy="395" rx="75" ry="18" fill="url(#figureGrad)" opacity="0.65"/>
+
+  <!-- ── LEFT ARM — Raised, holding palm leaf ── -->
+  <path d="M140 200 Q115 210 100 230 Q90 248 96 262 Q102 270 112 262 Q108 248 118 236 Q128 220 140 215Z"
+        fill="url(#figureGrad)" opacity="0.75"/>
+  <!-- Forearm raised -->
+  <path d="M96 262 Q88 250 82 238 Q78 224 86 215 Q96 208 104 218 Q100 228 104 240Z"
+        fill="url(#figureGrad)" opacity="0.7"/>
+  <!-- Palm leaf (manuscript) -->
+  <path d="M68 200 Q82 195 96 208 Q102 218 94 225 Q80 228 68 222 Q58 215 68 200Z"
+        fill="url(#figureGrad)" opacity="0.5"/>
+  <!-- Palm leaf lines -->
+  <path d="M72 208 L92 212" stroke="#0a0a0a" stroke-width="1" opacity="0.3"/>
+  <path d="M71 213 L90 217" stroke="#0a0a0a" stroke-width="1" opacity="0.3"/>
+  <path d="M72 218 L88 221" stroke="#0a0a0a" stroke-width="1" opacity="0.3"/>
+  <!-- Stylus / pen -->
+  <path d="M96 208 Q86 200 80 192" stroke="#e8c97a" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- ── RIGHT ARM — Resting ── -->
+  <path d="M260 200 Q280 218 288 240 Q292 258 282 265 Q272 268 268 255 Q276 240 270 222 Q265 210 260 205Z"
+        fill="url(#figureGrad)" opacity="0.7"/>
+  <!-- Right hand on knee -->
+  <ellipse cx="280" cy="268" rx="12" ry="8" fill="url(#figureGrad)" opacity="0.65"/>
+
+  <!-- ── DECORATIVE ELEMENTS ── -->
+  <!-- Lotus base / pedestal suggestion -->
+  <path d="M125 400 Q145 415 200 418 Q255 415 275 400" fill="none" stroke="#e8c97a" stroke-width="1.5" opacity="0.3"/>
+  <path d="M140 408 Q160 422 200 425 Q240 422 260 408" fill="none" stroke="#e8c97a" stroke-width="1" opacity="0.2"/>
+
+  <!-- Halo / aura ring -->
+  <circle cx="200" cy="128" r="55" fill="none" stroke="#e8c97a" stroke-width="0.8" opacity="0.2" stroke-dasharray="4 6"/>
+
+  <!-- Subtle decorative dots around crown -->
+  <circle cx="200" cy="46" r="2" fill="#f4e4c1" opacity="0.4"/>
+  <circle cx="182" cy="50" r="1.5" fill="#f4e4c1" opacity="0.35"/>
+  <circle cx="218" cy="50" r="1.5" fill="#f4e4c1" opacity="0.35"/>
+
+  <!-- Bottom Tamil calligraphy hint — stylized -->
+  <text x="200" y="470" text-anchor="middle" font-family="serif" font-size="22" fill="#e8c97a" opacity="0.35" letter-spacing="4">திருவள்ளுவர்</text>
+  <text x="200" y="495" text-anchor="middle" font-family="serif" font-size="11" fill="#e8c97a" opacity="0.2" letter-spacing="3">THIRUVALLUVAR</text>
+</svg>
