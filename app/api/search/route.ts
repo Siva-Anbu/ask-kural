@@ -383,8 +383,11 @@ async function checkPredefinedAnswer(message: string): Promise<Record<string, un
   for (const entry of data) {
     for (const phrase of entry.trigger_phrases as string[]) {
       const p = phrase.toLowerCase().trim();
-      // Exact match OR stripped exact match OR the query contains the phrase as a whole word
-      if (normalized === p || stripped === p || normalized.includes(p) || stripped.includes(p)) {
+      const isMultiWord = p.split(' ').length >= 2;
+      // Exact match always wins; substring match only for multi-word phrases (avoids "love" matching "i miss someone i love")
+      if (normalized === p || stripped === p ||
+          (isMultiWord && normalized.includes(p)) ||
+          (isMultiWord && stripped.includes(p))) {
         const kurals = await Promise.all((entry.kural_numbers as number[]).map((n: number) => getKuralByNumber(n)));
         return kurals.filter(Boolean) as Record<string, unknown>[];
       }
