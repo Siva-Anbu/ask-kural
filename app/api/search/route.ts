@@ -87,7 +87,7 @@ const THIRUKKURAL_THEMES: Record<string, string[]> = {
   'shame': ['நாணம்', 'embarrassment', 'disgrace', 'humiliation', 'shame', 'ashamed', 'embarrassed', 'want to disappear', 'can\'t face anyone', 'so humiliated'],
   'regret': ['regret', 'remorse', 'guilty', 'guilt', 'mistake', 'I made a mistake', 'if only', 'should have', 'shouldn\'t have', 'I wish I hadn\'t', 'past mistake', 'wrong decision', 'I regret', 'feel terrible about', 'மனம் வருந்துகிறேன்', 'பிழை'],
   'frustration': ['frustrated', 'frustration', 'irritated', 'annoyed', 'fed up', 'sick of this', 'can\'t take it anymore', 'nothing works', 'why does this keep happening', 'so annoying', 'nothing goes right'],
-  'burnout': ['burnout', 'burned out', 'exhausted', 'mentally exhausted', 'emotionally drained', 'drained', 'can\'t cope', 'too much', 'worn out', 'running on empty', 'nothing left to give', 'tired of everything', 'can\'t do this anymore'],
+  'burnout': ['burnout', 'burned out', 'exhausted', 'mentally exhausted', 'emotionally drained', 'drained', 'can\'t cope', 'too much', 'worn out', 'running on empty', 'nothing left to give', 'tired of everything', 'can\'t do this anymore', 'so tired', 'i am tired', 'feel tired', 'so exhausted', 'weary', 'no energy', 'fatigued', 'totally drained'],
   'self_doubt': ['not good enough', 'self-doubt', 'insecure', 'low confidence', 'worthless', 'inadequate', 'imposter', 'feel like a failure', 'everyone is better than me', 'I\'m useless', 'I\'m not capable', 'don\'t believe in myself', 'no confidence'],
   'disappointment': ['disappointed', 'disappointment', 'let down', 'expected more', 'not what I hoped', 'my expectations were wrong', 'people disappoint me', 'I feel let down', 'so disappointed'],
   'hopelessness': ['no hope', 'hopeless', 'helpless', 'giving up', 'nothing will change', 'what\'s the point', 'no future', 'can\'t see a way out', 'it\'s all pointless', 'nothing matters', 'why bother'],
@@ -275,6 +275,11 @@ const SYNONYMS: Record<string, string[]> = {
   attitude: ['arrogance', 'ego', 'pride', 'செருக்கு', 'difficult person', 'patience'],
   colleague: ['work', 'coworker', 'difficult person', 'patience', 'பொறுமை'],
   coworker: ['colleague', 'work', 'difficult person', 'patience', 'பொறுமை'],
+  // tiredness / exhaustion
+  tired: ['exhausted', 'burnout', 'drained', 'fatigue', 'weary', 'worn out', 'சோர்வு', 'exhaustion', 'no energy'],
+  weary: ['tired', 'exhausted', 'drained', 'fatigue', 'worn out', 'சோர்வு'],
+  fatigued: ['tired', 'exhausted', 'burnout', 'drained', 'worn out', 'சோர்வு'],
+  exhaustion: ['tired', 'exhausted', 'burnout', 'drained', 'fatigue', 'சோர்வு'],
 };
 
 // ---------------------------------------------------------------------------
@@ -414,7 +419,12 @@ function detectThemes(message: string): string[] {
   for (const [theme, keywords] of Object.entries(THIRUKKURAL_THEMES)) {
     if (detectedThemes.includes(theme)) continue;
     const matchCount = keywords.filter(kw => messageLower.includes(kw.toLowerCase())).length;
-    const isEmotional = ['fear_of_loss', 'death_grief', 'missing_lover', 'attachment', 'loneliness', 'depression', 'anxiety', 'grief', 'heartbreak', 'betrayed_friend'].includes(theme);
+    const isEmotional = [
+      'fear_of_loss', 'death_grief', 'missing_lover', 'attachment', 'loneliness',
+      'depression', 'anxiety', 'grief', 'heartbreak', 'betrayed_friend',
+      'burnout', 'cant_sleep', 'feeling_empty', 'hopelessness', 'self_doubt',
+      'frustration', 'disappointment', 'shame', 'regret', 'anger_control', 'overthinking',
+    ].includes(theme);
     const threshold = isEmotional ? 1 : Math.max(1, Math.floor(keywords.length * 0.3));
     if (matchCount >= threshold) detectedThemes.push(theme);
   }
