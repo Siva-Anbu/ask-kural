@@ -644,10 +644,16 @@ interface KuralMatch {
   similarity: number;
 }
 
+const ROMANTIC_THEMES = new Set([
+  'fear_of_loss', 'heartbreak', 'failed_love', 'breakup', 'missing_lover',
+  'unrequited_love', 'betrayed_love', 'toxic_relationship', 'attachment',
+]);
+
 async function semanticSearchKurals(
   embedding: number[],
   queryContext: string,
-  queryKeywords: string[]
+  queryKeywords: string[],
+  detectedThemes: string[] = []
 ): Promise<KuralMatch[] | null> {
   const { data, error } = await supabase.rpc('match_kurals', {
     query_embedding: embedding,
@@ -658,6 +664,7 @@ async function semanticSearchKurals(
 
   const results = data as KuralMatch[];
   const expanded = expandQueryWithSynonyms(queryKeywords);
+  const isRomanticQuery = detectedThemes.some(t => ROMANTIC_THEMES.has(t));
 
   // Hybrid re-rank: semantic similarity (60%) + keyword presence (40%).
   // Higher keyword weight gives more pull toward topic-specific kurals.
@@ -675,7 +682,10 @@ async function semanticSearchKurals(
       else if (commentaryText.includes(kwl)) hits++;
     }
     const kwBonus = Math.min((strongHits * 1.5 + hits) / Math.max(expanded.length * 0.3, 3), 1) * 0.4;
-    return { ...k, hybridScore: k.similarity * 0.6 + kwBonus };
+    let hybridScore = k.similarity * 0.6 + kwBonus;
+    // Kamam chapters (1081–1330) are romantic poetry — suppress them for non-romantic queries
+    if (!isRomanticQuery && k.Number >= 1081 && k.Number <= 1330) hybridScore *= 0.3;
+    return { ...k, hybridScore };
   });
 
   const sorted = (ctx: Rescored[]) => ctx.sort((a, b) => b.hybridScore - a.hybridScore);
@@ -737,13 +747,33 @@ export async function POST(req: NextRequest) {
     // 4. Run questionare + semantic search in parallel — pick the winner
     const [questionareResult, semanticKurals] = await Promise.all([
       semanticSearchQuestionare(embedding, message),
-      semanticSearchKurals(embedding, queryContext, enrichedKeywords),
+      semanticSearchKurals(embedding, queryContext, enrichedKeywords, detectedThemes),
     ]);
+
+    // Strip Kamam kurals (1081–1330) from questionare results when the query isn't romantic
+    const isRomanticQuery = detectedThemes.some(t => ROMANTIC_THEMES.has(t));
+    if (questionareResult && !isRomanticQuery) {
+      questionareResult.kurals = questionareResult.kurals.filter(
+        (k: Record<string, unknown>) => {
+          const n = k.Number as number;
+          return !(n >= 1081 && n <= 1330);
+        }
+      );
+    }
+
+    // If Kamam filtering left fewer than 3 kurals, backfill from semantic results
+    if (questionareResult && questionareResult.kurals.length < 3 && semanticKurals?.length) {
+      const existingNums = new Set(questionareResult.kurals.map((k: Record<string, unknown>) => k.Number));
+      for (const k of semanticKurals) {
+        if (questionareResult.kurals.length >= 3) break;
+        if (!existingNums.has(k.Number)) questionareResult.kurals.push(k);
+      }
+    }
 
     // Questionare wins only when its similarity is genuinely high (≥0.60).
     // Below that, semantic search with hybrid re-ranking tends to be more precise.
     const QUESTIONARE_WIN_THRESHOLD = 0.60;
-    if (questionareResult && questionareResult.similarity >= QUESTIONARE_WIN_THRESHOLD) {
+    if (questionareResult && questionareResult.similarity >= QUESTIONARE_WIN_THRESHOLD && questionareResult.kurals.length > 0) {
       return NextResponse.json({
         kurals: questionareResult.kurals,
         keywords: ['situation-match'],
