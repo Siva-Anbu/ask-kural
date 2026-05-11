@@ -382,7 +382,7 @@ async function checkPredefinedAnswer(message: string): Promise<Record<string, un
 
   for (const entry of data) {
     for (const phrase of entry.trigger_phrases as string[]) {
-      const p = phrase.toLowerCase().trim();
+      const p = phrase.toLowerCase().replace(/[.,!?;:'"()\-]/g, ' ').replace(/\s+/g, ' ').trim();
       const isMultiWord = p.split(' ').length >= 2;
       // Exact match always wins; substring match only for multi-word phrases (avoids "love" matching "i miss someone i love")
       if (normalized === p || stripped === p ||
