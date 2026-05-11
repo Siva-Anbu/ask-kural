@@ -766,7 +766,7 @@ export async function POST(req: NextRequest) {
       const existingNums = new Set(questionareResult.kurals.map((k: Record<string, unknown>) => k.Number));
       for (const k of semanticKurals) {
         if (questionareResult.kurals.length >= 3) break;
-        if (!existingNums.has(k.Number)) questionareResult.kurals.push(k);
+        if (!existingNums.has(k.Number)) questionareResult.kurals.push(k as unknown as Record<string, unknown>);
       }
     }
 
